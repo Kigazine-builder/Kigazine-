@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kigazine</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #020617;
+  color: white;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  height: 100vh;
+  padding: 18px;
+  border-right: 1px solid #1e293b;
+}
+
+.logo {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.nav-btn {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #cbd5f5;
+  cursor: pointer;
+}
+
+.nav-btn.active { background: #3b82f6; color: white; }
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: none;
+  background: #0f172a;
+  color: white;
+}
+
+textarea { height: 120px; }
+
+/* MAIN */
+.main { flex: 1; padding: 20px; }
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
+
+.danger { background: #ef4444; }
+
+/* MAG */
+.mag {
+  background: #0f172a;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.actions { margin-top: 8px; }
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="logo">📘 Kigazine</div>
+
+  <button class="nav-btn active" onclick="show('feed')">Home</button>
+  <button class="nav-btn" onclick="show('create')">Create</button>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<div class="main">
+
+  <div id="createPage" style="display:none;">
+    <h2>Create</h2>
+    <input id="title" placeholder="Title">
+    <textarea id="content"></textarea>
+    <button onclick="createMag()">Publish</button>
+  </div>
+
+  <div id="feedPage">
+    <h2>Feed</h2>
+    <div id="feed"></div>
+  </div>
+
+</div>
+
+<script>
+// 🔐 FORCE LOGIN
+if (!localStorage.getItem("user")) {
+  window.location.href = "login.html";
+}
+
+let currentUser = localStorage.getItem("user");
+
+function logout() {
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
+}
+
+function getMags() {
+  return JSON.parse(localStorage.getItem("mags") || "[]");
+}
+
+function saveMags(m) {
+  localStorage.setItem("mags", JSON.stringify(m));
+}
+
+function createMag() {
+  const t = title.value;
+  const c = content.value;
+
+  if (!t || !c) return alert("Fill everything");
+
+  let mags = getMags();
+  mags.unshift({ id: Date.now(), title: t, content: c, author: currentUser });
+
+  saveMags(mags);
+  render();
+  show("feed");
+}
+
+function deleteMag(id) {
+  saveMags(getMags().filter(m => m.id !== id));
+  render();
+}
+
+function render() {
+  feed.innerHTML = "";
+
+  getMags().forEach(m => {
+    let div = document.createElement("div");
+    div.className = "mag";
+
+    div.innerHTML = `<b>${m.title}</b><br>by ${m.author}<p>${m.content}</p>`;
+
+    let btns = document.createElement("div");
+
+    if (m.author === currentUser) {
+      let del = document.createElement("button");
+      del.innerText = "Delete";
+      del.className = "danger";
+      del.onclick = () => deleteMag(m.id);
+      btns.appendChild(del);
+    }
+
+    div.appendChild(btns);
+    feed.appendChild(div);
+  });
+}
+
+function show(p) {
+  createPage.style.display = p === "create" ? "block" : "none";
+  feedPage.style.display = p === "feed" ? "block" : "none";
+}
+
+render();
+</script>
+
+</body>
+</html>
