@@ -23,10 +23,10 @@ body {
   border-right: 1px solid #1e293b;
 }
 
-.logo {
-  font-size: 24px;
-  text-align: center;
-  margin-bottom: 20px;
+.logo img {
+  width: 140px;
+  display: block;
+  margin: 0 auto 20px auto;
 }
 
 .nav-btn {
@@ -40,7 +40,21 @@ body {
   cursor: pointer;
 }
 
-.nav-btn.active { background: #3b82f6; color: white; }
+.nav-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
+
+.danger { background: #ef4444; }
 
 input, textarea {
   width: 100%;
@@ -55,20 +69,12 @@ input, textarea {
 textarea { height: 120px; }
 
 /* MAIN */
-.main { flex: 1; padding: 20px; }
-
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #3b82f6;
-  color: white;
-  cursor: pointer;
+.main {
+  flex: 1;
+  padding: 20px;
 }
 
-.danger { background: #ef4444; }
-
-/* MAG */
+/* MAGAZINES */
 .mag {
   background: #0f172a;
   padding: 12px;
@@ -82,33 +88,37 @@ button {
 
 <body>
 
+<!-- SIDEBAR WITH LOGO -->
 <div class="sidebar">
-  <div class="logo">📘 Kigazine</div>
+  <div class="logo">
+    <img src="logo.png" alt="Kigazine Logo">
+  </div>
 
-  <button class="nav-btn active" onclick="show('feed')">Home</button>
-  <button class="nav-btn" onclick="show('create')">Create</button>
+  <button class="nav-btn active" onclick="show('feed')">🏠 Home</button>
+  <button class="nav-btn" onclick="show('create')">➕ Create</button>
 
   <button onclick="logout()">Logout</button>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
   <div id="createPage" style="display:none;">
-    <h2>Create</h2>
+    <h2>Create Magazine</h2>
     <input id="title" placeholder="Title">
-    <textarea id="content"></textarea>
+    <textarea id="content" placeholder="Write your magazine..."></textarea>
     <button onclick="createMag()">Publish</button>
   </div>
 
   <div id="feedPage">
-    <h2>Feed</h2>
+    <h2>🌍 Public Feed</h2>
     <div id="feed"></div>
   </div>
 
 </div>
 
 <script>
-// 🔐 FORCE LOGIN
+// FORCE LOGIN
 if (!localStorage.getItem("user")) {
   window.location.href = "login.html";
 }
@@ -135,7 +145,12 @@ function createMag() {
   if (!t || !c) return alert("Fill everything");
 
   let mags = getMags();
-  mags.unshift({ id: Date.now(), title: t, content: c, author: currentUser });
+  mags.unshift({
+    id: Date.now(),
+    title: t,
+    content: c,
+    author: currentUser
+  });
 
   saveMags(mags);
   render();
@@ -174,6 +189,10 @@ function render() {
 function show(p) {
   createPage.style.display = p === "create" ? "block" : "none";
   feedPage.style.display = p === "feed" ? "block" : "none";
+
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  if (p === "feed") document.querySelectorAll(".nav-btn")[0].classList.add("active");
+  if (p === "create") document.querySelectorAll(".nav-btn")[1].classList.add("active");
 }
 
 render();
