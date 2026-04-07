@@ -1,202 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kigazine</title>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #020617;
-  color: white;
-  display: flex;
-}
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID"
+};
 
-/* SIDEBAR */
-.sidebar {
-  width: 230px;
-  background: linear-gradient(180deg, #0f172a, #020617);
-  height: 100vh;
-  padding: 18px;
-  border-right: 1px solid #1e293b;
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-.logo img {
-  width: 140px;
-  display: block;
-  margin: 0 auto 20px auto;
-}
+// CHECK LOGIN
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.href = "login.html";
+  else loadMags();
+});
 
-.nav-btn {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border: none;
-  border-radius: 10px;
-  background: #0f172a;
-  color: #cbd5f5;
-  cursor: pointer;
-}
-
-.nav-btn.active {
-  background: #3b82f6;
-  color: white;
-}
-
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #3b82f6;
-  color: white;
-  cursor: pointer;
-}
-
-.danger { background: #ef4444; }
-
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: none;
-  background: #0f172a;
-  color: white;
-}
-
-textarea { height: 120px; }
-
-/* MAIN */
-.main {
-  flex: 1;
-  padding: 20px;
-}
-
-/* MAGAZINES */
-.mag {
-  background: #0f172a;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-.actions { margin-top: 8px; }
-</style>
-</head>
-
-<body>
-
-<!-- SIDEBAR WITH LOGO -->
-<div class="sidebar">
-  <div class="logo">
-    <img src="logo.png" alt="Kigazine Logo">
-  </div>
-
-  <button class="nav-btn active" onclick="show('feed')">🏠 Home</button>
-  <button class="nav-btn" onclick="show('create')">➕ Create</button>
-
-  <button onclick="logout()">Logout</button>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
-  <div id="createPage" style="display:none;">
-    <h2>Create Magazine</h2>
-    <input id="title" placeholder="Title">
-    <textarea id="content" placeholder="Write your magazine..."></textarea>
-    <button onclick="createMag()">Publish</button>
-  </div>
-
-  <div id="feedPage">
-    <h2>🌍 Public Feed</h2>
-    <div id="feed"></div>
-  </div>
-
-</div>
-
-<script>
-// FORCE LOGIN
-if (!localStorage.getItem("user")) {
-  window.location.href = "login.html";
-}
-
-let currentUser = localStorage.getItem("user");
-
-function logout() {
-  localStorage.removeItem("user");
-  window.location.href = "login.html";
-}
-
-function getMags() {
-  return JSON.parse(localStorage.getItem("mags") || "[]");
-}
-
-function saveMags(m) {
-  localStorage.setItem("mags", JSON.stringify(m));
-}
-
-function createMag() {
-  const t = title.value;
-  const c = content.value;
-
-  if (!t || !c) return alert("Fill everything");
-
-  let mags = getMags();
-  mags.unshift({
-    id: Date.now(),
-    title: t,
-    content: c,
-    author: currentUser
+// CREATE
+window.createMag = async () => {
+  await addDoc(collection(db, "mags"), {
+    title: title.value,
+    content: content.value,
+    author: auth.currentUser.email
   });
+  loadMags();
+};
 
-  saveMags(mags);
-  render();
-  show("feed");
-}
-
-function deleteMag(id) {
-  saveMags(getMags().filter(m => m.id !== id));
-  render();
-}
-
-function render() {
+// LOAD
+async function loadMags() {
   feed.innerHTML = "";
+  const snap = await getDocs(collection(db, "mags"));
 
-  getMags().forEach(m => {
+  snap.forEach(doc => {
+    const m = doc.data();
+
     let div = document.createElement("div");
     div.className = "mag";
 
-    div.innerHTML = `<b>${m.title}</b><br>by ${m.author}<p>${m.content}</p>`;
-
-    let btns = document.createElement("div");
-
-    if (m.author === currentUser) {
-      let del = document.createElement("button");
-      del.innerText = "Delete";
-      del.className = "danger";
-      del.onclick = () => deleteMag(m.id);
-      btns.appendChild(del);
-    }
-
-    div.appendChild(btns);
+    div.innerHTML = `<b>${m.title}</b><br>${m.author}<p>${m.content}</p>`;
     feed.appendChild(div);
   });
 }
 
-function show(p) {
-  createPage.style.display = p === "create" ? "block" : "none";
-  feedPage.style.display = p === "feed" ? "block" : "none";
-
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-  if (p === "feed") document.querySelectorAll(".nav-btn")[0].classList.add("active");
-  if (p === "create") document.querySelectorAll(".nav-btn")[1].classList.add("active");
-}
-
-render();
+// LOGOUT
+window.logout = () => signOut(auth);
 </script>
-
-</body>
-</html>
