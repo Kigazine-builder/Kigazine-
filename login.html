@@ -1,34 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kigazine Login</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #020617, #0f172a);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background: #0f172a;
+  padding: 30px;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  background: #020617;
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1 id="title">Login</h1>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="submit()">Login / Sign Up</button>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
+  apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+  authDomain: "kigazine-302ac.firebaseapp.com",
+  projectId: "kigazine-302ac",
+  storageBucket: "kigazine-302ac.firebasestorage.app",
+  messagingSenderId: "821833747017",
+  appId: "1:821833747017:web:dc20a182d1935408c34d98"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let isLogin = true;
-
-window.toggleMode = () => {
-  isLogin = !isLogin;
-  title.innerText = isLogin ? "Login" : "Sign Up";
-};
-
 window.submit = async () => {
   try {
-    if (isLogin) {
-      await signInWithEmailAndPassword(auth, username.value, password.value);
-    } else {
-      await createUserWithEmailAndPassword(auth, username.value, password.value);
-    }
-    window.location.href = "index.html";
-  } catch (e) {
-    alert(e.message);
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+  } catch {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
   }
+
+  window.location.href = "index.html";
 };
 </script>
+
+</body>
+</html>
