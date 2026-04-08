@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Kigazine</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
@@ -14,31 +16,19 @@
 <button onclick="logout()">Logout</button>
 
 <script>
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Kigazine</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-</head>
-
-<body style="background:#0f172a;color:white;font-family:Arial;padding:20px;">
-
-<h1>Welcome to Kigazine 🚀</h1>
-<p id="user"></p>
-
-<button onclick="logout()">Logout</button>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "PASTE",
-    authDomain: "PASTE",
-    projectId: "PASTE",
-  };
-
+const firebaseConfig = {
+  apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+  authDomain: "kigazine-302ac.firebaseapp.com",
+  projectId: "kigazine-302ac",
+  storageBucket: "kigazine-302ac.firebasestorage.app",
+  messagingSenderId: "821833747017",
+  appId: "1:821833747017:web:dc20a182d1935408c34d98"
+};
+  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
+  // Check login
   auth.onAuthStateChanged(user => {
     if (!user) {
       window.location.href = "login.html";
@@ -48,28 +38,7 @@
     }
   });
 
-  function logout() {
-    auth.signOut().then(() => {
-      window.location.href = "login.html";
-    });
-  }
-</script>
-
-</body>
-</html>
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = "login.html";
-    } else {
-      document.getElementById("user").innerText =
-        "Logged in as: " + user.email;
-    }
-  });
-
+  // Logout
   function logout() {
     auth.signOut().then(() => {
       window.location.href = "login.html";
