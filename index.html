@@ -1,52 +1,57 @@
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kigazine</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+    }
 
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
-};
+    .sidebar {
+      width: 200px;
+      height: 100vh;
+      background: #020617;
+      position: fixed;
+      padding-top: 20px;
+    }
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    .sidebar a {
+      display: block;
+      padding: 12px;
+      color: #93c5fd;
+      text-decoration: none;
+      border-radius: 6px;
+      margin: 5px;
+    }
 
-// CHECK LOGIN
-onAuthStateChanged(auth, user => {
-  if (!user) window.location.href = "login.html";
-  else loadMags();
-});
+    .sidebar a:hover {
+      background: #1e293b;
+    }
 
-// CREATE
-window.createMag = async () => {
-  await addDoc(collection(db, "mags"), {
-    title: title.value,
-    content: content.value,
-    author: auth.currentUser.email
-  });
-  loadMags();
-};
+    .main {
+      margin-left: 210px;
+      padding: 20px;
+    }
 
-// LOAD
-async function loadMags() {
-  feed.innerHTML = "";
-  const snap = await getDocs(collection(db, "mags"));
+    h1 {
+      font-size: 32px;
+    }
+  </style>
+</head>
 
-  snap.forEach(doc => {
-    const m = doc.data();
+<body>
+  <div class="sidebar">
+    <a href="#">View</a>
+    <a href="#">Create</a>
+    <a href="login.html">Account</a>
+  </div>
 
-    let div = document.createElement("div");
-    div.className = "mag";
-
-    div.innerHTML = `<b>${m.title}</b><br>${m.author}<p>${m.content}</p>`;
-    feed.appendChild(div);
-  });
-}
-
-// LOGOUT
-window.logout = () => signOut(auth);
-</script>
+  <div class="main">
+    <h1>Welcome to Kigazine 🚀</h1>
+    <p>Your site is working!</p>
+  </div>
+</body>
+</html>
