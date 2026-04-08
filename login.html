@@ -2,73 +2,57 @@
 <html>
 <head>
   <title>Kigazine Login</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .box {
-      background: #020617;
-      padding: 30px;
-      border-radius: 12px;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      background: #1e293b;
-      color: white;
-    }
-
-    button {
-      width: 95%;
-      padding: 10px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #3b82f6;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #2563eb;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
 
-<body>
-  <div class="box">
-    <h2>Kigazine</h2>
+<body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding-top:100px;">
 
-    <input type="text" placeholder="Username">
-    <input type="password" placeholder="Password">
+<h2>Kigazine</h2>
 
-    <!-- LOGIN BUTTON -->
-    <button onclick="goHome()">Login</button>
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
 
-    <!-- SIGNUP BUTTON -->
-    <button onclick="goHome()">Sign Up</button>
-  </div>
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
 
-  <script>
-    function goHome() {
-      // Redirect to homepage
-      window.location.href = "index.html";
-    }
-  </script>
+<script>
+  // 🔥 PASTE YOUR CONFIG HERE
+  cconst firebaseConfig = {
+  apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+  authDomain: "kigazine-302ac.firebaseapp.com",
+  projectId: "kigazine-302ac",
+  storageBucket: "kigazine-302ac.firebasestorage.app",
+  messagingSenderId: "821833747017",
+  appId: "1:821833747017:web:dc20a182d1935408c34d98"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  function signup() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(() => {
+        alert("Account created!");
+        window.location.href = "index.html";
+      })
+      .catch(err => alert(err.message));
+  }
+
+  function login() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(() => {
+        window.location.href = "index.html";
+      })
+      .catch(err => alert(err.message));
+  }
+</script>
+
 </body>
 </html>
