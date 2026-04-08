@@ -2,54 +2,42 @@
 <html>
 <head>
   <title>Kigazine</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-    }
-
-    .sidebar {
-      width: 200px;
-      height: 100vh;
-      background: #020617;
-      position: fixed;
-      padding-top: 20px;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 12px;
-      color: #93c5fd;
-      text-decoration: none;
-      border-radius: 6px;
-      margin: 5px;
-    }
-
-    .sidebar a:hover {
-      background: #1e293b;
-    }
-
-    .main {
-      margin-left: 210px;
-      padding: 20px;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
 
-<body>
+<body style="background:#0f172a;color:white;font-family:Arial;padding:20px;">
 
-<div class="sidebar">
-  <a href="#">View</a>
-  <a href="#">Create</a>
-  <a href="login.html">Account</a>
-</div>
+<h1>Welcome to Kigazine 🚀</h1>
+<p id="user"></p>
 
-<div class="main">
-  <h1>Welcome to Kigazine 🚀</h1>
-  <p>No loops, no blank page, works clean.</p>
-</div>
+<button onclick="logout()">Logout</button>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "PASTE",
+    authDomain: "PASTE",
+    projectId: "PASTE",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("user").innerText =
+        "Logged in as: " + user.email;
+    }
+  });
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = "login.html";
+    });
+  }
+</script>
 
 </body>
 </html>
