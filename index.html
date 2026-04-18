@@ -1,50 +1,715 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kigazine</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-</head>
-
-<body style="background:#0f172a;color:white;font-family:Arial;padding:20px;">
-
-<h1>Welcome to Kigazine 🚀</h1>
-<p id="user"></p>
-
-<button onclick="logout()">Logout</button>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
-  authDomain: "kigazine-302ac.firebaseapp.com",
-  projectId: "kigazine-302ac",
-  storageBucket: "kigazine-302ac.firebasestorage.app",
-  messagingSenderId: "821833747017",
-  appId: "1:821833747017:web:dc20a182d1935408c34d98"
-};
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  // Check login
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = "login.html";
-    } else {
-      document.getElementById("user").innerText =
-        "Logged in as: " + user.email;
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #121a2b;
+      --panel-2: #18233a;
+      --soft: #22304d;
+      --line: #2d3c5e;
+      --text: #eaf2ff;
+      --muted: #a8b6d4;
+      --blue: #3b82f6;
+      --blue-2: #2563eb;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 22px;
     }
-  });
 
-  // Logout
-  function logout() {
-    auth.signOut().then(() => {
-      window.location.href = "login.html";
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(180deg, #09111e 0%, #0b1220 100%); color: var(--text); }
+    body { min-height: 100vh; }
+    button, input, textarea { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: rgba(10, 16, 29, 0.92);
+      border-right: 1px solid var(--line);
+      padding: 22px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(37,99,235,.08));
+      border: 1px solid rgba(96,165,250,.25);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), #60a5fa);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .brand h1 {
+      font-size: 24px;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: .18s ease;
+      font-weight: 700;
+    }
+
+    .nav-btn:hover {
+      background: rgba(59,130,246,.1);
+      border-color: rgba(96,165,250,.25);
+      transform: translateX(2px);
+      box-shadow: 0 0 16px rgba(59,130,246,.16);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(59,130,246,.22), rgba(37,99,235,.14));
+      border-color: rgba(96,165,250,.28);
+      box-shadow: 0 0 18px rgba(59,130,246,.18);
+    }
+
+    .side-card {
+      margin-top: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .side-card h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .side-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .main {
+      padding: 24px;
+    }
+
+    .hero {
+      background: radial-gradient(circle at top right, rgba(96,165,250,.18), transparent 30%), linear-gradient(135deg, rgba(59,130,246,.16), rgba(17,24,39,.45));
+      border: 1px solid rgba(96,165,250,.22);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .hero h2 {
+      margin: 0 0 10px;
+      font-size: 38px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .18s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      box-shadow: 0 12px 28px rgba(37,99,235,.32);
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary {
+      background: #152136;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: rgba(18, 26, 43, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      font-size: 32px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .section {
+      display: none;
+      animation: fade .18s ease;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .search {
+      width: 320px;
+      max-width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #0d1728;
+      color: var(--text);
+    }
+
+    .mag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .mag-card {
+      background: linear-gradient(180deg, rgba(24,35,58, .95), rgba(18,26,43,.95));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .mag-cover {
+      height: 140px;
+      background: linear-gradient(135deg, rgba(59,130,246,.75), rgba(96,165,250,.25));
+      display: flex;
+      align-items: end;
+      justify-content: start;
+      padding: 16px;
+      font-size: 26px;
+      font-weight: 800;
+    }
+
+    .mag-body { padding: 16px; }
+    .mag-body h3 { margin: 0 0 8px; }
+    .mag-meta { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.12);
+      color: #86efac;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(34,197,94,.2);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .input, .textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #0d1728;
+      color: var(--text);
+    }
+
+    .textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 16px;
+    }
+
+    .preview {
+      background: linear-gradient(180deg, #f8fafc, #eef2ff);
+      color: #0f172a;
+      border-radius: 22px;
+      padding: 22px;
+      min-height: 220px;
+    }
+
+    .preview .cover {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      padding: 18px;
+      border-radius: 18px;
+      margin-bottom: 14px;
+    }
+
+    .account-box {
+      display: grid;
+      gap: 16px;
+      max-width: 620px;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(245,158,11,.12);
+      color: #fcd34d;
+      border: 1px solid rgba(245,158,11,.2);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .success {
+      background: rgba(34,197,94,.12);
+      color: #86efac;
+      border-color: rgba(34,197,94,.2);
+    }
+
+    .danger {
+      background: rgba(239,68,68,.12);
+      color: #fca5a5;
+      border-color: rgba(239,68,68,.2);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 940px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+      .grid { grid-template-columns: 1fr; }
+      .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">K</div>
+        <div>
+          <h1>Kigazine</h1>
+          <p>Kids can create magazines</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-btn active" data-section="homeSection">🏠 Home</button>
+        <button class="nav-btn" data-section="viewSection">📚 View</button>
+        <button class="nav-btn" data-section="createSection">✏️ Create</button>
+        <button class="nav-btn" data-section="accountSection">👤 Account</button>
+      </nav>
+
+      <div class="side-card">
+        <h3>Kid-friendly plan</h3>
+        <p>Public magazines can be seen by everyone, but posting should still go through rules or approval later.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="homeSection" class="section active">
+        <div class="hero">
+          <h2>Welcome to Kigazine 🚀</h2>
+          <p>A cleaner restart for your magazine site. This version gives you a better layout, cleaner buttons, a real create flow, and places to connect Firebase Auth + Firestore for real accounts and saved magazines.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="showSection('viewSection')">View magazines</button>
+            <button class="btn btn-secondary" onclick="showSection('createSection')">Create one</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="muted">Public magazines</div>
+            <div class="stat" id="publicCount">3</div>
+          </div>
+          <div class="card">
+            <div class="muted">Writers joined</div>
+            <div class="stat" id="writerCount">1</div>
+          </div>
+          <div class="card">
+            <div class="muted">Site status</div>
+            <div class="stat" style="font-size:20px; margin-top:16px;">Clean restart ready</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">What this restart fixes</h3>
+          <p class="muted" style="line-height:1.7; margin-bottom:0;">
+            Better sidebar, bigger logo, cleaner cards, stronger blue buttons, separate sections, live preview while writing, and a much easier place to add Firebase later. Right now it includes demo data so it looks good immediately instead of loading blank.
+          </p>
+        </div>
+      </section>
+
+      <section id="viewSection" class="section">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0 0 6px;">Public magazines</h2>
+            <div class="muted">Everyone can read these</div>
+          </div>
+          <input id="searchInput" class="search" placeholder="Search magazines..." />
+        </div>
+        <div id="magGrid" class="mag-grid"></div>
+      </section>
+
+      <section id="createSection" class="section">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0 0 6px;">Create a magazine</h2>
+            <div class="muted">Write it, preview it, then publish</div>
+          </div>
+        </div>
+
+        <div class="notice">For now this starter saves demo magazines in memory only. Next step is connecting Firestore so your posts save for real across devices.</div>
+
+        <div class="split">
+          <div class="card">
+            <div class="form-grid">
+              <div>
+                <label class="label">Title</label>
+                <input id="titleInput" class="input" placeholder="My awesome magazine" />
+              </div>
+              <div>
+                <label class="label">Description</label>
+                <input id="descInput" class="input" placeholder="What is your magazine about?" />
+              </div>
+              <div>
+                <label class="label">Content</label>
+                <textarea id="contentInput" class="textarea" placeholder="Write your story here..."></textarea>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="publishBtn">Publish magazine</button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+              </div>
+              <div id="publishMessage" class="notice success hidden">Published.</div>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="cover">
+              <div>
+                <div style="font-size:12px; opacity:.85; font-weight:700;">KIGAZINE PREVIEW</div>
+                <div id="previewTitle" style="font-size:28px; margin-top:6px; font-weight:800;">Your title here</div>
+              </div>
+            </div>
+            <div id="previewDesc" style="font-weight:700; margin-bottom:10px;">Your description will show here.</div>
+            <div id="previewContent" style="line-height:1.7; color:#334155; white-space:pre-wrap;">Start typing to preview your magazine.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="accountSection" class="section">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0 0 6px;">Account</h2>
+            <div class="muted">Sign up or log in with Firebase later</div>
+          </div>
+        </div>
+
+        <div class="account-box">
+          <div class="card">
+            <div id="authNotice" class="notice">Firebase Auth is not connected yet. Add your Firebase config in the script at the bottom when you are ready for real accounts.</div>
+            <div class="form-grid">
+              <div>
+                <label class="label">Username</label>
+                <input id="usernameInput" class="input" placeholder="Pick a username" />
+              </div>
+              <div>
+                <label class="label">Email</label>
+                <input id="emailInput" class="input" placeholder="you@example.com" />
+              </div>
+              <div>
+                <label class="label">Password</label>
+                <input id="passwordInput" class="input" type="password" placeholder="Password" />
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="signupBtn">Sign up</button>
+                <button class="btn btn-secondary" id="loginBtn">Log in</button>
+                <button class="btn btn-secondary" id="logoutBtn">Log out</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0;">Current account panel</h3>
+            <p class="muted" id="accountStatus" style="margin-bottom:0; line-height:1.7;">Not logged in yet. This is the clean starter version.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const demoMagazines = [
+      {
+        title: 'Space Weekly',
+        description: 'Cool facts about planets and rockets.',
+        content: 'This week we learned about Saturn, its rings, and how rockets escape Earth.',
+        author: 'Kigazine Team',
+        public: true
+      },
+      {
+        title: 'Animal World',
+        description: 'A fun magazine about amazing animals.',
+        content: 'Did you know octopuses have three hearts? Penguins can slide on their bellies!',
+        author: 'Kigazine Team',
+        public: true
+      },
+      {
+        title: 'Robotics News',
+        description: 'Robots, gears, and coding fun.',
+        content: 'Building robots takes teamwork, planning, and testing. Sensors help robots understand the world.',
+        author: 'Kigazine Team',
+        public: true
+      }
+    ];
+
+    let magazines = [...demoMagazines];
+    let currentUser = null;
+
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.section');
+    const magGrid = document.getElementById('magGrid');
+    const searchInput = document.getElementById('searchInput');
+    const publicCount = document.getElementById('publicCount');
+    const writerCount = document.getElementById('writerCount');
+
+    function showSection(sectionId) {
+      sections.forEach(s => s.classList.remove('active'));
+      navButtons.forEach(b => b.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      document.querySelector(`[data-section="${sectionId}"]`)?.classList.add('active');
+    }
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => showSection(btn.dataset.section));
     });
-  }
-</script>
 
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderMagazines(filter = '') {
+      const q = filter.trim().toLowerCase();
+      const filtered = magazines.filter(m =>
+        m.title.toLowerCase().includes(q) ||
+        m.description.toLowerCase().includes(q) ||
+        m.author.toLowerCase().includes(q)
+      );
+
+      magGrid.innerHTML = filtered.map(m => `
+        <article class="mag-card">
+          <div class="mag-cover">${escapeHtml(m.title.charAt(0).toUpperCase())}</div>
+          <div class="mag-body">
+            <h3>${escapeHtml(m.title)}</h3>
+            <div class="mag-meta">By ${escapeHtml(m.author)}</div>
+            <div class="mag-meta">${escapeHtml(m.description)}</div>
+            <div style="margin-bottom:12px;"><span class="tag">Public</span></div>
+            <div class="muted" style="line-height:1.6; white-space:pre-wrap;">${escapeHtml(m.content.slice(0, 120))}${m.content.length > 120 ? '...' : ''}</div>
+          </div>
+        </article>
+      `).join('');
+
+      publicCount.textContent = magazines.length;
+      writerCount.textContent = currentUser ? 1 : 1;
+    }
+
+    searchInput.addEventListener('input', e => renderMagazines(e.target.value));
+
+    const titleInput = document.getElementById('titleInput');
+    const descInput = document.getElementById('descInput');
+    const contentInput = document.getElementById('contentInput');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewDesc = document.getElementById('previewDesc');
+    const previewContent = document.getElementById('previewContent');
+    const publishBtn = document.getElementById('publishBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const publishMessage = document.getElementById('publishMessage');
+
+    function updatePreview() {
+      previewTitle.textContent = titleInput.value.trim() || 'Your title here';
+      previewDesc.textContent = descInput.value.trim() || 'Your description will show here.';
+      previewContent.textContent = contentInput.value.trim() || 'Start typing to preview your magazine.';
+    }
+
+    [titleInput, descInput, contentInput].forEach(el => el.addEventListener('input', updatePreview));
+
+    publishBtn.addEventListener('click', () => {
+      const title = titleInput.value.trim();
+      const description = descInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (!title || !description || !content) {
+        publishMessage.textContent = 'Please fill out title, description, and content.';
+        publishMessage.classList.remove('hidden', 'success');
+        publishMessage.classList.add('danger');
+        return;
+      }
+
+      magazines.unshift({
+        title,
+        description,
+        content,
+        author: currentUser?.username || 'Guest Writer',
+        public: true
+      });
+
+      renderMagazines(searchInput.value);
+      publishMessage.textContent = 'Magazine published into demo list.';
+      publishMessage.classList.remove('hidden', 'danger');
+      publishMessage.classList.add('success');
+      showSection('viewSection');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      titleInput.value = '';
+      descInput.value = '';
+      contentInput.value = '';
+      updatePreview();
+      publishMessage.classList.add('hidden');
+    });
+
+    const usernameInput = document.getElementById('usernameInput');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const signupBtn = document.getElementById('signupBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const accountStatus = document.getElementById('accountStatus');
+
+    function refreshAccountPanel() {
+      if (currentUser) {
+        accountStatus.textContent = `Logged in as ${currentUser.username} (${currentUser.email}). In the next version, this should come from Firebase Auth.`;
+      } else {
+        accountStatus.textContent = 'Not logged in yet. This is the clean starter version.';
+      }
+    }
+
+    signupBtn.addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      if (!username || !email || !password) {
+        accountStatus.textContent = 'Fill out username, email, and password first.';
+        return;
+      }
+      currentUser = { username, email };
+      refreshAccountPanel();
+    });
+
+    loginBtn.addEventListener('click', () => {
+      const username = usernameInput.value.trim() || 'User';
+      const email = emailInput.value.trim() || 'you@example.com';
+      currentUser = { username, email };
+      refreshAccountPanel();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      currentUser = null;
+      refreshAccountPanel();
+    });
+
+    renderMagazines();
+    updatePreview();
+    refreshAccountPanel();
+
+    // =============================================
+    // FIREBASE NEXT STEP
+    // =============================================
+    // When you are ready for real accounts + real saved magazines:
+    // 1. Add your Firebase config here.
+    // 2. Use Firebase Auth for signup/login.
+    // 3. Use Firestore to save magazines.
+    // 4. Replace the demo arrays above with Firestore reads/writes.
+    //
+    // Example idea later:
+    // import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    // import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    // import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  </script>
 </body>
 </html>
