@@ -613,32 +613,6 @@
           <input id="searchInput" class="search" placeholder="Search magazines..." />
         </div>
         <div id="magGrid" class="mag-grid"></div>
-
-        <div id="commentsModal" class="hidden" style="position:fixed; inset:0; background:rgba(2,6,23,.75); z-index:1000; padding:24px; overflow:auto;">
-          <div style="max-width:900px; margin:0 auto; background:#0f172a; border:1px solid #26344d; border-radius:24px; box-shadow:var(--shadow); overflow:hidden;">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid #26344d;">
-              <div>
-                <h3 id="commentsTitle" style="margin:0 0 6px;">Comments</h3>
-                <div id="commentsMeta" class="muted">Magazine discussion</div>
-              </div>
-              <button id="closeCommentsBtn" class="btn btn-secondary">Close</button>
-            </div>
-            <div style="padding:20px; display:grid; gap:16px;">
-              <div class="card" style="margin:0;">
-                <h3 style="margin-top:0;">Add a comment</h3>
-                <textarea id="commentInput" class="textarea" placeholder="Write something nice..." style="min-height:120px;"></textarea>
-                <div class="row" style="margin-top:12px;">
-                  <button id="sendCommentBtn" class="btn btn-primary">Post comment</button>
-                </div>
-                <div id="commentMessage" class="notice hidden"></div>
-              </div>
-              <div>
-                <h3 style="margin:0 0 12px;">Comments</h3>
-                <div id="commentsList" style="display:grid; gap:12px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section id="createSection" class="section">
@@ -729,14 +703,13 @@
       query,
       where,
       orderBy,
-      getDocs,
-      onSnapshot
+      getDocs
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // ======================================
     // PASTE YOUR FIREBASE CONFIG HERE
     // ======================================
-   const firebaseConfig = {
+    const firebaseConfig = {
   apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
   authDomain: "kigazine-302ac.firebaseapp.com",
   projectId: "kigazine-302ac",
@@ -868,9 +841,6 @@
               <div class="mag-meta">${escapeHtml(m.description)}</div>
               <div><span class="tag">Public</span></div>
               <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml(m.content.length > 220 ? m.content.slice(0, 220) + "..." : m.content)}</div>
-              <div class="row" style="margin-top:14px;">
-                <button class="btn btn-secondary open-comments-btn" data-id="${escapeHtml(m.id)}" data-title="${escapeHtml(m.title)}" data-user="${escapeHtml(m.username)}">Comments</button>
-              </div>
             </div>
           </article>
         `).join("");
