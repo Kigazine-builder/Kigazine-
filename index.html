@@ -208,6 +208,13 @@
       border: 1px solid #30415d;
     }
 
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .58;
+      transform: none;
+      box-shadow: none;
+    }
+
     .notice {
       margin-top: 14px;
       padding: 12px 14px;
@@ -367,6 +374,88 @@
 
     .card h3 { margin-top: 0; }
     .muted { color: var(--soft); }
+    .safety-panel {
+      border-color: rgba(34,197,94,.28);
+      background:
+        linear-gradient(135deg, rgba(34,197,94,.12), rgba(15,23,42,.92));
+    }
+
+    .safety-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: #c7d2fe;
+      line-height: 1.65;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: #dbeafe;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--green);
+    }
+
+    .report-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(245,158,11,.28);
+      background: rgba(245,158,11,.1);
+      color: #fde68a;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .report-btn:hover {
+      background: rgba(245,158,11,.16);
+    }
+
+    .admin-review-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .admin-review-item {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #31415d;
+      background: rgba(11,18,32,.72);
+    }
+
+    .admin-review-item h4 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .admin-review-item p {
+      margin: 0 0 10px;
+      color: var(--soft);
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .review-warning {
+      border: 1px solid rgba(245,158,11,.3);
+      background: rgba(245,158,11,.1);
+      color: #fde68a;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 10px 0;
+      line-height: 1.5;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
     .stat {
       font-size: 34px;
       font-weight: 900;
@@ -439,9 +528,33 @@
     }
 
     .form-grid { display: grid; gap: 14px; }
+    .field-help {
+      margin: 6px 0 0;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .textarea {
       min-height: 180px;
       resize: vertical;
+    }
+
+    .draft-safety-hint {
+      border-radius: 12px;
+      border: 1px solid rgba(34,197,94,.24);
+      background: rgba(34,197,94,.1);
+      color: #bbf7d0;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .draft-safety-hint.warning {
+      border-color: rgba(245,158,11,.34);
+      background: rgba(245,158,11,.12);
+      color: #fde68a;
     }
 
     .preview {
@@ -508,43 +621,49 @@
         </div>
         <div class="hero-copy">
           <h1>Read, write, and share magazines.</h1>
-          <p>A cleaner Kigazine with real Firebase login, saved usernames, and public magazines everyone can see.</p>
+          <p>A safer Kigazine where kids can write creative magazines, learn good sharing habits, and send posts for review before they appear publicly.</p>
           <div class="hero-pills">
-            <span class="pill">Real accounts</span>
-            <span class="pill">Public magazine feed</span>
-            <span class="pill">Kid-friendly project</span>
+            <span class="pill">Review before public</span>
+            <span class="pill">No personal info</span>
+            <span class="pill">Report tools</span>
           </div>
         </div>
       </div>
-      <div class="small">Designed to feel cleaner, more modern, and easier to use.</div>
+      <div class="small">Built for creative posting with safer defaults and grown-up permission.</div>
     </div>
 
     <div class="auth-right">
       <div class="auth-card">
         <div class="auth-tabs">
-          <button id="loginTab" class="tab-btn active">Log in</button>
-          <button id="signupTab" class="tab-btn">Sign up</button>
+          <button id="loginTab" class="tab-btn active" aria-pressed="true">Log in</button>
+          <button id="signupTab" class="tab-btn" aria-pressed="false">Sign up</button>
         </div>
         <h2 id="authTitle">Welcome back</h2>
         <p id="authSub" class="sub">Log in to continue reading and writing on Kigazine.</p>
 
         <div id="usernameField" class="field hidden">
-          <label class="label">Username</label>
-          <input id="usernameInput" class="input" placeholder="Choose a username" />
+          <label class="label" for="usernameInput">Username</label>
+          <input id="usernameInput" class="input" maxlength="24" autocomplete="username" placeholder="Choose a username, not your full name" />
+          <p class="field-help">Use a nickname or screen name. Do not use your full real name.</p>
         </div>
 
         <div class="field">
-          <label class="label">Email</label>
-          <input id="emailInput" class="input" type="email" placeholder="you@example.com" />
+          <label class="label" for="emailInput">Email</label>
+          <input id="emailInput" class="input" type="email" autocomplete="email" placeholder="you@example.com" />
         </div>
 
         <div class="field">
-          <label class="label">Password</label>
-          <input id="passwordInput" class="input" type="password" placeholder="Password" />
+          <label class="label" for="passwordInput">Password</label>
+          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="Password" />
         </div>
+
+        <label id="permissionField" class="check-row hidden">
+          <input id="permissionInput" type="checkbox" />
+          <span>I have permission from a parent or guardian to use Kigazine.</span>
+        </label>
 
         <button id="authSubmitBtn" class="btn btn-primary" style="width:100%;">Log in</button>
-        <div id="authMessage" class="notice hidden"></div>
+        <div id="authMessage" class="notice hidden" role="status" aria-live="polite"></div>
       </div>
     </div>
   </section>
@@ -568,7 +687,7 @@
 
       <div class="side-card">
         <h3>Safety note</h3>
-        <p>This version makes magazines public. Later, you should add approval or filters for kid-friendly posting.</p>
+        <p>Magazines are submitted for review first. Keep full names, addresses, schools, phone numbers, and private details out of posts.</p>
       </div>
     </aside>
 
@@ -576,7 +695,7 @@
       <section id="homeSection" class="section active">
         <div class="hero">
           <h2>Welcome to Kigazine 🚀</h2>
-          <p>Write your own magazine, publish it for everyone to read, and manage your account with Firebase. This version stores users and magazines for real across devices.</p>
+          <p>Write your own magazine, preview it, and submit it for review. Approved magazines can appear in the public feed, while private details stay out.</p>
           <div class="hero-actions">
             <button class="btn btn-primary" onclick="showSection('viewSection')">View magazines</button>
             <button class="btn btn-secondary" onclick="showSection('createSection')">Create a magazine</button>
@@ -594,13 +713,18 @@
           </div>
           <div class="card">
             <div class="muted">Status</div>
-            <div class="stat" style="font-size:21px; margin-top:16px;">Firebase live</div>
+            <div class="stat" style="font-size:21px; margin-top:16px;">Review-first</div>
           </div>
         </div>
 
-        <div class="card">
-          <h3>How this version works</h3>
-          <p class="muted" style="line-height:1.75; margin-bottom:0;">Users sign up with email and password. Their username is saved in Firestore. Magazines are saved in Firestore too, and the View page loads all public magazines. This is much better than localStorage because it works across devices.</p>
+        <div class="card safety-panel">
+          <h3>Before you share</h3>
+          <p class="muted" style="line-height:1.75; margin-bottom:0;">Kigazine is for creative ideas, stories, clubs, reviews, and learning. Posts should not include private information or anything mean, scary, unsafe, or grown-up.</p>
+          <ul class="safety-list">
+            <li>Use a nickname, not your full real name.</li>
+            <li>Do not post your address, school, phone, email, passwords, or exact location.</li>
+            <li>Ask a trusted grown-up before sharing anything online.</li>
+          </ul>
         </div>
       </section>
 
@@ -608,9 +732,10 @@
         <div class="toolbar">
           <div>
             <h2 style="margin:0 0 6px;">Public magazines</h2>
-            <div class="muted">Everyone can read these posts</div>
+            <div class="muted">Approved posts that are okay for kids to read</div>
           </div>
-          <input id="searchInput" class="search" placeholder="Search magazines..." />
+          <label class="label hidden" for="searchInput">Search magazines</label>
+          <input id="searchInput" class="search" placeholder="Search magazines..." aria-label="Search magazines" />
         </div>
         <div id="magGrid" class="mag-grid"></div>
       </section>
@@ -619,7 +744,7 @@
         <div class="toolbar">
           <div>
             <h2 style="margin:0 0 6px;">Create a magazine</h2>
-            <div class="muted">Write it, preview it, then publish it</div>
+            <div class="muted">Write it, preview it, then send it for review</div>
           </div>
         </div>
 
@@ -627,22 +752,32 @@
           <div class="card">
             <div class="form-grid">
               <div>
-                <label class="label">Title</label>
-                <input id="titleInput" class="input" placeholder="My awesome magazine" />
+                <label class="label" for="titleInput">Title</label>
+                <input id="titleInput" class="input" maxlength="80" placeholder="My awesome magazine" />
+                <p class="field-help">Keep titles short and do not include private details.</p>
               </div>
               <div>
-                <label class="label">Description</label>
-                <input id="descInput" class="input" placeholder="What is your magazine about?" />
+                <label class="label" for="descInput">Description</label>
+                <input id="descInput" class="input" maxlength="180" placeholder="What is your magazine about?" />
               </div>
               <div>
-                <label class="label">Content</label>
-                <textarea id="contentInput" class="textarea" placeholder="Write your story here..."></textarea>
+                <label class="label" for="contentInput">Content</label>
+                <textarea id="contentInput" class="textarea" maxlength="2500" placeholder="Write your story here..."></textarea>
+                <p class="field-help" id="contentLengthHelp">0 of 2500 characters used.</p>
+              </div>
+              <div id="draftSafetyHint" class="draft-safety-hint" role="status" aria-live="polite">Draft looks okay so far. Keep checking for private details before you submit.</div>
+              <div class="safety-panel" style="border:1px solid rgba(34,197,94,.28); border-radius:18px; padding:14px;">
+                <h3 style="margin:0 0 8px; font-size:16px;">Safety check</h3>
+                <label class="check-row">
+                  <input id="safePostInput" type="checkbox" />
+                  <span>I checked my magazine and it does not include private information, mean content, unsafe dares, or anything I would not show a trusted grown-up.</span>
+                </label>
               </div>
               <div class="row">
-                <button id="publishBtn" class="btn btn-primary">Publish magazine</button>
+                <button id="publishBtn" class="btn btn-primary">Submit for review</button>
                 <button id="clearBtn" class="btn btn-secondary">Clear</button>
               </div>
-              <div id="publishMessage" class="notice hidden"></div>
+              <div id="publishMessage" class="notice hidden" role="status" aria-live="polite"></div>
             </div>
           </div>
 
@@ -675,8 +810,29 @@
           </div>
 
           <div class="card">
-            <h3>Important next safety step</h3>
-            <p class="muted" style="line-height:1.7; margin-bottom:0;">Right now this code only publishes magazines marked public. To keep Kigazine kid-friendly, the next upgrade should add moderation or an approval system before posts appear for everyone.</p>
+            <h3>Important safety note</h3>
+            <p class="muted" style="line-height:1.7; margin-bottom:0;">New magazines are saved as pending review instead of public. Admins can approve kid-safe posts from the review queue below.</p>
+          </div>
+
+          <div id="adminPanel" class="card hidden">
+            <h3>Admin review queue</h3>
+            <p id="adminStatus" class="muted" style="line-height:1.7; margin-bottom:12px;">Loading pending magazines...</p>
+            <div class="row">
+              <button id="refreshAdminBtn" class="btn btn-secondary">Refresh queue</button>
+            </div>
+            <div id="adminReviewList" class="admin-review-list"></div>
+          </div>
+
+          <div id="banPanel" class="card hidden">
+            <h3>Banned emails</h3>
+            <p class="muted" style="line-height:1.7;">Ban an email to block that account from using Kigazine in this app.</p>
+            <div class="row">
+              <label class="label hidden" for="banEmailInput">Email to ban</label>
+              <input id="banEmailInput" class="input" type="email" placeholder="student@example.com" aria-label="Email to ban" style="max-width:360px;" />
+              <button id="banEmailBtn" class="btn btn-primary">Ban email</button>
+            </div>
+            <div id="banMessage" class="notice hidden" role="status" aria-live="polite"></div>
+            <div id="bannedEmailList" class="admin-review-list"></div>
           </div>
         </div>
       </section>
@@ -703,7 +859,9 @@
       query,
       where,
       orderBy,
-      getDocs
+      getDocs,
+      updateDoc,
+      deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // ======================================
@@ -721,11 +879,14 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const ADMIN_EMAILS = ["ethan02px2035@saschina.org","lukas01px2035@saschina.org];
 
     let authMode = "login";
     let currentUser = null;
     let currentProfile = null;
     let magazines = [];
+    let pendingMagazines = [];
+    let bannedEmails = [];
 
     const authScreen = document.getElementById("authScreen");
     const appShell = document.getElementById("appShell");
@@ -735,6 +896,8 @@
     const authSub = document.getElementById("authSub");
     const usernameField = document.getElementById("usernameField");
     const usernameInput = document.getElementById("usernameInput");
+    const permissionField = document.getElementById("permissionField");
+    const permissionInput = document.getElementById("permissionInput");
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const authSubmitBtn = document.getElementById("authSubmitBtn");
@@ -748,6 +911,15 @@
     const homeUserStat = document.getElementById("homeUserStat");
     const accountStatus = document.getElementById("accountStatus");
     const logoutBtn = document.getElementById("logoutBtn");
+    const adminPanel = document.getElementById("adminPanel");
+    const adminStatus = document.getElementById("adminStatus");
+    const refreshAdminBtn = document.getElementById("refreshAdminBtn");
+    const adminReviewList = document.getElementById("adminReviewList");
+    const banPanel = document.getElementById("banPanel");
+    const banEmailInput = document.getElementById("banEmailInput");
+    const banEmailBtn = document.getElementById("banEmailBtn");
+    const banMessage = document.getElementById("banMessage");
+    const bannedEmailList = document.getElementById("bannedEmailList");
 
     const titleInput = document.getElementById("titleInput");
     const descInput = document.getElementById("descInput");
@@ -757,7 +929,15 @@
     const previewContent = document.getElementById("previewContent");
     const publishBtn = document.getElementById("publishBtn");
     const clearBtn = document.getElementById("clearBtn");
+    const safePostInput = document.getElementById("safePostInput");
     const publishMessage = document.getElementById("publishMessage");
+
+    const privateInfoPatterns = [
+      { label: "phone number", pattern: /\b(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b/ },
+      { label: "email address", pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i },
+      { label: "street address", pattern: /\b\d{1,6}\s+[A-Za-z0-9.'-]+\s+(Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Way)\b/i },
+      { label: "password", pattern: /\b(password|passcode|my login|my address|my school|phone number)\b/i }
+    ];
 
     function showAuthMessage(message, type = "") {
       authMessage.textContent = message;
@@ -771,15 +951,25 @@
       publishMessage.classList.remove("hidden");
     }
 
+    function showBanMessage(message, type = "") {
+      banMessage.textContent = message;
+      banMessage.className = `notice ${type}`.trim();
+      banMessage.classList.remove("hidden");
+    }
+
     function setAuthMode(mode) {
       authMode = mode;
       const signup = mode === "signup";
       loginTab.classList.toggle("active", !signup);
       signupTab.classList.toggle("active", signup);
+      loginTab.setAttribute("aria-pressed", String(!signup));
+      signupTab.setAttribute("aria-pressed", String(signup));
       usernameField.classList.toggle("hidden", !signup);
+      permissionField.classList.toggle("hidden", !signup);
+      passwordInput.autocomplete = signup ? "new-password" : "current-password";
       authTitle.textContent = signup ? "Create your account" : "Welcome back";
       authSub.textContent = signup
-        ? "Sign up to publish magazines on Kigazine."
+        ? "Sign up with a parent or guardian's permission."
         : "Log in to continue reading and writing on Kigazine.";
       authSubmitBtn.textContent = signup ? "Sign up" : "Log in";
       authMessage.classList.add("hidden");
@@ -810,6 +1000,7 @@
       previewTitle.textContent = titleInput.value.trim() || "Your title here";
       previewDesc.textContent = descInput.value.trim() || "Your description will show here.";
       previewContent.textContent = contentInput.value.trim() || "Start typing to preview your magazine.";
+      updateDraftSafetyHint();
     }
 
     [titleInput, descInput, contentInput].forEach(el => el.addEventListener("input", updatePreview));
@@ -818,9 +1009,9 @@
       const q = filter.trim().toLowerCase();
       const filtered = magazines.filter(m => {
         return (
-          m.title.toLowerCase().includes(q) ||
-          m.description.toLowerCase().includes(q) ||
-          m.username.toLowerCase().includes(q)
+          (m.title || "").toLowerCase().includes(q) ||
+          (m.description || "").toLowerCase().includes(q) ||
+          (m.username || "").toLowerCase().includes(q)
         );
       });
 
@@ -836,11 +1027,13 @@
           <article class="mag-card">
             <div class="mag-cover">${escapeHtml((m.title || "M").charAt(0).toUpperCase())}</div>
             <div class="mag-body">
-              <h3>${escapeHtml(m.title)}</h3>
-              <div class="mag-meta">By ${escapeHtml(m.username)}</div>
-              <div class="mag-meta">${escapeHtml(m.description)}</div>
-              <div><span class="tag">Public</span></div>
-              <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml(m.content.length > 220 ? m.content.slice(0, 220) + "..." : m.content)}</div>
+              <h3>${escapeHtml(m.title || "Untitled magazine")}</h3>
+              <div class="mag-meta">By ${escapeHtml(m.username || "Kigazine writer")}</div>
+              <div class="mag-meta">${escapeHtml(m.description || "No description yet.")}</div>
+              <div><span class="tag">Approved</span></div>
+              <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml((m.content || "").length > 220 ? m.content.slice(0, 220) + "..." : (m.content || ""))}</div>
+              <button class="report-btn" type="button" data-report-id="${escapeHtml(m.id)}">Report concern</button>
+              ${isAdmin() ? `<button class="report-btn" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>` : ""}
             </div>
           </article>
         `).join("");
@@ -849,14 +1042,40 @@
       publicCount.textContent = magazines.length;
     }
 
+    function updateDraftSafetyHint() {
+      const draftText = `${titleInput.value}\n${descInput.value}\n${contentInput.value}`;
+      const contentLengthHelp = document.getElementById("contentLengthHelp");
+      const draftSafetyHint = document.getElementById("draftSafetyHint");
+      const safetyHit = findPrivateInfo(draftText);
+      contentLengthHelp.textContent = `${contentInput.value.length} of ${contentInput.maxLength} characters used.`;
+      draftSafetyHint.classList.toggle("warning", Boolean(safetyHit));
+      draftSafetyHint.textContent = safetyHit
+        ? `Check your draft: it may include a ${safetyHit}. Remove private details before submitting.`
+        : "Draft looks okay so far. Keep checking for private details before you submit.";
+    }
+
     searchInput.addEventListener("input", e => renderMagazines(e.target.value));
+    magGrid.addEventListener("click", e => {
+      const deleteButton = e.target.closest("[data-delete-id]");
+      if (deleteButton && isAdmin()) {
+        deletePost(deleteButton.dataset.deleteId, "public");
+        return;
+      }
+
+      const reportButton = e.target.closest(".report-btn");
+      if (!reportButton) return;
+      alert("Thanks for speaking up. Tell a trusted grown-up which magazine feels unsafe so they can review it.");
+    });
 
     function updateAccountUI() {
       const username = currentProfile?.username || currentUser?.email || "Unknown user";
+      const roleLabel = isAdmin() ? "Admin" : "Writer";
       homeUserStat.textContent = username;
       accountStatus.textContent = currentUser
-        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email}`
+        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel}`
         : "Not logged in.";
+      adminPanel.classList.toggle("hidden", !isAdmin());
+      banPanel.classList.toggle("hidden", !isAdmin());
     }
 
     async function loadUserProfile(uid) {
@@ -865,9 +1084,43 @@
       if (snap.exists()) {
         currentProfile = snap.data();
       } else {
-        currentProfile = null;
+        currentProfile = {
+          username: currentUser?.email?.split("@")[0] || "Kigazine admin",
+          email: currentUser?.email || "",
+          role: isAdminEmail(currentUser?.email) ? "admin" : "writer"
+        };
+      }
+      if (isAdminEmail(currentUser?.email) && currentProfile?.role !== "admin") {
+        currentProfile = { ...currentProfile, email: currentUser.email, role: "admin" };
+        await setDoc(profileRef, {
+          ...currentProfile,
+          adminGrantedAt: serverTimestamp()
+        }, { merge: true });
       }
       updateAccountUI();
+    }
+
+    function isAdminEmail(email = "") {
+      return ADMIN_EMAILS.includes(email.trim().toLowerCase());
+    }
+
+    function isAdmin() {
+      return Boolean(currentUser && isAdminEmail(currentUser.email));
+    }
+
+    function normalizeEmail(email = "") {
+      return email.trim().toLowerCase();
+    }
+
+    async function isEmailBanned(email = "") {
+      const normalized = normalizeEmail(email);
+      if (!normalized) return false;
+      try {
+        const snap = await getDoc(doc(db, "bannedEmails", normalized));
+        return snap.exists();
+      } catch (err) {
+        return false;
+      }
     }
 
     async function loadMagazines() {
@@ -878,13 +1131,15 @@
           orderBy("createdAt", "desc")
         );
         const snap = await getDocs(q);
-        magazines = snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        magazines = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(m => m.status === "approved");
       } catch (err) {
         // fallback in case compound query/index/order issue happens
         const snap = await getDocs(collection(db, "magazines"));
         magazines = snap.docs
           .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
-          .filter(m => m.isPublic)
+          .filter(m => m.isPublic && m.status === "approved")
           .sort((a, b) => {
             const aTime = a.createdAt?.seconds || 0;
             const bTime = b.createdAt?.seconds || 0;
@@ -895,7 +1150,7 @@
     }
 
     authSubmitBtn.addEventListener("click", async () => {
-      const email = emailInput.value.trim();
+      const email = normalizeEmail(emailInput.value);
       const password = passwordInput.value.trim();
       const username = usernameInput.value.trim();
 
@@ -909,12 +1164,29 @@
         return;
       }
 
+      if (authMode === "signup" && /\s/.test(username)) {
+        showAuthMessage("Use a short nickname instead of a full name.", "error");
+        return;
+      }
+
+      if (authMode === "signup" && !permissionInput.checked) {
+        showAuthMessage("Please ask a parent or guardian for permission first.", "error");
+        return;
+      }
+
       try {
+        if (await isEmailBanned(email)) {
+          showAuthMessage("This email has been banned from Kigazine.", "error");
+          return;
+        }
+
         if (authMode === "signup") {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await setDoc(doc(db, "users", cred.user.uid), {
             username,
             email,
+            role: isAdminEmail(email) ? "admin" : "writer",
+            guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
           showAuthMessage("Account created. Logging you in...", "success");
@@ -942,6 +1214,17 @@
         return;
       }
 
+      if (!safePostInput.checked) {
+        showPublishMessage("Please complete the safety check before submitting.", "error");
+        return;
+      }
+
+      const safetyHit = findPrivateInfo(`${title}\n${description}\n${content}`);
+      if (safetyHit) {
+        showPublishMessage(`This looks like it may include a ${safetyHit}. Please remove private information before submitting.`, "error");
+        return;
+      }
+
       try {
         await addDoc(collection(db, "magazines"), {
           uid: currentUser.uid,
@@ -949,17 +1232,18 @@
           title,
           description,
           content,
-          isPublic: true,
+          isPublic: false,
+          status: "pending_review",
           createdAt: serverTimestamp()
         });
 
         titleInput.value = "";
         descInput.value = "";
         contentInput.value = "";
+        safePostInput.checked = false;
         updatePreview();
-        showPublishMessage("Magazine published successfully.", "success");
+        showPublishMessage("Magazine submitted for review. It will not be public until a trusted reviewer approves it.", "success");
         await loadMagazines();
-        showSection("viewSection");
       } catch (err) {
         showPublishMessage(getFriendlyError(err), "error");
       }
@@ -969,8 +1253,85 @@
       titleInput.value = "";
       descInput.value = "";
       contentInput.value = "";
+      safePostInput.checked = false;
       publishMessage.classList.add("hidden");
       updatePreview();
+    });
+
+    refreshAdminBtn.addEventListener("click", loadPendingMagazines);
+
+    function findAdminReviewCheck(postId) {
+      return Array
+        .from(adminReviewList.querySelectorAll("[data-review-check]"))
+        .find(el => el.dataset.reviewCheck === postId);
+    }
+
+    function findAdminApproveButton(postId) {
+      return Array
+        .from(adminReviewList.querySelectorAll("[data-approve-id]"))
+        .find(el => el.dataset.approveId === postId);
+    }
+
+    adminReviewList.addEventListener("click", async e => {
+      const deleteButton = e.target.closest("[data-delete-id]");
+      if (deleteButton && isAdmin()) {
+        await deletePost(deleteButton.dataset.deleteId, "pending");
+        return;
+      }
+
+      const approveButton = e.target.closest("[data-approve-id]");
+      if (!approveButton || !isAdmin()) return;
+      const reviewCheck = findAdminReviewCheck(approveButton.dataset.approveId);
+      if (!reviewCheck?.checked) {
+        adminStatus.textContent = "Check the reviewer safety box before approving.";
+        return;
+      }
+      approveButton.disabled = true;
+      approveButton.textContent = "Approving...";
+      try {
+        await updateDoc(doc(db, "magazines", approveButton.dataset.approveId), {
+          isPublic: true,
+          status: "approved",
+          approvedBy: currentUser.email,
+          approvedAt: serverTimestamp()
+        });
+        await loadPendingMagazines();
+        await loadMagazines();
+      } catch (err) {
+        adminStatus.textContent = getFriendlyError(err);
+        approveButton.disabled = false;
+        approveButton.textContent = "Approve";
+      }
+    });
+
+    adminReviewList.addEventListener("change", e => {
+      const reviewCheck = e.target.closest("[data-review-check]");
+      if (!reviewCheck || !isAdmin()) return;
+      const approveButton = findAdminApproveButton(reviewCheck.dataset.reviewCheck);
+      if (approveButton) {
+        approveButton.disabled = !reviewCheck.checked;
+      }
+    });
+
+    banEmailBtn.addEventListener("click", banEmail);
+    banEmailInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") banEmail();
+    });
+
+    bannedEmailList.addEventListener("click", async e => {
+      const unbanButton = e.target.closest("[data-unban-email]");
+      if (!unbanButton || !isAdmin()) return;
+      unbanButton.disabled = true;
+      unbanButton.textContent = "Unbanning...";
+      try {
+        await deleteDoc(doc(db, "bannedEmails", unbanButton.dataset.unbanEmail));
+        showBanMessage("Email unbanned.", "success");
+        await loadBannedEmails();
+      } catch (err) {
+        showBanMessage(getFriendlyError(err), "error");
+        unbanButton.disabled = false;
+        unbanButton.textContent = "Unban";
+      }
     });
 
     logoutBtn.addEventListener("click", async () => {
@@ -998,16 +1359,171 @@
       }
     }
 
+    function findPrivateInfo(text) {
+      const match = privateInfoPatterns.find(item => item.pattern.test(text));
+      return match?.label || "";
+    }
+
+    async function loadPendingMagazines() {
+      if (!isAdmin()) return;
+      adminStatus.textContent = "Loading pending magazines...";
+      adminReviewList.innerHTML = "";
+      try {
+        const snap = await getDocs(collection(db, "magazines"));
+        pendingMagazines = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(m => m.status === "pending_review")
+          .sort((a, b) => {
+            const aTime = a.createdAt?.seconds || 0;
+            const bTime = b.createdAt?.seconds || 0;
+            return bTime - aTime;
+          });
+
+        if (!pendingMagazines.length) {
+          adminStatus.textContent = "No magazines are waiting for review.";
+          return;
+        }
+
+        adminStatus.textContent = `${pendingMagazines.length} magazine${pendingMagazines.length === 1 ? "" : "s"} waiting for review.`;
+        adminReviewList.innerHTML = pendingMagazines.map(m => {
+          const safetyHit = findPrivateInfo(`${m.title || ""}\n${m.description || ""}\n${m.content || ""}`);
+          const reviewWarning = safetyHit
+            ? `<div class="review-warning">Needs close review: possible ${escapeHtml(safetyHit)}.</div>`
+            : `<div class="review-warning">No obvious private-info pattern found. Still read the full post before approving.</div>`;
+          return `
+            <div class="admin-review-item">
+              <h4>${escapeHtml(m.title || "Untitled magazine")}</h4>
+              <p>By ${escapeHtml(m.username || "Kigazine writer")}</p>
+              <p>${escapeHtml(m.description || "No description yet.")}</p>
+              <p>${escapeHtml((m.content || "").length > 320 ? m.content.slice(0, 320) + "..." : (m.content || ""))}</p>
+              ${reviewWarning}
+              <label class="check-row">
+                <input type="checkbox" data-review-check="${escapeHtml(m.id)}" />
+                <span>I read this post and it is kid-safe, kind, and free of private details.</span>
+              </label>
+              <div class="row" style="margin-top:12px;">
+                <button class="btn btn-primary" type="button" data-approve-id="${escapeHtml(m.id)}" disabled>Approve</button>
+                <button class="btn btn-secondary" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        adminStatus.textContent = getFriendlyError(err);
+      }
+    }
+
+    async function banEmail() {
+      if (!isAdmin()) return;
+      const email = normalizeEmail(banEmailInput.value);
+      if (!email) {
+        showBanMessage("Enter an email to ban.", "error");
+        return;
+      }
+      if (!email.includes("@")) {
+        showBanMessage("Enter a valid email address.", "error");
+        return;
+      }
+      if (isAdminEmail(email)) {
+        showBanMessage("You cannot ban a built-in admin email.", "error");
+        return;
+      }
+
+      banEmailBtn.disabled = true;
+      banEmailBtn.textContent = "Banning...";
+      try {
+        await setDoc(doc(db, "bannedEmails", email), {
+          email,
+          bannedBy: currentUser.email,
+          bannedAt: serverTimestamp()
+        });
+        banEmailInput.value = "";
+        showBanMessage(`${email} is now banned.`, "success");
+        await loadBannedEmails();
+      } catch (err) {
+        showBanMessage(getFriendlyError(err), "error");
+      } finally {
+        banEmailBtn.disabled = false;
+        banEmailBtn.textContent = "Ban email";
+      }
+    }
+
+    async function loadBannedEmails() {
+      if (!isAdmin()) return;
+      try {
+        const snap = await getDocs(collection(db, "bannedEmails"));
+        bannedEmails = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .sort((a, b) => (a.email || a.id).localeCompare(b.email || b.id));
+
+        if (!bannedEmails.length) {
+          bannedEmailList.innerHTML = `
+            <div class="admin-review-item">
+              <p>No emails are banned right now.</p>
+            </div>
+          `;
+          return;
+        }
+
+        bannedEmailList.innerHTML = bannedEmails.map(item => {
+          const email = item.email || item.id;
+          return `
+            <div class="admin-review-item">
+              <h4>${escapeHtml(email)}</h4>
+              <p>Banned by ${escapeHtml(item.bannedBy || "admin")}</p>
+              <button class="btn btn-secondary" type="button" data-unban-email="${escapeHtml(email)}">Unban</button>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        bannedEmailList.innerHTML = `
+          <div class="admin-review-item">
+            <p>${escapeHtml(getFriendlyError(err))}</p>
+          </div>
+        `;
+      }
+    }
+
+    async function deletePost(postId, source = "public") {
+      if (!isAdmin() || !postId) return;
+      const confirmed = window.confirm("Delete this post? This cannot be undone.");
+      if (!confirmed) return;
+
+      try {
+        await deleteDoc(doc(db, "magazines", postId));
+        await loadMagazines();
+        await loadPendingMagazines();
+        if (source === "pending") {
+          adminStatus.textContent = "Post deleted.";
+        }
+      } catch (err) {
+        if (source === "pending") {
+          adminStatus.textContent = getFriendlyError(err);
+        } else {
+          alert(getFriendlyError(err));
+        }
+      }
+    }
+
     onAuthStateChanged(auth, async user => {
       currentUser = user;
       if (user) {
         authScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
+        if (await isEmailBanned(user.email)) {
+          alert("This email has been banned from Kigazine.");
+          await signOut(auth);
+          return;
+        }
         await loadUserProfile(user.uid);
         await loadMagazines();
+        await loadPendingMagazines();
+        await loadBannedEmails();
         updateAccountUI();
       } else {
         currentProfile = null;
+        pendingMagazines = [];
+        bannedEmails = [];
         authScreen.classList.remove("hidden");
         appShell.classList.add("hidden");
         setAuthMode("login");
