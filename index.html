@@ -670,6 +670,24 @@
       line-height: 1.5;
     }
 
+    .comment-draft-hint {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(34,197,94,.24);
+      background: rgba(34,197,94,.1);
+      color: #bbf7d0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .comment-draft-hint.warning {
+      border-color: rgba(245,158,11,.34);
+      background: rgba(245,158,11,.12);
+      color: #fde68a;
+    }
+
     .comment-status {
       margin-top: 0;
     }
@@ -678,6 +696,55 @@
       margin-top: 18px;
       padding-top: 18px;
       border-top: 1px solid rgba(148,163,184,.16);
+    }
+
+    .people-search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .people-search-row .input {
+      flex: 1 1 240px;
+    }
+
+    .friend-list,
+    .people-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .person-card {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #31415d;
+      background: rgba(11,18,32,.72);
+    }
+
+    .person-card h4 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .person-card p {
+      margin: 0 0 10px;
+      color: var(--soft);
+      line-height: 1.55;
+    }
+
+    .friend-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid rgba(96,165,250,.2);
+      background: rgba(96,165,250,.12);
+      color: #bfdbfe;
+      margin-right: 8px;
+      margin-bottom: 8px;
     }
 
     .modal-backdrop {
@@ -1271,6 +1338,22 @@
           </div>
 
           <div class="card">
+            <h3>Friends</h3>
+            <p class="muted" style="line-height:1.7;">Search by nickname and add friends without sharing emails or other private details.</p>
+            <div class="people-search-row">
+              <label class="label hidden" for="friendSearchInput">Search users</label>
+              <input id="friendSearchInput" class="input" maxlength="24" placeholder="Search nickname" aria-label="Search nickname" />
+              <button id="friendSearchBtn" class="btn btn-primary" type="button">Search</button>
+            </div>
+            <div id="friendSearchMessage" class="notice hidden" role="status" aria-live="polite"></div>
+            <div id="friendSearchResults" class="people-list"></div>
+            <div class="admin-subsection">
+              <h4 style="margin:0 0 10px;">Your friends</h4>
+              <div id="friendList" class="friend-list"></div>
+            </div>
+          </div>
+
+          <div class="card">
             <h3>Important safety note</h3>
             <p class="muted" style="line-height:1.7; margin-bottom:0;">New magazines are saved as pending review instead of public. Admins can approve kid-safe posts from the review queue below.</p>
           </div>
@@ -1301,6 +1384,18 @@
             </div>
             <div id="banMessage" class="notice hidden" role="status" aria-live="polite"></div>
             <div id="bannedEmailList" class="admin-review-list"></div>
+          </div>
+
+          <div id="adminPeoplePanel" class="card hidden">
+            <h3>Admin access</h3>
+            <p class="muted" style="line-height:1.7;">Search users by nickname, then promote or remove admin access carefully.</p>
+            <div class="people-search-row">
+              <label class="label hidden" for="adminUserSearchInput">Search users for admin access</label>
+              <input id="adminUserSearchInput" class="input" maxlength="24" placeholder="Search nickname" aria-label="Search users for admin access" />
+              <button id="adminUserSearchBtn" class="btn btn-primary" type="button">Search</button>
+            </div>
+            <div id="adminUserMessage" class="notice hidden" role="status" aria-live="polite"></div>
+            <div id="adminUserResults" class="people-list"></div>
           </div>
         </div>
       </section>
@@ -1382,6 +1477,7 @@
     let pendingMagazines = [];
     let approvedComments = [];
     let pendingComments = [];
+    let allUsers = [];
     let bannedEmails = [];
 
     const authScreen = document.getElementById("authScreen");
@@ -1407,11 +1503,21 @@
     const homeUserStat = document.getElementById("homeUserStat");
     const accountStatus = document.getElementById("accountStatus");
     const logoutBtn = document.getElementById("logoutBtn");
+    const friendSearchInput = document.getElementById("friendSearchInput");
+    const friendSearchBtn = document.getElementById("friendSearchBtn");
+    const friendSearchMessage = document.getElementById("friendSearchMessage");
+    const friendSearchResults = document.getElementById("friendSearchResults");
+    const friendList = document.getElementById("friendList");
     const adminPanel = document.getElementById("adminPanel");
+    const adminPeoplePanel = document.getElementById("adminPeoplePanel");
     const adminStatus = document.getElementById("adminStatus");
     const refreshAdminBtn = document.getElementById("refreshAdminBtn");
     const adminReviewList = document.getElementById("adminReviewList");
     const adminCommentReviewList = document.getElementById("adminCommentReviewList");
+    const adminUserSearchInput = document.getElementById("adminUserSearchInput");
+    const adminUserSearchBtn = document.getElementById("adminUserSearchBtn");
+    const adminUserMessage = document.getElementById("adminUserMessage");
+    const adminUserResults = document.getElementById("adminUserResults");
     const banPanel = document.getElementById("banPanel");
     const banEmailInput = document.getElementById("banEmailInput");
     const banEmailBtn = document.getElementById("banEmailBtn");
@@ -1476,6 +1582,18 @@
       element.classList.remove("hidden");
     }
 
+    function showPeopleMessage(message, type = "") {
+      friendSearchMessage.textContent = message;
+      friendSearchMessage.className = `notice ${type}`.trim();
+      friendSearchMessage.classList.remove("hidden");
+    }
+
+    function showAdminUserMessage(message, type = "") {
+      adminUserMessage.textContent = message;
+      adminUserMessage.className = `notice ${type}`.trim();
+      adminUserMessage.classList.remove("hidden");
+    }
+
     function setAuthMode(mode) {
       authMode = mode;
       const signup = mode === "signup";
@@ -1533,6 +1651,14 @@
       return pendingComments.filter(comment => comment.postId === postId).length;
     }
 
+    function getCurrentFriendIds() {
+      return Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : [];
+    }
+
+    function findUserByUid(uid) {
+      return allUsers.find(user => user.id === uid);
+    }
+
     function renderMagazines(filter = "") {
       const q = filter.trim().toLowerCase();
       const filtered = magazines.filter(m => {
@@ -1559,7 +1685,7 @@
               <div class="mag-meta">By ${escapeHtml(m.username || "Kigazine writer")}</div>
               <div class="mag-meta">${escapeHtml(m.description || "No description yet.")}</div>
               <div><span class="tag">Approved</span></div>
-              <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml((m.content || "").length > 220 ? m.content.slice(0, 220) + "..." : (m.content || ""))}</div>
+              <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml(m.content || "")}</div>
               ${renderCommentPanel(m)}
               <button class="report-btn" type="button" data-report-id="${escapeHtml(m.id)}">Report concern</button>
               ${isAdmin() ? `<button class="report-btn" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>` : ""}
@@ -1593,8 +1719,9 @@
           ${pendingNotice}
           <div class="comment-form">
             <textarea class="input textarea comment-textarea" maxlength="240" data-comment-input="${escapeHtml(magazine.id)}" placeholder="Write a kind comment about this magazine..."></textarea>
+            <p class="comment-draft-hint" data-comment-hint="${escapeHtml(magazine.id)}" role="status" aria-live="polite">Looks kind so far. Keep private details out before you send it for review.</p>
             <button class="btn btn-secondary" type="button" data-comment-submit="${escapeHtml(magazine.id)}">Send for review</button>
-            <p class="comment-guidance">Comments are checked before they appear. Keep them kind and do not share private information.</p>
+            <p class="comment-guidance" data-comment-length="${escapeHtml(magazine.id)}">0 of 240 characters used. Comments are checked before they appear.</p>
             <div class="notice hidden comment-status" data-comment-status="${escapeHtml(magazine.id)}" role="status" aria-live="polite"></div>
           </div>
         </div>
@@ -1614,7 +1741,39 @@
         : "Draft looks okay so far. Keep checking for private details before you submit.";
     }
 
+    function updateCommentDraftHint(postId) {
+      if (!postId) return;
+      const input = magGrid.querySelector(`[data-comment-input="${postId}"]`);
+      const hint = magGrid.querySelector(`[data-comment-hint="${postId}"]`);
+      const lengthHelp = magGrid.querySelector(`[data-comment-length="${postId}"]`);
+      if (!input || !hint || !lengthHelp) return;
+
+      const rawValue = input.value || "";
+      const value = rawValue.trim();
+      const safetyHit = findPrivateInfo(value);
+      const hasUnkindLanguage = unkindCommentPattern.test(value);
+      hint.classList.toggle("warning", Boolean(safetyHit || hasUnkindLanguage));
+
+      if (!value) {
+        hint.textContent = "Looks kind so far. Keep private details out before you send it for review.";
+      } else if (safetyHit) {
+        hint.textContent = `Check this comment: it may include a ${safetyHit}. Remove private details before sending it.`;
+      } else if (hasUnkindLanguage) {
+        hint.textContent = "Please rewrite this comment so it sounds kind and respectful before sending it.";
+      } else {
+        hint.textContent = "Nice job. This comment looks kind so far and does not show obvious private details.";
+      }
+
+      lengthHelp.textContent = `${rawValue.length} of ${input.maxLength} characters used. Comments are checked before they appear.`;
+    }
+
     searchInput.addEventListener("input", e => renderMagazines(e.target.value));
+    magGrid.addEventListener("input", e => {
+      const commentInput = e.target.closest("[data-comment-input]");
+      if (!commentInput) return;
+      updateCommentDraftHint(commentInput.dataset.commentInput);
+    });
+
     magGrid.addEventListener("click", async e => {
       const deleteButton = e.target.closest("[data-delete-id]");
       if (deleteButton && isAdmin()) {
@@ -1783,12 +1942,15 @@
     function updateAccountUI() {
       const username = currentProfile?.username || currentUser?.email || "Unknown user";
       const roleLabel = isAdmin() ? "Admin" : "Writer";
+      const friendCount = getCurrentFriendIds().length;
       homeUserStat.textContent = username;
       accountStatus.textContent = currentUser
-        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel}`
+        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel} • ${friendCount} friend${friendCount === 1 ? "" : "s"}`
         : "Not logged in.";
       adminPanel.classList.toggle("hidden", !isAdmin());
+      adminPeoplePanel.classList.toggle("hidden", !isAdmin());
       banPanel.classList.toggle("hidden", !isAdmin());
+      renderFriendList();
     }
 
     async function loadUserProfile(uid) {
@@ -1800,9 +1962,14 @@
         currentProfile = {
           username: currentUser?.email?.split("@")[0] || "Kigazine admin",
           email: currentUser?.email || "",
-          role: isAdminEmail(currentUser?.email) ? "admin" : "writer"
+          role: isAdminEmail(currentUser?.email) ? "admin" : "writer",
+          friendUids: []
         };
       }
+      currentProfile = {
+        ...currentProfile,
+        friendUids: Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : []
+      };
       if (isAdminEmail(currentUser?.email) && currentProfile?.role !== "admin") {
         currentProfile = { ...currentProfile, email: currentUser.email, role: "admin" };
         await setDoc(profileRef, {
@@ -1818,7 +1985,7 @@
     }
 
     function isAdmin() {
-      return Boolean(currentUser && isAdminEmail(currentUser.email));
+      return Boolean(currentUser && (isAdminEmail(currentUser.email) || currentProfile?.role === "admin"));
     }
 
     function normalizeEmail(email = "") {
@@ -1879,6 +2046,21 @@
       renderMagazines(searchInput.value);
     }
 
+    async function loadUsers() {
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        allUsers = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(user => user.username)
+          .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+      } catch (err) {
+        allUsers = [];
+      }
+      renderFriendList();
+      renderFriendSearchResults(friendSearchInput.value);
+      renderAdminUserResults(adminUserSearchInput.value);
+    }
+
     authSubmitBtn.addEventListener("click", async () => {
       const email = normalizeEmail(emailInput.value);
       const password = passwordInput.value.trim();
@@ -1917,6 +2099,7 @@
             username,
             email,
             role: isAdminEmail(email) ? "admin" : "writer",
+            friendUids: [],
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
@@ -1998,6 +2181,11 @@
       updatePreview();
     });
 
+    friendSearchBtn.addEventListener("click", () => renderFriendSearchResults(friendSearchInput.value));
+    friendSearchInput.addEventListener("input", e => renderFriendSearchResults(e.target.value));
+    adminUserSearchBtn.addEventListener("click", () => renderAdminUserResults(adminUserSearchInput.value));
+    adminUserSearchInput.addEventListener("input", e => renderAdminUserResults(e.target.value));
+
     refreshAdminBtn.addEventListener("click", async () => {
       await loadPendingMagazines();
       await loadPendingComments();
@@ -2019,6 +2207,105 @@
       return Array
         .from(adminCommentReviewList.querySelectorAll("[data-approve-comment-id]"))
         .find(el => el.dataset.approveCommentId === commentId);
+    }
+
+    function renderFriendList() {
+      const friendIds = getCurrentFriendIds();
+      if (!friendIds.length) {
+        friendList.innerHTML = `
+          <div class="person-card">
+            <p>You have no friends added yet. Search by nickname to add one.</p>
+          </div>
+        `;
+        return;
+      }
+
+      friendList.innerHTML = friendIds.map(uid => {
+        const friend = findUserByUid(uid);
+        const name = friend?.username || "Kigazine friend";
+        const role = friend?.role === "admin" ? "Admin" : "Writer";
+        return `
+          <div class="person-card">
+            <h4>${escapeHtml(name)}</h4>
+            <p>${escapeHtml(role)} on Kigazine</p>
+            <button class="btn btn-secondary" type="button" data-remove-friend-id="${escapeHtml(uid)}">Remove friend</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderFriendSearchResults(term = "") {
+      const queryText = term.trim().toLowerCase();
+      const friendIds = new Set(getCurrentFriendIds());
+      friendSearchMessage.classList.add("hidden");
+
+      const results = allUsers.filter(user => {
+        if (user.id === currentUser?.uid) return false;
+        if (!queryText) return false;
+        return (user.username || "").toLowerCase().includes(queryText);
+      }).slice(0, 8);
+
+      if (!queryText) {
+        friendSearchResults.innerHTML = "";
+        return;
+      }
+
+      if (!results.length) {
+        friendSearchResults.innerHTML = `
+          <div class="person-card">
+            <p>No nicknames matched that search.</p>
+          </div>
+        `;
+        return;
+      }
+
+      friendSearchResults.innerHTML = results.map(user => `
+        <div class="person-card">
+          <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+          <p>${user.role === "admin" ? "Admin" : "Writer"} on Kigazine</p>
+          ${friendIds.has(user.id)
+            ? `<span class="friend-badge">Already friends</span>`
+            : `<button class="btn btn-primary" type="button" data-add-friend-id="${escapeHtml(user.id)}">Add friend</button>`}
+        </div>
+      `).join("");
+    }
+
+    function renderAdminUserResults(term = "") {
+      const queryText = term.trim().toLowerCase();
+      adminUserMessage.classList.add("hidden");
+
+      const results = allUsers.filter(user => {
+        if (!queryText) return false;
+        return (user.username || "").toLowerCase().includes(queryText);
+      }).slice(0, 10);
+
+      if (!queryText) {
+        adminUserResults.innerHTML = "";
+        return;
+      }
+
+      if (!results.length) {
+        adminUserResults.innerHTML = `
+          <div class="person-card">
+            <p>No nicknames matched that search.</p>
+          </div>
+        `;
+        return;
+      }
+
+      adminUserResults.innerHTML = results.map(user => {
+        const isBuiltInAdmin = isAdminEmail(user.email || "");
+        const isRoleAdmin = user.role === "admin";
+        return `
+          <div class="person-card">
+            <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+            <p>${escapeHtml(user.email || "No email")} • ${isRoleAdmin || isBuiltInAdmin ? "Admin" : "Writer"}</p>
+            ${isRoleAdmin
+              ? `<button class="btn btn-secondary" type="button" data-demote-admin-id="${escapeHtml(user.id)}" ${isBuiltInAdmin ? "disabled" : ""}>Remove admin</button>`
+              : `<button class="btn btn-primary" type="button" data-make-admin-id="${escapeHtml(user.id)}">Make admin</button>`}
+          </div>
+        `;
+      }).join("");
     }
 
     adminReviewList.addEventListener("click", async e => {
@@ -2099,6 +2386,31 @@
       const approveButton = findAdminCommentApproveButton(reviewCheck.dataset.reviewCommentCheck);
       if (approveButton) {
         approveButton.disabled = !reviewCheck.checked;
+      }
+    });
+
+    friendSearchResults.addEventListener("click", async e => {
+      const addButton = e.target.closest("[data-add-friend-id]");
+      if (!addButton) return;
+      await addFriend(addButton.dataset.addFriendId);
+    });
+
+    friendList.addEventListener("click", async e => {
+      const removeButton = e.target.closest("[data-remove-friend-id]");
+      if (!removeButton) return;
+      await removeFriend(removeButton.dataset.removeFriendId);
+    });
+
+    adminUserResults.addEventListener("click", async e => {
+      const makeAdminButton = e.target.closest("[data-make-admin-id]");
+      if (makeAdminButton) {
+        await setUserAdminRole(makeAdminButton.dataset.makeAdminId, true);
+        return;
+      }
+
+      const demoteAdminButton = e.target.closest("[data-demote-admin-id]");
+      if (demoteAdminButton) {
+        await setUserAdminRole(demoteAdminButton.dataset.demoteAdminId, false);
       }
     });
 
@@ -2197,7 +2509,7 @@
               <h4>${escapeHtml(m.title || "Untitled magazine")}</h4>
               <p>By ${escapeHtml(m.username || "Kigazine writer")}</p>
               <p>${escapeHtml(m.description || "No description yet.")}</p>
-              <p>${escapeHtml((m.content || "").length > 320 ? m.content.slice(0, 320) + "..." : (m.content || ""))}</p>
+              <p>${escapeHtml(m.content || "")}</p>
               ${reviewWarning}
               <label class="check-row">
                 <input type="checkbox" data-review-check="${escapeHtml(m.id)}" />
@@ -2212,6 +2524,89 @@
         }).join("");
       } catch (err) {
         adminStatus.textContent = getFriendlyError(err);
+      }
+    }
+
+    async function addFriend(friendUid) {
+      if (!currentUser || !friendUid) return;
+      const friendIds = getCurrentFriendIds();
+      if (friendIds.includes(friendUid)) {
+        showPeopleMessage("That user is already in your friends list.", "error");
+        return;
+      }
+
+      const nextFriendIds = [...friendIds, friendUid];
+      const targetUser = findUserByUid(friendUid);
+      const targetFriendIds = Array.isArray(targetUser?.friendUids) ? targetUser.friendUids : [];
+      const nextTargetFriendIds = targetFriendIds.includes(currentUser.uid)
+        ? targetFriendIds
+        : [...targetFriendIds, currentUser.uid];
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+          friendUids: nextFriendIds
+        }, { merge: true });
+        await setDoc(doc(db, "users", friendUid), {
+          friendUids: nextTargetFriendIds
+        }, { merge: true });
+        currentProfile = { ...currentProfile, friendUids: nextFriendIds };
+        await loadUsers();
+        renderFriendList();
+        renderFriendSearchResults(friendSearchInput.value);
+        updateAccountUI();
+        showPeopleMessage("Friend added.", "success");
+      } catch (err) {
+        showPeopleMessage(getFriendlyError(err), "error");
+      }
+    }
+
+    async function removeFriend(friendUid) {
+      if (!currentUser || !friendUid) return;
+      const nextFriendIds = getCurrentFriendIds().filter(uid => uid !== friendUid);
+      const targetUser = findUserByUid(friendUid);
+      const targetFriendIds = Array.isArray(targetUser?.friendUids) ? targetUser.friendUids : [];
+      const nextTargetFriendIds = targetFriendIds.filter(uid => uid !== currentUser.uid);
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+          friendUids: nextFriendIds
+        }, { merge: true });
+        await setDoc(doc(db, "users", friendUid), {
+          friendUids: nextTargetFriendIds
+        }, { merge: true });
+        currentProfile = { ...currentProfile, friendUids: nextFriendIds };
+        await loadUsers();
+        renderFriendList();
+        renderFriendSearchResults(friendSearchInput.value);
+        updateAccountUI();
+        showPeopleMessage("Friend removed.", "success");
+      } catch (err) {
+        showPeopleMessage(getFriendlyError(err), "error");
+      }
+    }
+
+    async function setUserAdminRole(userUid, makeAdmin) {
+      if (!isAdmin() || !userUid) return;
+      const targetUser = findUserByUid(userUid);
+      if (!targetUser) {
+        showAdminUserMessage("That user could not be found.", "error");
+        return;
+      }
+      if (!makeAdmin && isAdminEmail(targetUser.email || "")) {
+        showAdminUserMessage("Built-in admin access cannot be removed here.", "error");
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, "users", userUid), {
+          role: makeAdmin ? "admin" : "writer"
+        }, { merge: true });
+        if (currentUser?.uid === userUid) {
+          currentProfile = { ...currentProfile, role: makeAdmin ? "admin" : "writer" };
+        }
+        await loadUsers();
+        updateAccountUI();
+        showAdminUserMessage(makeAdmin ? "Admin access granted." : "Admin access removed.", "success");
+      } catch (err) {
+        showAdminUserMessage(getFriendlyError(err), "error");
       }
     }
 
@@ -2394,6 +2789,7 @@
           return;
         }
         await loadUserProfile(user.uid);
+        await loadUsers();
         await loadMagazines();
         await loadComments();
         await loadPendingMagazines();
@@ -2405,6 +2801,7 @@
         pendingMagazines = [];
         approvedComments = [];
         pendingComments = [];
+        allUsers = [];
         bannedEmails = [];
         authScreen.classList.remove("hidden");
         appShell.classList.add("hidden");
