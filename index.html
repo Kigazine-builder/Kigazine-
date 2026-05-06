@@ -747,6 +747,35 @@
       margin-bottom: 8px;
     }
 
+    .member-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .member-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid rgba(96,165,250,.2);
+      background: rgba(96,165,250,.12);
+      color: #bfdbfe;
+    }
+
+    .role-badge.superadmin {
+      border-color: rgba(245,158,11,.28);
+      background: rgba(245,158,11,.14);
+      color: #fde68a;
+    }
+
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -1040,6 +1069,19 @@
       line-height: 1.6;
     }
 
+    .settings-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .settings-note {
+      margin: 10px 0 0;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
     @media (max-width: 980px) {
       .auth-screen { grid-template-columns: 1fr; }
       .hero-copy h1 { font-size: 42px; }
@@ -1056,7 +1098,7 @@
       }
       /* On smaller screens, the sidebar becomes a compact top nav to preserve space. */
       .nav {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
       }
       .nav-btn {
         text-align: center;
@@ -1162,6 +1204,7 @@
       <nav class="nav">
         <button class="nav-btn active" data-section="homeSection">🏠 Home</button>
         <button class="nav-btn" data-section="viewSection">📚 View</button>
+        <button class="nav-btn" data-section="membersSection">🧑 Members</button>
         <button class="nav-btn" data-section="createSection">✏️ Create</button>
         <button class="nav-btn" data-section="accountSection">👤 Account</button>
       </nav>
@@ -1255,6 +1298,22 @@
         <div id="magGrid" class="mag-grid"></div>
       </section>
 
+      <section id="membersSection" class="section">
+        <div class="toolbar">
+          <div>
+            <div class="section-kicker">Community</div>
+            <h2 style="margin:0 0 6px;">Members</h2>
+            <div class="muted">See Kigazine nicknames and whether each person is a writer, admin, or super admin.</div>
+          </div>
+          <label class="label hidden" for="memberSearchInput">Search members</label>
+          <input id="memberSearchInput" class="search" placeholder="Search members..." aria-label="Search members" />
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <p class="muted" style="margin:0; line-height:1.7;">This page only shows nicknames and role tags so the community stays easier to explore without sharing private details.</p>
+        </div>
+        <div id="memberList" class="member-list"></div>
+      </section>
+
       <section id="createSection" class="section">
         <div class="toolbar">
           <div>
@@ -1335,6 +1394,26 @@
             <div class="row">
               <button id="logoutBtn" class="btn btn-secondary">Log out</button>
             </div>
+          </div>
+
+          <div class="card">
+            <h3>Safety settings</h3>
+            <p class="muted" style="line-height:1.7; margin-bottom:0;">These switches start with privacy-first defaults and help you choose how social your account feels.</p>
+            <div class="settings-list">
+              <label class="check-row">
+                <input id="discoverableInput" type="checkbox" />
+                <span>Let other kids find my nickname in search.</span>
+              </label>
+              <label class="check-row">
+                <input id="friendsOnlyCommentsInput" type="checkbox" />
+                <span>Only my friends can send comments for review on my magazines.</span>
+              </label>
+            </div>
+            <p class="settings-note">Tip: if something online feels confusing or uncomfortable, pause and ask a trusted grown-up to look with you.</p>
+            <div class="row" style="margin-top:14px;">
+              <button id="saveSafetySettingsBtn" class="btn btn-primary" type="button">Save safety settings</button>
+            </div>
+            <div id="safetySettingsMessage" class="notice hidden" role="status" aria-live="polite"></div>
           </div>
 
           <div class="card">
@@ -1469,7 +1548,8 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const ADMIN_EMAILS = ["ethan02px2035@saschina.org"]
+    const ADMIN_EMAILS = ["ethan02px2035@saschina.org"];
+    const SUPER_ADMIN_EMAIL = "ethan02px2035@saschina.org";
     let authMode = "login";
     let currentUser = null;
     let currentProfile = null;
@@ -1498,11 +1578,17 @@
     const navButtons = document.querySelectorAll(".nav-btn");
     const sections = document.querySelectorAll(".section");
     const searchInput = document.getElementById("searchInput");
+    const memberSearchInput = document.getElementById("memberSearchInput");
+    const memberList = document.getElementById("memberList");
     const magGrid = document.getElementById("magGrid");
     const publicCount = document.getElementById("publicCount");
     const homeUserStat = document.getElementById("homeUserStat");
     const accountStatus = document.getElementById("accountStatus");
     const logoutBtn = document.getElementById("logoutBtn");
+    const discoverableInput = document.getElementById("discoverableInput");
+    const friendsOnlyCommentsInput = document.getElementById("friendsOnlyCommentsInput");
+    const saveSafetySettingsBtn = document.getElementById("saveSafetySettingsBtn");
+    const safetySettingsMessage = document.getElementById("safetySettingsMessage");
     const friendSearchInput = document.getElementById("friendSearchInput");
     const friendSearchBtn = document.getElementById("friendSearchBtn");
     const friendSearchMessage = document.getElementById("friendSearchMessage");
@@ -1588,6 +1674,12 @@
       friendSearchMessage.classList.remove("hidden");
     }
 
+    function showSafetySettingsMessage(message, type = "") {
+      safetySettingsMessage.textContent = message;
+      safetySettingsMessage.className = `notice ${type}`.trim();
+      safetySettingsMessage.classList.remove("hidden");
+    }
+
     function showAdminUserMessage(message, type = "") {
       adminUserMessage.textContent = message;
       adminUserMessage.className = `notice ${type}`.trim();
@@ -1659,6 +1751,42 @@
       return allUsers.find(user => user.id === uid);
     }
 
+    function isSuperAdminEmail(email = "") {
+      return email.trim().toLowerCase() === SUPER_ADMIN_EMAIL;
+    }
+
+    function getRoleLabel(user) {
+      if (isSuperAdminEmail(user?.email || "")) return "Super admin";
+      return user?.role === "admin" ? "Admin" : "Writer";
+    }
+
+    function getRoleBadgeClass(user) {
+      return isSuperAdminEmail(user?.email || "") ? "role-badge superadmin" : "role-badge";
+    }
+
+    function isProfileDiscoverable(user) {
+      return Boolean(user?.discoverableProfile);
+    }
+
+    function areUsersFriends(firstUid, secondUid) {
+      if (!firstUid || !secondUid) return false;
+      if (firstUid === secondUid) return true;
+      const firstUser = firstUid === currentUser?.uid ? currentProfile : findUserByUid(firstUid);
+      const secondUser = secondUid === currentUser?.uid ? currentProfile : findUserByUid(secondUid);
+      const firstFriends = Array.isArray(firstUser?.friendUids) ? firstUser.friendUids : [];
+      const secondFriends = Array.isArray(secondUser?.friendUids) ? secondUser.friendUids : [];
+      return firstFriends.includes(secondUid) || secondFriends.includes(firstUid);
+    }
+
+    function canCommentOnMagazine(magazine) {
+      if (!magazine?.uid || !currentUser) return false;
+      if (magazine.uid === currentUser.uid) return true;
+      const author = findUserByUid(magazine.uid);
+      const commentsFriendsOnly = author?.commentsFriendsOnly !== false;
+      if (!commentsFriendsOnly) return true;
+      return areUsersFriends(currentUser.uid, magazine.uid);
+    }
+
     function renderMagazines(filter = "") {
       const q = filter.trim().toLowerCase();
       const filtered = magazines.filter(m => {
@@ -1697,6 +1825,41 @@
       publicCount.textContent = magazines.length;
     }
 
+    function renderMembers(filter = "") {
+      const queryText = filter.trim().toLowerCase();
+      const visibleUsers = allUsers.filter(user => {
+        if (!queryText) return true;
+        return (user.username || "").toLowerCase().includes(queryText);
+      });
+
+      if (!visibleUsers.length) {
+        memberList.innerHTML = `
+          <div class="person-card">
+            <p>No members matched that search.</p>
+          </div>
+        `;
+        return;
+      }
+
+      memberList.innerHTML = visibleUsers.map(user => {
+        const roleLabel = getRoleLabel(user);
+        const roleBadgeClass = getRoleBadgeClass(user);
+        const privacyHint = isProfileDiscoverable(user)
+          ? "Nickname search is on."
+          : "Nickname search is off.";
+        return `
+          <div class="person-card">
+            <h4>${escapeHtml(user.username || "Kigazine member")}</h4>
+            <div class="member-meta">
+              <span class="${roleBadgeClass}">${escapeHtml(roleLabel)}</span>
+              ${user.id === currentUser?.uid ? `<span class="friend-badge">You</span>` : ""}
+            </div>
+            <p>${escapeHtml(privacyHint)}</p>
+          </div>
+        `;
+      }).join("");
+    }
+
     function renderCommentPanel(magazine) {
       const comments = getApprovedCommentsForPost(magazine.id);
       const pendingCount = getPendingCommentCountForPost(magazine.id);
@@ -1717,13 +1880,19 @@
           <h4 class="comments-title">Kind notes</h4>
           <div class="comment-list">${commentItems}</div>
           ${pendingNotice}
-          <div class="comment-form">
-            <textarea class="input textarea comment-textarea" maxlength="240" data-comment-input="${escapeHtml(magazine.id)}" placeholder="Write a kind comment about this magazine..."></textarea>
-            <p class="comment-draft-hint" data-comment-hint="${escapeHtml(magazine.id)}" role="status" aria-live="polite">Looks kind so far. Keep private details out before you send it for review.</p>
-            <button class="btn btn-secondary" type="button" data-comment-submit="${escapeHtml(magazine.id)}">Send for review</button>
-            <p class="comment-guidance" data-comment-length="${escapeHtml(magazine.id)}">0 of 240 characters used. Comments are checked before they appear.</p>
-            <div class="notice hidden comment-status" data-comment-status="${escapeHtml(magazine.id)}" role="status" aria-live="polite"></div>
-          </div>
+          ${currentUser
+            ? canCommentOnMagazine(magazine)
+              ? `
+                <div class="comment-form">
+                  <textarea class="input textarea comment-textarea" maxlength="240" data-comment-input="${escapeHtml(magazine.id)}" placeholder="Write a kind comment about this magazine..."></textarea>
+                  <p class="comment-draft-hint" data-comment-hint="${escapeHtml(magazine.id)}" role="status" aria-live="polite">Looks kind so far. Keep private details out before you send it for review.</p>
+                  <button class="btn btn-secondary" type="button" data-comment-submit="${escapeHtml(magazine.id)}">Send for review</button>
+                  <p class="comment-guidance" data-comment-length="${escapeHtml(magazine.id)}">0 of 240 characters used. Comments are checked before they appear.</p>
+                  <div class="notice hidden comment-status" data-comment-status="${escapeHtml(magazine.id)}" role="status" aria-live="polite"></div>
+                </div>
+              `
+              : `<p class="comment-guidance">This writer only accepts comment requests from friends right now.</p>`
+            : `<p class="comment-guidance">Log in to send a kind comment for review.</p>`}
         </div>
       `;
     }
@@ -1768,6 +1937,7 @@
     }
 
     searchInput.addEventListener("input", e => renderMagazines(e.target.value));
+    memberSearchInput.addEventListener("input", e => renderMembers(e.target.value));
     magGrid.addEventListener("input", e => {
       const commentInput = e.target.closest("[data-comment-input]");
       if (!commentInput) return;
@@ -1941,16 +2111,24 @@
 
     function updateAccountUI() {
       const username = currentProfile?.username || currentUser?.email || "Unknown user";
-      const roleLabel = isAdmin() ? "Admin" : "Writer";
+      const roleLabel = currentUser ? getRoleLabel({
+        email: currentUser.email,
+        role: currentProfile?.role
+      }) : "Writer";
       const friendCount = getCurrentFriendIds().length;
+      const discoverableLabel = currentProfile?.discoverableProfile ? "Searchable nickname on" : "Searchable nickname off";
+      const commentLabel = currentProfile?.commentsFriendsOnly !== false ? "Comments from friends only" : "Comments from all logged-in readers";
       homeUserStat.textContent = username;
       accountStatus.textContent = currentUser
-        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel} • ${friendCount} friend${friendCount === 1 ? "" : "s"}`
+        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel} • ${friendCount} friend${friendCount === 1 ? "" : "s"} • ${discoverableLabel} • ${commentLabel}`
         : "Not logged in.";
+      discoverableInput.checked = Boolean(currentProfile?.discoverableProfile);
+      friendsOnlyCommentsInput.checked = currentProfile?.commentsFriendsOnly !== false;
       adminPanel.classList.toggle("hidden", !isAdmin());
       adminPeoplePanel.classList.toggle("hidden", !isAdmin());
       banPanel.classList.toggle("hidden", !isAdmin());
       renderFriendList();
+      renderMembers(memberSearchInput.value);
     }
 
     async function loadUserProfile(uid) {
@@ -1963,12 +2141,16 @@
           username: currentUser?.email?.split("@")[0] || "Kigazine admin",
           email: currentUser?.email || "",
           role: isAdminEmail(currentUser?.email) ? "admin" : "writer",
-          friendUids: []
+          friendUids: [],
+          discoverableProfile: false,
+          commentsFriendsOnly: true
         };
       }
       currentProfile = {
         ...currentProfile,
-        friendUids: Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : []
+        friendUids: Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : [],
+        discoverableProfile: Boolean(currentProfile?.discoverableProfile),
+        commentsFriendsOnly: currentProfile?.commentsFriendsOnly !== false
       };
       if (isAdminEmail(currentUser?.email) && currentProfile?.role !== "admin") {
         currentProfile = { ...currentProfile, email: currentUser.email, role: "admin" };
@@ -2059,6 +2241,8 @@
       renderFriendList();
       renderFriendSearchResults(friendSearchInput.value);
       renderAdminUserResults(adminUserSearchInput.value);
+      renderMembers(memberSearchInput.value);
+      renderMagazines(searchInput.value);
     }
 
     authSubmitBtn.addEventListener("click", async () => {
@@ -2100,6 +2284,8 @@
             email,
             role: isAdminEmail(email) ? "admin" : "writer",
             friendUids: [],
+            discoverableProfile: false,
+            commentsFriendsOnly: true,
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
@@ -2185,6 +2371,7 @@
     friendSearchInput.addEventListener("input", e => renderFriendSearchResults(e.target.value));
     adminUserSearchBtn.addEventListener("click", () => renderAdminUserResults(adminUserSearchInput.value));
     adminUserSearchInput.addEventListener("input", e => renderAdminUserResults(e.target.value));
+    saveSafetySettingsBtn.addEventListener("click", saveSafetySettings);
 
     refreshAdminBtn.addEventListener("click", async () => {
       await loadPendingMagazines();
@@ -2223,7 +2410,7 @@
       friendList.innerHTML = friendIds.map(uid => {
         const friend = findUserByUid(uid);
         const name = friend?.username || "Kigazine friend";
-        const role = friend?.role === "admin" ? "Admin" : "Writer";
+        const role = getRoleLabel(friend);
         return `
           <div class="person-card">
             <h4>${escapeHtml(name)}</h4>
@@ -2242,6 +2429,7 @@
       const results = allUsers.filter(user => {
         if (user.id === currentUser?.uid) return false;
         if (!queryText) return false;
+        if (!isProfileDiscoverable(user)) return false;
         return (user.username || "").toLowerCase().includes(queryText);
       }).slice(0, 8);
 
@@ -2262,7 +2450,7 @@
       friendSearchResults.innerHTML = results.map(user => `
         <div class="person-card">
           <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
-          <p>${user.role === "admin" ? "Admin" : "Writer"} on Kigazine</p>
+          <p>${escapeHtml(getRoleLabel(user))} on Kigazine</p>
           ${friendIds.has(user.id)
             ? `<span class="friend-badge">Already friends</span>`
             : `<button class="btn btn-primary" type="button" data-add-friend-id="${escapeHtml(user.id)}">Add friend</button>`}
@@ -2299,7 +2487,7 @@
         return `
           <div class="person-card">
             <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
-            <p>${escapeHtml(user.email || "No email")} • ${isRoleAdmin || isBuiltInAdmin ? "Admin" : "Writer"}</p>
+            <p>${escapeHtml(user.email || "No email")} • ${escapeHtml(getRoleLabel(user))}</p>
             ${isRoleAdmin
               ? `<button class="btn btn-secondary" type="button" data-demote-admin-id="${escapeHtml(user.id)}" ${isBuiltInAdmin ? "disabled" : ""}>Remove admin</button>`
               : `<button class="btn btn-primary" type="button" data-make-admin-id="${escapeHtml(user.id)}">Make admin</button>`}
@@ -2556,6 +2744,30 @@
         showPeopleMessage("Friend added.", "success");
       } catch (err) {
         showPeopleMessage(getFriendlyError(err), "error");
+      }
+    }
+
+    async function saveSafetySettings() {
+      if (!currentUser) return;
+
+      const nextSettings = {
+        discoverableProfile: Boolean(discoverableInput.checked),
+        commentsFriendsOnly: Boolean(friendsOnlyCommentsInput.checked)
+      };
+
+      saveSafetySettingsBtn.disabled = true;
+      saveSafetySettingsBtn.textContent = "Saving...";
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), nextSettings, { merge: true });
+        currentProfile = { ...currentProfile, ...nextSettings };
+        updateAccountUI();
+        await loadUsers();
+        showSafetySettingsMessage("Safety settings saved.", "success");
+      } catch (err) {
+        showSafetySettingsMessage(getFriendlyError(err), "error");
+      } finally {
+        saveSafetySettingsBtn.disabled = false;
+        saveSafetySettingsBtn.textContent = "Save safety settings";
       }
     }
 
