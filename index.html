@@ -1465,7 +1465,21 @@
         <div class="account-grid">
           <div class="card">
             <h3>Profile</h3>
+            <div class="profile-photo-card">
+              <div id="accountAvatar" class="avatar" aria-hidden="true">K</div>
+              <div class="avatar-copy">
+                <strong>Your profile picture</strong>
+                <p>Choose a fun picture that does not show private details like a school badge, address, or phone number.</p>
+              </div>
+            </div>
             <p id="accountStatus" class="muted" style="line-height:1.7; margin-bottom:14px;">Loading...</p>
+            <label class="label" for="profilePhotoInput">Profile picture</label>
+            <div class="profile-photo-actions">
+              <input id="profilePhotoInput" class="input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose a profile picture" />
+              <button id="saveProfilePhotoBtn" class="btn btn-primary" type="button">Save picture</button>
+              <button id="removeProfilePhotoBtn" class="btn btn-secondary" type="button">Remove picture</button>
+            </div>
+            <div id="profilePhotoMessage" class="notice hidden" role="status" aria-live="polite"></div>
             <div class="row">
               <button id="logoutBtn" class="btn btn-secondary">Log out</button>
             </div>
@@ -1634,6 +1648,7 @@
     let pendingComments = [];
     let allUsers = [];
     let bannedEmails = [];
+    let pendingProfilePhotoDataUrl = "";
 
     const authScreen = document.getElementById("authScreen");
     const appShell = document.getElementById("appShell");
@@ -1659,7 +1674,12 @@
     const publicCount = document.getElementById("publicCount");
     const homeUserStat = document.getElementById("homeUserStat");
     const accountStatus = document.getElementById("accountStatus");
+    const accountAvatar = document.getElementById("accountAvatar");
     const logoutBtn = document.getElementById("logoutBtn");
+    const profilePhotoInput = document.getElementById("profilePhotoInput");
+    const saveProfilePhotoBtn = document.getElementById("saveProfilePhotoBtn");
+    const removeProfilePhotoBtn = document.getElementById("removeProfilePhotoBtn");
+    const profilePhotoMessage = document.getElementById("profilePhotoMessage");
     const discoverableInput = document.getElementById("discoverableInput");
     const friendsOnlyCommentsInput = document.getElementById("friendsOnlyCommentsInput");
     const saveSafetySettingsBtn = document.getElementById("saveSafetySettingsBtn");
@@ -1755,6 +1775,99 @@
       safetySettingsMessage.classList.remove("hidden");
     }
 
+    async function handleProfilePhotoSelection() {
+      const file = profilePhotoInput.files?.[0];
+      hideProfilePhotoMessage();
+
+      if (!file) {
+        pendingProfilePhotoDataUrl = "";
+        updateAccountAvatarPreview();
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        profilePhotoInput.value = "";
+        pendingProfilePhotoDataUrl = "";
+        updateAccountAvatarPreview();
+        showProfilePhotoMessage("Please choose an image file.", "error");
+        return;
+      }
+
+      if (file.size > 350 * 1024) {
+        profilePhotoInput.value = "";
+        pendingProfilePhotoDataUrl = "";
+        updateAccountAvatarPreview();
+        showProfilePhotoMessage("Please choose a picture under 350 KB so the profile stays fast and private.", "error");
+        return;
+      }
+
+      try {
+        pendingProfilePhotoDataUrl = sanitizePhotoDataUrl(await readFileAsDataUrl(file));
+        if (!pendingProfilePhotoDataUrl) {
+          throw new Error("invalid-image");
+        }
+        updateAccountAvatarPreview();
+        showProfilePhotoMessage("Picture ready. Click Save picture to keep it on your profile.", "success");
+      } catch (err) {
+        profilePhotoInput.value = "";
+        pendingProfilePhotoDataUrl = "";
+        updateAccountAvatarPreview();
+        showProfilePhotoMessage("We could not use that picture. Try a PNG, JPG, GIF, or WebP image.", "error");
+      }
+    }
+
+    async function saveProfilePhoto() {
+      if (!currentUser) return;
+      if (!pendingProfilePhotoDataUrl) {
+        showProfilePhotoMessage("Choose a picture first, then save it.", "error");
+        return;
+      }
+
+      saveProfilePhotoBtn.disabled = true;
+      saveProfilePhotoBtn.textContent = "Saving...";
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+          photoDataUrl: pendingProfilePhotoDataUrl
+        }, { merge: true });
+        currentProfile = { ...currentProfile, photoDataUrl: pendingProfilePhotoDataUrl };
+        pendingProfilePhotoDataUrl = "";
+        profilePhotoInput.value = "";
+        updateAccountAvatarPreview();
+        updateAccountUI();
+        await loadUsers();
+        showProfilePhotoMessage("Profile picture saved.", "success");
+      } catch (err) {
+        showProfilePhotoMessage(getFriendlyError(err), "error");
+      } finally {
+        saveProfilePhotoBtn.disabled = false;
+        saveProfilePhotoBtn.textContent = "Save picture";
+      }
+    }
+
+    async function removeProfilePhoto() {
+      if (!currentUser) return;
+
+      removeProfilePhotoBtn.disabled = true;
+      removeProfilePhotoBtn.textContent = "Removing...";
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+          photoDataUrl: ""
+        }, { merge: true });
+        currentProfile = { ...currentProfile, photoDataUrl: "" };
+        pendingProfilePhotoDataUrl = "";
+        profilePhotoInput.value = "";
+        updateAccountAvatarPreview();
+        updateAccountUI();
+        await loadUsers();
+        showProfilePhotoMessage("Profile picture removed.", "success");
+      } catch (err) {
+        showProfilePhotoMessage(getFriendlyError(err), "error");
+      } finally {
+        removeProfilePhotoBtn.disabled = false;
+        removeProfilePhotoBtn.textContent = "Remove picture";
+      }
+    }
+
     function showAdminUserMessage(message, type = "") {
       adminUserMessage.textContent = message;
       adminUserMessage.className = `notice ${type}`.trim();
@@ -1798,6 +1911,72 @@
       const div = document.createElement("div");
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    function sanitizePhotoDataUrl(value = "") {
+      return /^data:image\/(?:png|jpeg|jpg|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(value.trim())
+        ? value.trim()
+        : "";
+    }
+
+    function getDisplayName(user = {}) {
+      return user?.username || user?.displayName || user?.email?.split("@")[0] || "Kigazine member";
+    }
+
+    function getAvatarInitial(user = {}) {
+      const name = getDisplayName(user).trim();
+      return (name.charAt(0) || "K").toUpperCase();
+    }
+
+    function getProfilePhotoUrl(user = {}) {
+      return sanitizePhotoDataUrl(user?.photoDataUrl || user?.profilePhotoDataUrl || "");
+    }
+
+    function renderAvatarMarkup(user = {}, sizeClass = "") {
+      const photoUrl = getProfilePhotoUrl(user);
+      const avatarClass = sizeClass ? `avatar ${sizeClass}` : "avatar";
+      if (photoUrl) {
+        return `<div class="${avatarClass}" aria-hidden="true"><img src="${escapeHtml(photoUrl)}" alt="" /></div>`;
+      }
+      return `<div class="${avatarClass}" aria-hidden="true">${escapeHtml(getAvatarInitial(user))}</div>`;
+    }
+
+    function updateAccountAvatarPreview() {
+      if (!accountAvatar) return;
+      const previewUser = {
+        username: currentProfile?.username || currentUser?.email || "Kigazine member",
+        photoDataUrl: pendingProfilePhotoDataUrl || getProfilePhotoUrl(currentProfile)
+      };
+      accountAvatar.innerHTML = "";
+      const photoUrl = getProfilePhotoUrl(previewUser);
+      if (photoUrl) {
+        const image = document.createElement("img");
+        image.src = photoUrl;
+        image.alt = "";
+        accountAvatar.appendChild(image);
+      } else {
+        accountAvatar.textContent = getAvatarInitial(previewUser);
+      }
+    }
+
+    function showProfilePhotoMessage(message, type = "") {
+      profilePhotoMessage.textContent = message;
+      profilePhotoMessage.className = `notice ${type}`.trim();
+      profilePhotoMessage.classList.remove("hidden");
+    }
+
+    function hideProfilePhotoMessage() {
+      profilePhotoMessage.className = "notice hidden";
+      profilePhotoMessage.textContent = "";
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.onerror = () => reject(new Error("We could not read that picture."));
+        reader.readAsDataURL(file);
+      });
     }
 
     // Keep the live preview and safety hint in sync with the current draft.
@@ -1924,7 +2103,12 @@
           : "Nickname search is off.";
         return `
           <div class="person-card">
-            <h4>${escapeHtml(user.username || "Kigazine member")}</h4>
+            <div class="person-head">
+              ${renderAvatarMarkup(user, "small")}
+              <div class="person-head-copy">
+                <h4>${escapeHtml(user.username || "Kigazine member")}</h4>
+              </div>
+            </div>
             <div class="member-meta">
               <span class="${roleBadgeClass}">${escapeHtml(roleLabel)}</span>
               ${user.id === currentUser?.uid ? `<span class="friend-badge">You</span>` : ""}
@@ -2199,6 +2383,7 @@
         : "Not logged in.";
       discoverableInput.checked = Boolean(currentProfile?.discoverableProfile);
       friendsOnlyCommentsInput.checked = currentProfile?.commentsFriendsOnly !== false;
+      updateAccountAvatarPreview();
       adminPanel.classList.toggle("hidden", !isAdmin());
       adminPeoplePanel.classList.toggle("hidden", !isAdmin());
       banPanel.classList.toggle("hidden", !isAdmin());
@@ -2218,14 +2403,16 @@
           role: isAdminEmail(currentUser?.email) ? "admin" : "writer",
           friendUids: [],
           discoverableProfile: false,
-          commentsFriendsOnly: true
+          commentsFriendsOnly: true,
+          photoDataUrl: ""
         };
       }
       currentProfile = {
         ...currentProfile,
         friendUids: Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : [],
         discoverableProfile: Boolean(currentProfile?.discoverableProfile),
-        commentsFriendsOnly: currentProfile?.commentsFriendsOnly !== false
+        commentsFriendsOnly: currentProfile?.commentsFriendsOnly !== false,
+        photoDataUrl: getProfilePhotoUrl(currentProfile)
       };
       if (isAdminEmail(currentUser?.email) && currentProfile?.role !== "admin") {
         currentProfile = { ...currentProfile, email: currentUser.email, role: "admin" };
@@ -2361,6 +2548,7 @@
             friendUids: [],
             discoverableProfile: false,
             commentsFriendsOnly: true,
+            photoDataUrl: "",
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
@@ -2446,6 +2634,9 @@
     friendSearchInput.addEventListener("input", e => renderFriendSearchResults(e.target.value));
     adminUserSearchBtn.addEventListener("click", () => renderAdminUserResults(adminUserSearchInput.value));
     adminUserSearchInput.addEventListener("input", e => renderAdminUserResults(e.target.value));
+    profilePhotoInput.addEventListener("change", handleProfilePhotoSelection);
+    saveProfilePhotoBtn.addEventListener("click", saveProfilePhoto);
+    removeProfilePhotoBtn.addEventListener("click", removeProfilePhoto);
     saveSafetySettingsBtn.addEventListener("click", saveSafetySettings);
 
     refreshAdminBtn.addEventListener("click", async () => {
@@ -2488,7 +2679,12 @@
         const role = getRoleLabel(friend);
         return `
           <div class="person-card">
-            <h4>${escapeHtml(name)}</h4>
+            <div class="person-head">
+              ${renderAvatarMarkup(friend, "small")}
+              <div class="person-head-copy">
+                <h4>${escapeHtml(name)}</h4>
+              </div>
+            </div>
             <p>${escapeHtml(role)} on Kigazine</p>
             <button class="btn btn-secondary" type="button" data-remove-friend-id="${escapeHtml(uid)}">Remove friend</button>
           </div>
@@ -2524,7 +2720,12 @@
 
       friendSearchResults.innerHTML = results.map(user => `
         <div class="person-card">
-          <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+          <div class="person-head">
+            ${renderAvatarMarkup(user, "small")}
+            <div class="person-head-copy">
+              <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+            </div>
+          </div>
           <p>${escapeHtml(getRoleLabel(user))} on Kigazine</p>
           ${friendIds.has(user.id)
             ? `<span class="friend-badge">Already friends</span>`
@@ -2561,7 +2762,12 @@
         const isRoleAdmin = user.role === "admin";
         return `
           <div class="person-card">
-            <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+            <div class="person-head">
+              ${renderAvatarMarkup(user, "small")}
+              <div class="person-head-copy">
+                <h4>${escapeHtml(user.username || "Kigazine user")}</h4>
+              </div>
+            </div>
             <p>${escapeHtml(user.email || "No email")} • ${escapeHtml(getRoleLabel(user))}</p>
             ${isRoleAdmin
               ? `<button class="btn btn-secondary" type="button" data-demote-admin-id="${escapeHtml(user.id)}" ${isBuiltInAdmin ? "disabled" : ""}>Remove admin</button>`
@@ -3090,6 +3296,10 @@
         pendingComments = [];
         allUsers = [];
         bannedEmails = [];
+        pendingProfilePhotoDataUrl = "";
+        profilePhotoInput.value = "";
+        hideProfilePhotoMessage();
+        updateAccountAvatarPreview();
         authScreen.classList.remove("hidden");
         appShell.classList.add("hidden");
         setAuthMode("login");
