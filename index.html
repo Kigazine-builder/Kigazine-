@@ -759,6 +759,81 @@
       margin-bottom: 10px;
     }
 
+    .profile-photo-card {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 2px solid rgba(96,165,250,.28);
+      background: linear-gradient(135deg, rgba(59,130,246,.24), rgba(14,165,233,.18));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--text-strong);
+      font-weight: 900;
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar.small {
+      width: 46px;
+      height: 46px;
+      font-size: 16px;
+    }
+
+    .avatar-copy {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+
+    .avatar-copy p {
+      margin: 6px 0 0;
+      color: var(--soft);
+      line-height: 1.6;
+    }
+
+    .profile-photo-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .profile-photo-actions .input {
+      flex: 1 1 240px;
+      padding: 10px 12px;
+    }
+
+    .person-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .person-head h4 {
+      margin: 0 0 4px;
+    }
+
+    .person-head-copy {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
     .role-badge {
       display: inline-block;
       padding: 6px 10px;
