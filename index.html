@@ -1793,11 +1793,11 @@
         return;
       }
 
-      if (file.size > 350 * 1024) {
+      if (file.size > 1000 * 1024) {
         profilePhotoInput.value = "";
         pendingProfilePhotoDataUrl = "";
         updateAccountAvatarPreview();
-        showProfilePhotoMessage("Please choose a picture under 350 KB so the profile stays fast and private.", "error");
+        showProfilePhotoMessage("Please choose a picture under 1000 KB so the profile stays fast and private.", "error");
         return;
       }
 
