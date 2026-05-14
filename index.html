@@ -1635,9 +1635,20 @@
 };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const ADMIN_EMAILS = ["ethan02px2035@saschina.org"];
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.auth = auth;
+window.db = db;
+
+window.collection = collection;
+window.addDoc = addDoc;
+window.getDocs = getDocs;
+window.query = query;
+window.where = where;
+window.serverTimestamp = serverTimestamp;
+
+  const ADMIN_EMAILS = ["ethan02px2035@saschina.org"];
     const SUPER_ADMIN_EMAIL = "ethan02px2035@saschina.org";
     let authMode = "login";
     let currentUser = null;
