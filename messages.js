@@ -1,16 +1,6 @@
 /* Kigazine private messaging add-on.
    Loaded by index.html after the main Kigazine app script.
 */
-const {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  serverTimestamp,
-  onAuthStateChanged
-} = window;
-
 (() => {
   const MAX_MESSAGE_LENGTH = 1000;
   let messagesBooted = false;
@@ -34,6 +24,10 @@ const {
 
   function getAuth() {
     return window.auth || null;
+  }
+
+  function getFirebaseHelper(name) {
+    return window[name];
   }
 
   function currentUser() {
@@ -60,6 +54,60 @@ const {
     if (!box) return;
     box.textContent = "";
     box.className = "notice hidden";
+  }
+
+  function ensureStyles() {
+    if (byId("kigazineMessagesStyles")) return;
+    const style = document.createElement("style");
+    style.id = "kigazineMessagesStyles";
+    style.textContent = `
+      .messages-layout {
+        display: grid;
+        grid-template-columns: minmax(260px, 360px) 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+      .message-compose,
+      .message-inbox {
+        background: rgba(15, 23, 42, .92);
+        border: 1px solid #26344d;
+        border-radius: 24px;
+        padding: 18px;
+        box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      }
+      .message-compose h3,
+      .message-inbox h3 { margin-top: 0; }
+      .message-form { display: grid; gap: 12px; }
+      .message-form textarea { min-height: 130px; resize: vertical; }
+      .message-list { display: grid; gap: 12px; }
+      .message-item {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(148,163,184,.16);
+        background: rgba(11,20,37,.84);
+      }
+      .message-item.mine {
+        border-color: rgba(96,165,250,.26);
+        background: rgba(37,99,235,.12);
+      }
+      .message-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: #bfd0f4;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .message-copy { color: #dbeafe; white-space: pre-wrap; line-height: 1.6; margin: 0; }
+      .message-empty { color: #94a3b8; line-height: 1.6; }
+      .message-counter { color: #94a3b8; font-size: 12px; text-align: right; }
+      @media (max-width: 900px) {
+        .messages-layout { grid-template-columns: 1fr; }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function mountMessagesSection() {
@@ -126,9 +174,31 @@ const {
     });
   }
 
+  function getMessagingHelpers() {
+    const helpers = {
+      collection: getFirebaseHelper("collection"),
+      addDoc: getFirebaseHelper("addDoc"),
+      getDocs: getFirebaseHelper("getDocs"),
+      query: getFirebaseHelper("query"),
+      where: getFirebaseHelper("where"),
+      serverTimestamp: getFirebaseHelper("serverTimestamp")
+    };
+
+    const missing = Object.entries(helpers)
+      .filter(([, value]) => typeof value !== "function")
+      .map(([name]) => name);
+
+    if (missing.length) {
+      throw new Error(`Messaging helpers are not ready: ${missing.join(", ")}. Refresh and try again.`);
+    }
+
+    return helpers;
+  }
+
   async function findUserByUsername(username) {
     const db = getDb();
     if (!db) throw new Error("Firestore is not ready yet.");
+    const { collection, getDocs, query, where } = getMessagingHelpers();
     const q = query(collection(db, "users"), where("username", "==", username));
     const snap = await getDocs(q);
     if (snap.empty) return null;
@@ -152,6 +222,7 @@ const {
     if (text.length > MAX_MESSAGE_LENGTH) return showStatus(`Keep messages under ${MAX_MESSAGE_LENGTH} characters.`, "error");
 
     try {
+      const { collection, addDoc, serverTimestamp } = getMessagingHelpers();
       const recipient = await findUserByUsername(recipientUsername);
       if (!recipient) return showStatus("No Kigazine user with that username was found.", "error");
       if (recipient.id === user.uid) return showStatus("You cannot message yourself here.", "error");
@@ -220,6 +291,7 @@ const {
     }
 
     try {
+      const { collection, getDocs, query, where } = getMessagingHelpers();
       list.innerHTML = `<div class="message-empty">Loading messages...</div>`;
       const q = query(collection(db, "messages"), where("participants", "array-contains", user.uid));
       const snap = await getDocs(q);
@@ -233,7 +305,7 @@ const {
       renderMessages(docs);
     } catch (error) {
       console.error("Kigazine loadMessages error:", error);
-      list.innerHTML = `<div class="message-empty">Messages could not load. Check Firestore rules and refresh.</div>`;
+      list.innerHTML = `<div class="message-empty">${esc(error?.message || "Messages could not load. Check Firestore rules and refresh.")}</div>`;
     }
   }
 
@@ -252,6 +324,7 @@ const {
 
   function observeAuthIfAvailable() {
     const auth = getAuth();
+    const onAuthStateChanged = getFirebaseHelper("onAuthStateChanged");
     if (!auth || typeof onAuthStateChanged !== "function") return;
     onAuthStateChanged(auth, () => loadMessages());
   }
@@ -266,6 +339,7 @@ const {
     }
 
     messagesBooted = true;
+    ensureStyles();
     mountMessagesSection();
     bindForm();
     observeAuthIfAvailable();
