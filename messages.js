@@ -251,10 +251,12 @@
     if (!db) throw new Error("Firestore is not ready yet.");
 
     if (typeof db.collection === "function") {
-      const snap = await db.collection("users")
-        .where("username", "==", username)
-        .limit(1)
-        .get();
+      const q = query(
+  collection(db, "users"),
+  where("username", "==", username)
+);
+
+const snap = await getDocs(q);
       if (snap.empty) return null;
       const doc = snap.docs[0];
       return { id: doc.id, ...doc.data() };
@@ -302,7 +304,7 @@
         return;
       }
 
-      await db.collection("messages").add({
+      await addDoc(collection(db, "messages"), {
         fromUid: user.uid,
         fromUsername: currentUsername(),
         toUid: recipient.id,
@@ -369,9 +371,12 @@
 
     try {
       list.innerHTML = `<div class="message-empty">Loading messages...</div>`;
-      const snap = await db.collection("messages")
-        .where("participants", "array-contains", user.uid)
-        .get();
+     const q = query(
+  collection(db, "messages"),
+  where("participants", "array-contains", user.uid)
+);
+
+const snap = await getDocs(q);
 
       const docs = snap.docs.slice().sort((a, b) => {
         const ad = a.data();
