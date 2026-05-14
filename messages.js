@@ -86,10 +86,6 @@
         border: 1px solid rgba(148,163,184,.16);
         background: rgba(11,20,37,.84);
       }
-      .message-item.mine {
-        border-color: rgba(96,165,250,.26);
-        background: rgba(37,99,235,.12);
-      }
       .message-meta {
         display: flex;
         justify-content: space-between;
@@ -131,7 +127,7 @@
       <div class="hero">
         <span class="section-kicker">Private inbox</span>
         <h2>Messages</h2>
-        <p>Send a private message to another Kigazine user by username. Only the sender and recipient can read it.</p>
+        <p>Send a private message to another Kigazine user by username. Your inbox shows messages sent to you.</p>
       </div>
       <div class="messages-layout">
         <div class="message-compose">
@@ -154,7 +150,7 @@
           <div class="toolbar">
             <div>
               <h3 style="margin-bottom:4px;">Inbox</h3>
-              <div class="muted">Newest messages first</div>
+              <div class="muted">Only messages sent to you</div>
             </div>
             <button id="refreshMessagesBtn" class="btn btn-secondary" type="button">Refresh</button>
           </div>
@@ -256,22 +252,18 @@
 
   function renderMessages(docs) {
     const list = byId("messageList");
-    const user = currentUser();
     if (!list) return;
     if (!docs.length) {
-      list.innerHTML = `<div class="message-empty">No messages yet. Send the first one.</div>`;
+      list.innerHTML = `<div class="message-empty">No messages have been sent to you yet.</div>`;
       return;
     }
 
     list.innerHTML = docs.map(docSnap => {
       const data = docSnap.data();
-      const mine = data.fromUid === user?.uid;
-      const counterpart = mine ? (data.toUsername || "recipient") : (data.fromUsername || "sender");
-      const label = mine ? `To ${counterpart}` : `From ${counterpart}`;
       return `
-        <article class="message-item${mine ? " mine" : ""}">
+        <article class="message-item">
           <div class="message-meta">
-            <span>${esc(label)}</span>
+            <span>From ${esc(data.fromUsername || "sender")}</span>
             <span>${esc(readableDate(data.createdAt, data.createdAtClient))}</span>
           </div>
           <p class="message-copy">${esc(data.text)}</p>
@@ -293,7 +285,7 @@
     try {
       const { collection, getDocs, query, where } = getMessagingHelpers();
       list.innerHTML = `<div class="message-empty">Loading messages...</div>`;
-      const q = query(collection(db, "messages"), where("participants", "array-contains", user.uid));
+      const q = query(collection(db, "messages"), where("toUid", "==", user.uid));
       const snap = await getDocs(q);
       const docs = snap.docs.slice().sort((a, b) => {
         const ad = a.data();
