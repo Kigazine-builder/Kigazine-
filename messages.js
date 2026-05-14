@@ -4,6 +4,9 @@
 (() => {
   const MAX_MESSAGE_LENGTH = 1000;
   let messagesBooted = false;
+  let activeConversationUid = "";
+  let activeConversationUsername = "";
+  let cachedMessages = [];
 
   function esc(value) {
     return String(value ?? "")
@@ -61,46 +64,152 @@
     const style = document.createElement("style");
     style.id = "kigazineMessagesStyles";
     style.textContent = `
-      .messages-layout {
+      .messages-shell {
         display: grid;
-        grid-template-columns: minmax(260px, 360px) 1fr;
+        grid-template-columns: minmax(240px, 320px) 1fr;
         gap: 16px;
-        align-items: start;
+        align-items: stretch;
       }
-      .message-compose,
-      .message-inbox {
+      .conversation-sidebar,
+      .conversation-panel,
+      .message-compose-card {
         background: rgba(15, 23, 42, .92);
         border: 1px solid #26344d;
         border-radius: 24px;
         padding: 18px;
         box-shadow: 0 18px 45px rgba(0,0,0,.35);
       }
-      .message-compose h3,
-      .message-inbox h3 { margin-top: 0; }
+      .messages-top-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 420px) 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .message-compose-card h3,
+      .conversation-sidebar h3,
+      .conversation-panel h3 { margin-top: 0; }
       .message-form { display: grid; gap: 12px; }
-      .message-form textarea { min-height: 130px; resize: vertical; }
-      .message-list { display: grid; gap: 12px; }
-      .message-item {
+      .message-form textarea { min-height: 110px; resize: vertical; }
+      .message-counter { color: #94a3b8; font-size: 12px; text-align: right; }
+      .conversation-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .conversation-card {
+        width: 100%;
+        border: 1px solid rgba(148,163,184,.16);
+        background: rgba(11,20,37,.84);
+        border-radius: 18px;
         padding: 14px;
+        text-align: left;
+        color: inherit;
+        cursor: pointer;
+        transition: transform .16s ease, border-color .16s ease, background .16s ease;
+      }
+      .conversation-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(96,165,250,.34);
+      }
+      .conversation-card.active {
+        border-color: rgba(96,165,250,.58);
+        background: rgba(37,99,235,.18);
+      }
+      .conversation-name {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 900;
+        color: #f8fbff;
+        margin-bottom: 6px;
+      }
+      .conversation-preview {
+        color: #bfd0f4;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .conversation-time {
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .thread-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(148,163,184,.16);
+        margin-bottom: 14px;
+      }
+      .thread-title {
+        margin: 0;
+        font-size: 22px;
+      }
+      .thread-subtitle {
+        color: #94a3b8;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+      .thread-messages {
+        display: grid;
+        gap: 12px;
+        min-height: 320px;
+        max-height: 560px;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      .bubble-row {
+        display: flex;
+      }
+      .bubble-row.mine {
+        justify-content: flex-end;
+      }
+      .bubble-row.theirs {
+        justify-content: flex-start;
+      }
+      .bubble {
+        max-width: min(78%, 560px);
+        padding: 12px 14px;
         border-radius: 18px;
         border: 1px solid rgba(148,163,184,.16);
         background: rgba(11,20,37,.84);
       }
-      .message-meta {
+      .bubble-row.mine .bubble {
+        border-color: rgba(96,165,250,.35);
+        background: rgba(37,99,235,.2);
+      }
+      .bubble-meta {
         display: flex;
         justify-content: space-between;
         gap: 12px;
-        flex-wrap: wrap;
         color: #bfd0f4;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 800;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
-      .message-copy { color: #dbeafe; white-space: pre-wrap; line-height: 1.6; margin: 0; }
-      .message-empty { color: #94a3b8; line-height: 1.6; }
-      .message-counter { color: #94a3b8; font-size: 12px; text-align: right; }
-      @media (max-width: 900px) {
-        .messages-layout { grid-template-columns: 1fr; }
+      .bubble-copy {
+        margin: 0;
+        color: #dbeafe;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+      .message-empty {
+        color: #94a3b8;
+        line-height: 1.6;
+      }
+      @media (max-width: 1000px) {
+        .messages-top-grid,
+        .messages-shell {
+          grid-template-columns: 1fr;
+        }
+        .thread-messages { min-height: 240px; }
+        .bubble { max-width: 92%; }
       }
     `;
     document.head.appendChild(style);
@@ -127,11 +236,12 @@
       <div class="hero">
         <span class="section-kicker">Private inbox</span>
         <h2>Messages</h2>
-        <p>Send a private message to another Kigazine user by username. Your inbox shows messages sent to you.</p>
+        <p>Conversation-style private messages, similar to an inbox thread. Pick a person on the left to see the full conversation.</p>
       </div>
-      <div class="messages-layout">
-        <div class="message-compose">
-          <h3>Send a message</h3>
+
+      <div class="messages-top-grid">
+        <div class="message-compose-card">
+          <h3>Start or send a message</h3>
           <form id="kigazineMessageForm" class="message-form">
             <div>
               <label class="label" for="messageRecipient">Username</label>
@@ -146,18 +256,39 @@
           </form>
           <div id="messagesStatus" class="notice hidden"></div>
         </div>
-        <div class="message-inbox">
-          <div class="toolbar">
+
+        <div class="card">
+          <h3>How it works</h3>
+          <p class="muted">Your conversations group together messages between you and another Kigazine user. The newest conversation appears first.</p>
+          <p class="muted">When you click a conversation, the right side shows both sent and received messages in order.</p>
+        </div>
+      </div>
+
+      <div class="messages-shell">
+        <aside class="conversation-sidebar">
+          <div class="toolbar" style="margin-bottom:0;">
             <div>
-              <h3 style="margin-bottom:4px;">Inbox</h3>
-              <div class="muted">Only messages sent to you</div>
+              <h3 style="margin-bottom:4px;">Conversations</h3>
+              <div class="muted">Newest first</div>
             </div>
             <button id="refreshMessagesBtn" class="btn btn-secondary" type="button">Refresh</button>
           </div>
-          <div id="messageList" class="message-list">
-            <div class="message-empty">Sign in to load messages.</div>
+          <div id="conversationList" class="conversation-list">
+            <div class="message-empty">Sign in to load conversations.</div>
           </div>
-        </div>
+        </aside>
+
+        <section class="conversation-panel">
+          <div id="threadHeader" class="thread-header">
+            <div>
+              <h3 class="thread-title">Choose a conversation</h3>
+              <div class="thread-subtitle">Messages will appear here.</div>
+            </div>
+          </div>
+          <div id="threadMessages" class="thread-messages">
+            <div class="message-empty">No conversation selected.</div>
+          </div>
+        </section>
       </div>
     `;
     main.appendChild(section);
@@ -237,6 +368,8 @@
       textInput.value = "";
       updateCounter();
       showStatus("Message sent!", "success");
+      activeConversationUid = recipient.id;
+      activeConversationUsername = recipient.username || recipientUsername;
       await loadMessages();
     } catch (error) {
       console.error("Kigazine sendMessage error:", error);
@@ -250,54 +383,174 @@
     return date.toLocaleString();
   }
 
-  function renderMessages(docs) {
-    const list = byId("messageList");
+  function timestampValue(message) {
+    return message.createdAt?.toMillis?.() || message.createdAtClient || 0;
+  }
+
+  function getCounterpart(message, userUid) {
+    if (message.fromUid === userUid) {
+      return {
+        uid: message.toUid,
+        username: message.toUsername || "recipient"
+      };
+    }
+    return {
+      uid: message.fromUid,
+      username: message.fromUsername || "sender"
+    };
+  }
+
+  function groupConversations(messages, userUid) {
+    const map = new Map();
+
+    messages.forEach(message => {
+      const counterpart = getCounterpart(message, userUid);
+      if (!counterpart.uid) return;
+
+      if (!map.has(counterpart.uid)) {
+        map.set(counterpart.uid, {
+          uid: counterpart.uid,
+          username: counterpart.username,
+          messages: []
+        });
+      }
+
+      const conversation = map.get(counterpart.uid);
+      if (counterpart.username && counterpart.username !== "recipient" && counterpart.username !== "sender") {
+        conversation.username = counterpart.username;
+      }
+      conversation.messages.push(message);
+    });
+
+    return Array.from(map.values())
+      .map(conversation => {
+        conversation.messages.sort((a, b) => timestampValue(a) - timestampValue(b));
+        conversation.latest = conversation.messages[conversation.messages.length - 1];
+        return conversation;
+      })
+      .sort((a, b) => timestampValue(b.latest) - timestampValue(a.latest));
+  }
+
+  function renderConversationList(conversations) {
+    const list = byId("conversationList");
     if (!list) return;
-    if (!docs.length) {
-      list.innerHTML = `<div class="message-empty">No messages have been sent to you yet.</div>`;
+
+    if (!conversations.length) {
+      list.innerHTML = `<div class="message-empty">No conversations yet. Send the first message above.</div>`;
       return;
     }
 
-    list.innerHTML = docs.map(docSnap => {
-      const data = docSnap.data();
+    if (!activeConversationUid || !conversations.some(item => item.uid === activeConversationUid)) {
+      activeConversationUid = conversations[0].uid;
+      activeConversationUsername = conversations[0].username;
+    }
+
+    list.innerHTML = conversations.map(conversation => {
+      const latest = conversation.latest || {};
+      const isActive = conversation.uid === activeConversationUid;
+      const previewPrefix = latest.fromUid === currentUser()?.uid ? "You: " : "";
       return `
-        <article class="message-item">
-          <div class="message-meta">
-            <span>From ${esc(data.fromUsername || "sender")}</span>
-            <span>${esc(readableDate(data.createdAt, data.createdAtClient))}</span>
+        <button class="conversation-card${isActive ? " active" : ""}" type="button" data-conversation-uid="${esc(conversation.uid)}" data-conversation-name="${esc(conversation.username || "Kigazine user")}">
+          <div class="conversation-name">
+            <span>${esc(conversation.username || "Kigazine user")}</span>
+            <span class="conversation-time">${esc(readableDate(latest.createdAt, latest.createdAtClient))}</span>
           </div>
-          <p class="message-copy">${esc(data.text)}</p>
-        </article>
+          <div class="conversation-preview">${esc(previewPrefix + (latest.text || "No message text"))}</div>
+        </button>
       `;
     }).join("");
+
+    list.querySelectorAll("[data-conversation-uid]").forEach(button => {
+      button.addEventListener("click", () => {
+        activeConversationUid = button.dataset.conversationUid || "";
+        activeConversationUsername = button.dataset.conversationName || "Kigazine user";
+        renderConversationsFromCache();
+      });
+    });
+  }
+
+  function renderThread(conversations) {
+    const header = byId("threadHeader");
+    const thread = byId("threadMessages");
+    if (!header || !thread) return;
+
+    const selected = conversations.find(item => item.uid === activeConversationUid);
+    if (!selected) {
+      header.innerHTML = `
+        <div>
+          <h3 class="thread-title">Choose a conversation</h3>
+          <div class="thread-subtitle">Messages will appear here.</div>
+        </div>
+      `;
+      thread.innerHTML = `<div class="message-empty">No conversation selected.</div>`;
+      return;
+    }
+
+    header.innerHTML = `
+      <div>
+        <h3 class="thread-title">${esc(activeConversationUsername || selected.username || "Kigazine user")}</h3>
+        <div class="thread-subtitle">Conversation history</div>
+      </div>
+    `;
+
+    thread.innerHTML = selected.messages.map(message => {
+      const mine = message.fromUid === currentUser()?.uid;
+      return `
+        <div class="bubble-row ${mine ? "mine" : "theirs"}">
+          <article class="bubble">
+            <div class="bubble-meta">
+              <span>${mine ? "You" : esc(message.fromUsername || selected.username || "User")}</span>
+              <span>${esc(readableDate(message.createdAt, message.createdAtClient))}</span>
+            </div>
+            <p class="bubble-copy">${esc(message.text || "")}</p>
+          </article>
+        </div>
+      `;
+    }).join("");
+
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function renderConversationsFromCache() {
+    const user = currentUser();
+    if (!user) return;
+    const conversations = groupConversations(cachedMessages, user.uid);
+    renderConversationList(conversations);
+    renderThread(conversations);
   }
 
   async function loadMessages() {
     const db = getDb();
     const user = currentUser();
-    const list = byId("messageList");
-    if (!list) return;
+    const list = byId("conversationList");
+    const thread = byId("threadMessages");
+    if (!list || !thread) return;
+
     if (!db || !user) {
-      list.innerHTML = `<div class="message-empty">Sign in to load messages.</div>`;
+      list.innerHTML = `<div class="message-empty">Sign in to load conversations.</div>`;
+      thread.innerHTML = `<div class="message-empty">No conversation selected.</div>`;
       return;
     }
 
     try {
       const { collection, getDocs, query, where } = getMessagingHelpers();
-      list.innerHTML = `<div class="message-empty">Loading messages...</div>`;
-      const q = query(collection(db, "messages"), where("toUid", "==", user.uid));
+      list.innerHTML = `<div class="message-empty">Loading conversations...</div>`;
+      thread.innerHTML = `<div class="message-empty">Loading thread...</div>`;
+
+      const q = query(
+        collection(db, "messages"),
+        where("participants", "array-contains", user.uid)
+      );
       const snap = await getDocs(q);
-      const docs = snap.docs.slice().sort((a, b) => {
-        const ad = a.data();
-        const bd = b.data();
-        const at = ad.createdAt?.toMillis?.() || ad.createdAtClient || 0;
-        const bt = bd.createdAt?.toMillis?.() || bd.createdAtClient || 0;
-        return bt - at;
-      });
-      renderMessages(docs);
+      cachedMessages = snap.docs
+        .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+        .sort((a, b) => timestampValue(a) - timestampValue(b));
+
+      renderConversationsFromCache();
     } catch (error) {
       console.error("Kigazine loadMessages error:", error);
       list.innerHTML = `<div class="message-empty">${esc(error?.message || "Messages could not load. Check Firestore rules and refresh.")}</div>`;
+      thread.innerHTML = `<div class="message-empty">Conversation could not load.</div>`;
     }
   }
 
