@@ -1623,7 +1623,7 @@
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // ======================================
-    // PASTE YOUR FIREBASE CONFIG HERE
+    // PASTE YOUR  HERE
     // ======================================
     const firebaseConfig = {
   apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
@@ -1638,8 +1638,16 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     
-    window.auth = auth;
-    window.db = db;
+    window.collection = collection;
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.query = query;
+  window.where = where;
+  window.serverTimestamp = serverTimestamp;
+  window.onAuthStateChanged = onAuthStateChanged;
+
+  window.db = db;
+  window.auth = auth;
     
     const ADMIN_EMAILS = ["ethan02px2035@saschina.org"];
     const SUPER_ADMIN_EMAIL = "ethan02px2035@saschina.org";
