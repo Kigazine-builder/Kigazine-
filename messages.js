@@ -7,12 +7,13 @@ const {
   getDocs,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  onAuthStateChanged
 } = window;
+
 (() => {
   const MAX_MESSAGE_LENGTH = 1000;
   let messagesBooted = false;
-  let messagesUnsubscribe = null;
 
   function esc(value) {
     return String(value ?? "")
@@ -28,7 +29,7 @@ const {
   }
 
   function getDb() {
-    return window.db || window.firestoreDb || null;
+    return window.db || null;
   }
 
   function getAuth() {
@@ -36,13 +37,11 @@ const {
   }
 
   function currentUser() {
-    const auth = getAuth();
-    return auth?.currentUser || window.currentUser || null;
+    return getAuth()?.currentUser || null;
   }
 
   function currentUsername() {
-    return window.currentUsername
-      || window.currentUserProfile?.username
+    return window.currentProfile?.username
       || currentUser()?.displayName
       || currentUser()?.email?.split("@")[0]
       || "Kigazine user";
@@ -63,91 +62,6 @@ const {
     box.className = "notice hidden";
   }
 
-  function ensureStyles() {
-    if (byId("kigazineMessagesStyles")) return;
-    const style = document.createElement("style");
-    style.id = "kigazineMessagesStyles";
-    style.textContent = `
-      .messages-layout {
-        display: grid;
-        grid-template-columns: minmax(260px, 360px) 1fr;
-        gap: 16px;
-        align-items: start;
-      }
-      .message-compose,
-      .message-inbox {
-        background: rgba(15, 23, 42, .92);
-        border: 1px solid #26344d;
-        border-radius: 24px;
-        padding: 18px;
-        box-shadow: 0 18px 45px rgba(0,0,0,.35);
-      }
-      .message-compose h3,
-      .message-inbox h3 {
-        margin-top: 0;
-      }
-      .message-form {
-        display: grid;
-        gap: 12px;
-      }
-      .message-form textarea {
-        min-height: 130px;
-        resize: vertical;
-      }
-      .message-help {
-        margin: 0;
-        color: #94a3b8;
-        line-height: 1.55;
-        font-size: 13px;
-      }
-      .message-list {
-        display: grid;
-        gap: 12px;
-      }
-      .message-item {
-        padding: 14px;
-        border-radius: 18px;
-        border: 1px solid rgba(148,163,184,.16);
-        background: rgba(11,20,37,.84);
-      }
-      .message-item.mine {
-        border-color: rgba(96,165,250,.26);
-        background: rgba(37,99,235,.12);
-      }
-      .message-meta {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        color: #bfd0f4;
-        font-size: 12px;
-        font-weight: 800;
-        margin-bottom: 8px;
-      }
-      .message-copy {
-        color: #dbeafe;
-        white-space: pre-wrap;
-        line-height: 1.6;
-        margin: 0;
-      }
-      .message-empty {
-        color: #94a3b8;
-        line-height: 1.6;
-      }
-      .message-counter {
-        color: #94a3b8;
-        font-size: 12px;
-        text-align: right;
-      }
-      @media (max-width: 900px) {
-        .messages-layout {
-          grid-template-columns: 1fr;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   function mountMessagesSection() {
     if (byId("messagesSection")) return;
 
@@ -158,21 +72,19 @@ const {
     const navButton = document.createElement("button");
     navButton.className = "nav-btn";
     navButton.type = "button";
-    navButton.dataset.section = "messages";
+    navButton.dataset.section = "messagesSection";
     navButton.textContent = "💬 Messages";
     nav.appendChild(navButton);
 
     const section = document.createElement("section");
     section.id = "messagesSection";
     section.className = "section";
-    section.dataset.sectionPanel = "messages";
     section.innerHTML = `
       <div class="hero">
         <span class="section-kicker">Private inbox</span>
         <h2>Messages</h2>
-        <p>Send a private message to another Kigazine user by username. Only the people in the message can read it.</p>
+        <p>Send a private message to another Kigazine user by username. Only the sender and recipient can read it.</p>
       </div>
-
       <div class="messages-layout">
         <div class="message-compose">
           <h3>Send a message</h3>
@@ -187,11 +99,9 @@ const {
               <div id="messageCounter" class="message-counter">0 / ${MAX_MESSAGE_LENGTH}</div>
             </div>
             <button class="btn btn-primary" type="submit">Send message</button>
-            <p class="message-help">Messages are private in Firestore: the sender and recipient can read them.</p>
           </form>
           <div id="messagesStatus" class="notice hidden"></div>
         </div>
-
         <div class="message-inbox">
           <div class="toolbar">
             <div>
@@ -208,68 +118,22 @@ const {
     `;
     main.appendChild(section);
 
-    bindSectionButton(navButton);
-  }
-
-  function sectionButtons() {
-    return Array.from(document.querySelectorAll(".nav-btn"));
-  }
-
-  function sectionPanels() {
-    return Array.from(document.querySelectorAll(".section"));
-  }
-
-  function normalizeSectionNameFromButton(button) {
-    return button.dataset.section
-      || button.getAttribute("data-target")
-      || button.textContent?.trim()?.toLowerCase().replace(/[^a-z]+/g, "")
-      || "";
-  }
-
-  function normalizeSectionNameFromPanel(panel) {
-    return panel.dataset.sectionPanel
-      || panel.dataset.section
-      || panel.id?.replace(/Section$/i, "").replace(/^section[-_]?/i, "")
-      || "";
-  }
-
-  function activateMessagesSection() {
-    sectionButtons().forEach((button) => {
-      const isMessages = normalizeSectionNameFromButton(button) === "messages";
-      button.classList.toggle("active", isMessages);
-    });
-
-    sectionPanels().forEach((panel) => {
-      const isMessages = normalizeSectionNameFromPanel(panel) === "messages" || panel.id === "messagesSection";
-      panel.classList.toggle("active", isMessages);
-    });
-
-    loadMessages();
-  }
-
-  function bindSectionButton(button) {
-    button.addEventListener("click", () => {
-      activateMessagesSection();
+    navButton.addEventListener("click", () => {
+      if (typeof window.showSection === "function") {
+        window.showSection("messagesSection");
+      }
+      loadMessages();
     });
   }
 
   async function findUserByUsername(username) {
     const db = getDb();
     if (!db) throw new Error("Firestore is not ready yet.");
-
-    if (typeof db.collection === "function") {
-      const q = query(
-  collection(db, "users"),
-  where("username", "==", username)
-);
-
-const snap = await getDocs(q);
-      if (snap.empty) return null;
-      const doc = snap.docs[0];
-      return { id: doc.id, ...doc.data() };
-    }
-
-    throw new Error("This messaging add-on expects the current Firestore compat setup.");
+    const q = query(collection(db, "users"), where("username", "==", username));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const docSnap = snap.docs[0];
+    return { id: docSnap.id, ...docSnap.data() };
   }
 
   async function sendMessage(event) {
@@ -278,38 +142,19 @@ const snap = await getDocs(q);
 
     const db = getDb();
     const user = currentUser();
-    const recipientInput = byId("messageRecipient");
+    const recipientUsername = byId("messageRecipient")?.value.trim();
     const textInput = byId("messageText");
-    const recipientUsername = recipientInput?.value.trim();
     const text = textInput?.value.trim();
 
-    if (!db) {
-      showStatus("Firestore is not ready yet. Refresh and try again.", "error");
-      return;
-    }
-    if (!user) {
-      showStatus("Please sign in before sending messages.", "error");
-      return;
-    }
-    if (!recipientUsername || !text) {
-      showStatus("Enter a username and a message first.", "error");
-      return;
-    }
-    if (text.length > MAX_MESSAGE_LENGTH) {
-      showStatus(`Keep messages under ${MAX_MESSAGE_LENGTH} characters.`, "error");
-      return;
-    }
+    if (!db) return showStatus("Firestore is not ready yet. Refresh and try again.", "error");
+    if (!user) return showStatus("Please sign in before sending messages.", "error");
+    if (!recipientUsername || !text) return showStatus("Enter a username and a message first.", "error");
+    if (text.length > MAX_MESSAGE_LENGTH) return showStatus(`Keep messages under ${MAX_MESSAGE_LENGTH} characters.`, "error");
 
     try {
       const recipient = await findUserByUsername(recipientUsername);
-      if (!recipient) {
-        showStatus("No Kigazine user with that username was found.", "error");
-        return;
-      }
-      if (recipient.id === user.uid) {
-        showStatus("You cannot message yourself here. Try another username.", "error");
-        return;
-      }
+      if (!recipient) return showStatus("No Kigazine user with that username was found.", "error");
+      if (recipient.id === user.uid) return showStatus("You cannot message yourself here.", "error");
 
       await addDoc(collection(db, "messages"), {
         fromUid: user.uid,
@@ -318,7 +163,7 @@ const snap = await getDocs(q);
         toUsername: recipient.username || recipientUsername,
         text,
         participants: [user.uid, recipient.id],
-        createdAt: window.firebase?.firestore?.FieldValue?.serverTimestamp?.() || new Date(),
+        createdAt: serverTimestamp(),
         createdAtClient: Date.now()
       });
 
@@ -342,14 +187,13 @@ const snap = await getDocs(q);
     const list = byId("messageList");
     const user = currentUser();
     if (!list) return;
-
     if (!docs.length) {
       list.innerHTML = `<div class="message-empty">No messages yet. Send the first one.</div>`;
       return;
     }
 
-    list.innerHTML = docs.map((doc) => {
-      const data = typeof doc.data === "function" ? doc.data() : doc;
+    list.innerHTML = docs.map(docSnap => {
+      const data = docSnap.data();
       const mine = data.fromUid === user?.uid;
       const counterpart = mine ? (data.toUsername || "recipient") : (data.fromUsername || "sender");
       const label = mine ? `To ${counterpart}` : `From ${counterpart}`;
@@ -370,7 +214,6 @@ const snap = await getDocs(q);
     const user = currentUser();
     const list = byId("messageList");
     if (!list) return;
-
     if (!db || !user) {
       list.innerHTML = `<div class="message-empty">Sign in to load messages.</div>`;
       return;
@@ -378,13 +221,8 @@ const snap = await getDocs(q);
 
     try {
       list.innerHTML = `<div class="message-empty">Loading messages...</div>`;
-     const q = query(
-  collection(db, "messages"),
-  where("participants", "array-contains", user.uid)
-);
-
-const snap = await getDocs(q);
-
+      const q = query(collection(db, "messages"), where("participants", "array-contains", user.uid));
+      const snap = await getDocs(q);
       const docs = snap.docs.slice().sort((a, b) => {
         const ad = a.data();
         const bd = b.data();
@@ -414,10 +252,8 @@ const snap = await getDocs(q);
 
   function observeAuthIfAvailable() {
     const auth = getAuth();
-    if (!auth?.onAuthStateChanged) return;
-    auth.onAuthStateChanged(() => {
-      loadMessages();
-    });
+    if (!auth || typeof onAuthStateChanged !== "function") return;
+    onAuthStateChanged(auth, () => loadMessages());
   }
 
   function bootMessages() {
@@ -430,12 +266,10 @@ const snap = await getDocs(q);
     }
 
     messagesBooted = true;
-    ensureStyles();
     mountMessagesSection();
     bindForm();
     observeAuthIfAvailable();
     window.kigazineLoadMessages = loadMessages;
-    window.kigazineSendMessage = sendMessage;
   }
 
   if (document.readyState === "loading") {
