@@ -1,7 +1,14 @@
 /* Kigazine private messaging add-on.
    Loaded by index.html after the main Kigazine app script.
 */
-
+const {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp
+} = window;
 (() => {
   const MAX_MESSAGE_LENGTH = 1000;
   let messagesBooted = false;
