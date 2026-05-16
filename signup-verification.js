@@ -1,15 +1,33 @@
 /* Kigazine six-digit signup verification add-on.
-   This is a front-end test verification step. It blocks account creation until
-   the visitor enters the displayed six-digit code. Real emailed codes require
-   a backend email sender later.
+   Sends the signup code by email when EmailJS is configured.
+   IMPORTANT: Update EMAILJS_CONFIG below with your EmailJS values.
 */
 (() => {
   const CODE_TTL_MS = 10 * 60 * 1000;
+
+  const EMAILJS_CONFIG = {
+    publicKey: "PASTE_EMAILJS_PUBLIC_KEY_HERE",
+    serviceId: "PASTE_EMAILJS_SERVICE_ID_HERE",
+    templateId: "PASTE_EMAILJS_TEMPLATE_ID_HERE"
+  };
+
   let booted = false;
   let pendingSignup = null;
+  let emailJsLoaded = false;
 
   function byId(id) {
     return document.getElementById(id);
+  }
+
+  function emailSendingConfigured() {
+    return Boolean(
+      EMAILJS_CONFIG.publicKey &&
+      EMAILJS_CONFIG.serviceId &&
+      EMAILJS_CONFIG.templateId &&
+      !EMAILJS_CONFIG.publicKey.includes("PASTE_") &&
+      !EMAILJS_CONFIG.serviceId.includes("PASTE_") &&
+      !EMAILJS_CONFIG.templateId.includes("PASTE_")
+    );
   }
 
   function currentAuthMode() {
@@ -54,6 +72,53 @@
 
   async function firebaseFunctions() {
     return await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+  }
+
+  function loadEmailJsSdk() {
+    if (emailJsLoaded || window.emailjs) {
+      emailJsLoaded = true;
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+      script.async = true;
+      script.onload = () => {
+        emailJsLoaded = true;
+        resolve();
+      };
+      script.onerror = () => reject(new Error("Could not load the email sender."));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function sendVerificationEmail(email, username, code) {
+    if (!emailSendingConfigured()) {
+      return false;
+    }
+
+    await loadEmailJsSdk();
+
+    if (!window.emailjs?.send) {
+      throw new Error("Email sender is not ready.");
+    }
+
+    window.emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+
+    await window.emailjs.send(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.templateId,
+      {
+        to_email: email,
+        to_name: username || "Kigazine user",
+        verification_code: code,
+        code,
+        app_name: "Kigazine"
+      }
+    );
+
+    return true;
   }
 
   async function createVerifiedAccount() {
@@ -145,7 +210,7 @@
     wrapper.innerHTML = `
       <label class="label" for="verificationCodeInput">Verification code</label>
       <input id="verificationCodeInput" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code" />
-      <p class="field-help">For this test build, Kigazine displays the code in the message below. A future backend can email it instead.</p>
+      <p class="field-help">Kigazine sends a 6-digit code to your email. Enter it here to finish signup.</p>
       <button id="verifyCodeBtn" class="btn btn-primary" type="button" style="width:100%; margin-top:10px;">Verify code</button>
     `;
 
@@ -229,7 +294,28 @@
     mountVerificationBox();
     byId("verificationBox")?.classList.remove("hidden");
     byId("verificationCodeInput")?.focus();
-    showAuthMessage(`Verification code: ${code}\nEnter this 6-digit code to finish signup.`, "success");
+
+    const submitButton = byId("authSubmitBtn");
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Sending code...";
+    }
+
+    try {
+      const sent = await sendVerificationEmail(email, username, code);
+      if (sent) {
+        showAuthMessage(`Verification code sent to ${email}. Check your inbox and enter the 6-digit code.`, "success");
+      } else {
+        showAuthMessage(`Email sending is not configured yet. Test code: ${code}\nAdd your EmailJS public key, service ID, and template ID in signup-verification.js to send real emails.`, "error");
+      }
+    } catch (error) {
+      showAuthMessage(`Could not send the verification email. Test code: ${code}\n${error?.message || "Email sending failed."}`, "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Sign up";
+      }
+    }
   }
 
   function bindAuthInterception() {
