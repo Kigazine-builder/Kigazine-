@@ -6,10 +6,10 @@
   const CODE_TTL_MS = 10 * 60 * 1000;
 
   const EMAILJS_CONFIG = {
-    publicKey: "PASTE_EMAILJS_PUBLIC_KEY_HERE",
-    serviceId: "PASTE_EMAILJS_SERVICE_ID_HERE",
-    templateId: "PASTE_EMAILJS_TEMPLATE_ID_HERE"
-  };
+  publicKey: "SbnXUZanVcO4LdnHt",
+  serviceId: "service_w577rrr",
+  templateId: "template_c02cnw3"
+};
 
   let booted = false;
   let pendingSignup = null;
