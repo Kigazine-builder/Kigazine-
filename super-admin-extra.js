@@ -7,7 +7,7 @@
   ];
 
   function normalize(email = "") {
-    return String(email).trim().toLowerCase();
+    return String(email).trim().toLowerCase()；
   }
 
   function isExtraSuperAdminEmail(email = "") {
