@@ -7,7 +7,7 @@
    profile documents. Full Firebase Auth deletion still requires Admin SDK/backend.
 */
 (() => {
-  const ROOT_SUPER_ADMIN_EMAIL = "ethan02px2035@saschina.org","matthewxfighter@gmail.com";
+  const ROOT_SUPER_ADMIN_EMAIL = "ethan02px2035@saschina.org";
   let booted = false;
   let selectedUserIds = new Set();
   let searchTerm = "";
