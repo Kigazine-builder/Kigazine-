@@ -37,10 +37,14 @@
     return email.trim().toLowerCase() === ROOT_SUPER_ADMIN_EMAIL;
   }
 
+  function hasSuperAdminRole(profile = {}) {
+    return profile?.superAdmin === true || profile?.role === "superAdmin" || profile?.role === "super_admin";
+  }
+
   function isSuperAdmin() {
     const user = currentAuthUser();
     const profile = getCurrentProfile();
-    return isRootSuperAdminEmail(user?.email || "") || profile?.superAdmin === true;
+    return isRootSuperAdminEmail(user?.email || "") || hasSuperAdminRole(profile);
   }
 
   function getUsers() {
@@ -96,7 +100,7 @@
         </div>
         <p id="bulkUserSummary" class="bulk-user-summary">0 users selected.</p>
         <div id="bulkUserMessage" class="notice hidden" role="status" aria-live="polite"></div>
-        <div class="bulk-user-warning">Promoted super admins get <strong>superAdmin: true</strong> and <strong>role: admin</strong> in Firestore. For full security, update your Firestore Rules to recognize this field too.</div>
+        <div class="bulk-user-warning">Promoted super admins now get <strong>role: "superAdmin"</strong> in Firestore. This matches Kigazine's displayed Super admin status more cleanly than a separate boolean.</div>
         <div class="bulk-user-danger">Deleting a Kigazine profile does not delete the Firebase Authentication login account. Full Auth deletion requires Firebase Admin SDK or a backend.</div>
         <div id="bulkUserList" class="bulk-user-list"></div>
       </div>
@@ -148,12 +152,12 @@
   }
 
   function roleLabel(user) {
-    if (user?.superAdmin === true) return "SUPER ADMIN";
+    if (hasSuperAdminRole(user)) return "SUPER ADMIN";
     return user?.role === "admin" ? "Admin" : "Writer";
   }
 
   function roleClass(user) {
-    return user?.superAdmin === true ? "bulk-user-role super" : "bulk-user-role";
+    return hasSuperAdminRole(user) ? "bulk-user-role super" : "bulk-user-role";
   }
 
   function updateSummary() {
@@ -228,13 +232,12 @@
 
       for (const user of targets) {
         await setDoc(doc(db, "users", user.id), {
-          role: makeSuperAdmin ? "admin" : "writer",
-          superAdmin: makeSuperAdmin,
+          role: makeSuperAdmin ? "superAdmin" : "writer",
           superAdminUpdatedAt: serverTimestamp(),
           superAdminUpdatedBy: currentAuthUser()?.email || ROOT_SUPER_ADMIN_EMAIL
         }, { merge: true });
-        user.role = makeSuperAdmin ? "admin" : "writer";
-        user.superAdmin = makeSuperAdmin;
+        user.role = makeSuperAdmin ? "superAdmin" : "writer";
+        delete user.superAdmin;
       }
 
       renderList();
@@ -294,7 +297,7 @@
       showMessage("Select at least one user first.", "error");
       return;
     }
-    const text = targets.map(user => `${user.email || ""}\t${user.id || ""}\t${user.superAdmin ? "SUPER_ADMIN" : roleLabel(user)}`).join("\n");
+    const text = targets.map(user => `${user.email || ""}\t${user.id || ""}\t${roleLabel(user)}`).join("\n");
     try {
       await navigator.clipboard.writeText(text);
       showMessage("Copied selected emails, UIDs, and roles.", "success");
