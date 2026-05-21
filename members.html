@@ -1,15 +1,26 @@
-<section id="membersSection" class="section">
-  <div class="toolbar">
-    <div>
-      <div class="section-kicker">Community</div>
-      <h2 style="margin:0 0 6px;">Members</h2>
-      <div class="muted">See Kigazine nicknames and whether each person is a writer, admin, or super admin.</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kigazine Members</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section id="membersSection" class="section active standalone-section">
+    <div class="toolbar">
+      <div>
+        <div class="section-kicker">Community</div>
+        <h2 style="margin:0 0 6px;">Members</h2>
+        <div class="muted">See Kigazine nicknames and whether each person is a writer, admin, or super admin.</div>
+      </div>
+      <label class="label hidden" for="memberSearchInput">Search members</label>
+      <input id="memberSearchInput" class="search" placeholder="Search members..." aria-label="Search members" />
     </div>
-    <label class="label hidden" for="memberSearchInput">Search members</label>
-    <input id="memberSearchInput" class="search" placeholder="Search members..." aria-label="Search members" />
-  </div>
-  <div class="card" style="margin-bottom:16px;">
-    <p class="muted" style="margin:0; line-height:1.7;">This page only shows nicknames and role tags so the community stays easier to explore without sharing private details.</p>
-  </div>
-  <div id="memberList" class="member-list"></div>
-</section>
+    <div class="card" style="margin-bottom:16px;">
+      <p class="muted" style="margin:0; line-height:1.7;">This page only shows nicknames and role tags so the community stays easier to explore without sharing private details.</p>
+    </div>
+    <div id="memberList" class="member-list"></div>
+  </section>
+</body>
+</html>
