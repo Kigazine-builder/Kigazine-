@@ -1,0 +1,91 @@
+/* Kigazine shared styles.
+   This file exists so split pages can all use the same CSS.
+   The original index.html still contains the full inline CSS for now.
+   New standalone partial pages should load this file if opened directly.
+*/
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+  background: #0f172a;
+  color: #e5eefc;
+}
+
+.hidden { display: none !important; }
+
+.card {
+  background: rgba(15, 23, 42, .92);
+  border: 1px solid #26344d;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+}
+
+.hero {
+  border: 1px solid rgba(96,165,250,.18);
+  border-radius: 28px;
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(17,24,39,.56));
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+  margin-bottom: 20px;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+.section-kicker {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(148,163,184,.12);
+  border: 1px solid rgba(148,163,184,.16);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.btn {
+  padding: 13px 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6 72%, #93c5fd);
+  color: white;
+}
+
+.btn-secondary {
+  background: #152033;
+  color: white;
+  border: 1px solid #30415d;
+}
+
+.input, .textarea, .search {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid #31415d;
+  background: #0b1425;
+  color: white;
+  outline: none;
+}
+
+.textarea { min-height: 180px; resize: vertical; }
+.label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #dbeafe; }
+.muted { color: #94a3b8; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.grid, .status-grid, .home-quickstrip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.mag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.member-list, .people-list, .friend-list, .admin-review-list { display: grid; gap: 12px; }
+.split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+
+@media (max-width: 980px) {
+  .grid, .status-grid, .home-quickstrip, .split { grid-template-columns: 1fr; }
+}
