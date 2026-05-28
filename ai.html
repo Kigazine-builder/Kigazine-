@@ -427,6 +427,10 @@ const send =
 const mode =
   document.getElementById("mode");
 
+function makeSessionId() {
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 let sessionId =
   localStorage.getItem("sessionId");
 
@@ -436,7 +440,7 @@ if (
 ) {
 
   sessionId =
-    crypto.randomUUID();
+    makeSessionId();
 
   localStorage.setItem(
     "sessionId",
@@ -468,20 +472,24 @@ function addMessage(text, type) {
 
 async function newChat() {
 
-  await fetch("/api/reset", {
+  try {
+    await fetch("/api/reset", {
 
-    method: "POST",
+      method: "POST",
 
-    headers: {
-      "Content-Type":
-        "application/json"
-    },
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
 
-    body: JSON.stringify({
-      sessionId
-    })
+      body: JSON.stringify({
+        sessionId
+      })
 
-  });
+    });
+  } catch (error) {
+    console.warn("Reset failed:", error);
+  }
 
   localStorage.removeItem(
     "sessionId"
@@ -556,22 +564,30 @@ async function sendMessage() {
       .getElementById("typing")
       ?.remove();
 
+    let data = {};
+
+    try {
+      data = await response.json();
+    } catch (error) {
+      throw new Error("The server did not return JSON.");
+    }
+
     if (!response.ok) {
 
-      const errorData =
-        await response.json();
-
       throw new Error(
-        errorData.error
+        data.error ||
+        "Kigazine Ai backend error."
       );
 
     }
 
-    const data =
-      await response.json();
+    if (data.sessionId) {
+      sessionId = data.sessionId;
+      localStorage.setItem("sessionId", sessionId);
+    }
 
     addMessage(
-      data.reply,
+      data.reply || "Kigazine Ai did not send a reply.",
       "bot"
     );
 
