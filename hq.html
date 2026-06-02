@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kigazine HQ</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.12);
+      --line: rgba(255,255,255,0.15);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --blue: #60a5fa;
+      --green: #86efac;
+      --gold: #facc15;
+      --red: #f87171;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.24), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(250,204,21,0.14), transparent 30%),
+        linear-gradient(135deg, #07111f, #0f2a4d 55%, #081827);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 30px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(3,7,18,0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      letter-spacing: -1.5px;
+    }
+
+    .brand p {
+      color: #cbd5e1;
+      margin: 8px 0 0;
+      font-size: 16px;
+    }
+
+    .nav a {
+      color: white;
+      text-decoration: none;
+      padding: 11px 15px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      display: inline-block;
+      margin: 4px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+    }
+
+    .number {
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--blue);
+      line-height: 1;
+    }
+
+    .label {
+      color: #cbd5e1;
+      margin-top: 8px;
+      font-weight: 650;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 850px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.045);
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #bfdbfe;
+      background: rgba(96,165,250,0.13);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.18);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .quiet {
+      color: var(--muted);
+    }
+
+    .bar-wrap {
+      height: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 7px;
+    }
+
+    .bar {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #facc15);
+      width: 0%;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      margin: 4px 4px 0 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .error {
+      color: var(--red);
+      font-weight: 800;
+    }
+
+    footer {
+      max-width: 1180px;
+      margin: auto;
+      padding: 8px 24px 30px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1>📍 Kigazine HQ</h1>
+        <p>Live public dashboard for activity, publishing, and creator stats.</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="hq.html">HQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <div class="number" id="totalMagazines">0</div>
+        <div class="label">Magazines Published</div>
+        <div class="hint">Total public magazine posts found.</div>
+      </div>
+      <div class="card">
+        <div class="number" id="totalUsers">0</div>
+        <div class="label">Kigazine Users</div>
+        <div class="hint">Accounts found in the users collection.</div>
+      </div>
+      <div class="card">
+        <div class="number" id="activeUsers">0</div>
+        <div class="label">Active Writers</div>
+        <div class="hint">People who have published at least once.</div>
+      </div>
+      <div class="card">
+        <div class="number" id="todayMagazines">0</div>
+        <div class="label">Published Today</div>
+        <div class="hint">Based on magazine createdAt dates.</div>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <div class="card">
+        <h2>🔥 Most Active People</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Magazines</th>
+              <th>Activity</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard">
+            <tr><td colspan="3" class="quiet">Loading activity...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>⚡ HQ Signals</h2>
+        <div id="signals" class="quiet">Loading signals...</div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>🆕 Recent Magazines</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="recentMagazines">
+          <tr><td colspan="3" class="quiet">Loading magazines...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    Kigazine HQ updates when Firestore data changes after page reload. 🔵
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+      authDomain: "kigazine-302ac.firebaseapp.com",
+      projectId: "kigazine-302ac",
+      storageBucket: "kigazine-302ac.firebasestorage.app",
+      messagingSenderId: "821833747017",
+      appId: "1:821833747017:web:dc20a182d1935408c34d98"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const $ = id => document.getElementById(id);
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getDate(value) {
+      if (!value) return null;
+      if (typeof value.toDate === "function") return value.toDate();
+      if (typeof value === "string" || typeof value === "number") {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+      return null;
+    }
+
+    function sameDay(a, b) {
+      return a && b &&
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
+    }
+
+    function usernameFromMagazine(data) {
+      return data.username || data.author || data.displayName || data.user || data.email || "Unknown";
+    }
+
+    async function safeGetCollection(name) {
+      try {
+        const snap = await getDocs(collection(db, name));
+        return { snap, error: null };
+      } catch (error) {
+        console.error(`Could not read ${name}:`, error);
+        return { snap: null, error };
+      }
+    }
+
+    async function loadHQ() {
+      const magazinesResult = await safeGetCollection("magazines");
+      const usersResult = await safeGetCollection("users");
+
+      if (magazinesResult.error) {
+        $("leaderboard").innerHTML = `<tr><td colspan="3" class="error">Could not read magazines. Check Firestore rules.</td></tr>`;
+        $("recentMagazines").innerHTML = `<tr><td colspan="3" class="error">Could not read magazines. Check Firestore rules.</td></tr>`;
+        $("signals").innerHTML = `<span class="error">Firestore blocked the magazines collection.</span>`;
+        return;
+      }
+
+      const magazines = [];
+      const authorCounts = {};
+      let todayCount = 0;
+      const today = new Date();
+
+      magazinesResult.snap.forEach(doc => {
+        const data = doc.data();
+        const author = usernameFromMagazine(data);
+        const title = data.title || data.name || "Untitled Magazine";
+        const createdAt = getDate(data.createdAt || data.date || data.time || data.publishedAt);
+
+        authorCounts[author] = (authorCounts[author] || 0) + 1;
+        if (sameDay(createdAt, today)) todayCount++;
+
+        magazines.push({ title, author, createdAt });
+      });
+
+      const totalMagazines = magazines.length;
+      const totalUsers = usersResult.snap ? usersResult.snap.size : 0;
+      const activeUsers = Object.keys(authorCounts).length;
+
+      $("totalMagazines").textContent = totalMagazines;
+      $("totalUsers").textContent = usersResult.error ? "?" : totalUsers;
+      $("activeUsers").textContent = activeUsers;
+      $("todayMagazines").textContent = todayCount;
+
+      const sortedAuthors = Object.entries(authorCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+      const maxCount = sortedAuthors[0]?.[1] || 1;
+      $("leaderboard").innerHTML = sortedAuthors.length
+        ? sortedAuthors.map(([user, count]) => {
+            const percent = Math.round((count / maxCount) * 100);
+            return `
+              <tr>
+                <td><strong>${escapeHTML(user)}</strong></td>
+                <td>${count}</td>
+                <td>
+                  <span class="status">Active</span>
+                  <div class="bar-wrap"><div class="bar" style="width:${percent}%"></div></div>
+                </td>
+              </tr>
+            `;
+          }).join("")
+        : `<tr><td colspan="3" class="quiet">No published activity yet.</td></tr>`;
+
+      magazines.sort((a, b) => {
+        if (!a.createdAt && !b.createdAt) return 0;
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return b.createdAt - a.createdAt;
+      });
+
+      $("recentMagazines").innerHTML = magazines.length
+        ? magazines.slice(0, 12).map(mag => `
+            <tr>
+              <td><strong>${escapeHTML(mag.title)}</strong></td>
+              <td>${escapeHTML(mag.author)}</td>
+              <td>${mag.createdAt ? mag.createdAt.toLocaleString() : "Unknown"}</td>
+            </tr>
+          `).join("")
+        : `<tr><td colspan="3" class="quiet">No magazines found.</td></tr>`;
+
+      const average = activeUsers ? (totalMagazines / activeUsers).toFixed(1) : "0";
+      const topWriter = sortedAuthors[0]?.[0] || "Nobody yet";
+      const topCount = sortedAuthors[0]?.[1] || 0;
+
+      $("signals").innerHTML = `
+        <span class="pill">Top writer: ${escapeHTML(topWriter)}</span>
+        <span class="pill">Top count: ${topCount}</span>
+        <span class="pill">Average per active writer: ${average}</span>
+        <span class="pill">Users collection: ${usersResult.error ? "blocked" : "loaded"}</span>
+        <p class="quiet" style="margin-top:14px;line-height:1.6;">
+          HQ reads public Firestore data from <strong>magazines</strong>${usersResult.error ? "" : " and <strong>users</strong>"}.
+          If a number says 0 but you know posts exist, your Firestore field names may be different.
+        </p>
+      `;
+    }
+
+    loadHQ();
+  </script>
+</body>
+</html>
