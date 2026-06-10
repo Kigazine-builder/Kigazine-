@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validText(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+
+    function validOptionalText(value, maxLength) {
+      return value == null || (value is string && value.size() <= maxLength);
+    }
+
+    // Public creator profiles are readable so HQ can count users.
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // Public magazines are readable by everyone.
+    // Only signed-in users can create posts, and each post must belong to that user.
+    match /magazines/{magazineId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && validText(request.resource.data.title, 120)
+        && validText(request.resource.data.content, 12000)
+        && validOptionalText(request.resource.data.username, 40);
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+
+      // Comments are public to read, but only signed-in users can post.
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && validText(request.resource.data.text, 1000);
+        allow update, delete: if signedIn() && resource.data.uid == request.auth.uid;
+      }
+    }
+
+    // Reports are write-only from the site. They should not be public-readable.
+    match /reports/{reportId} {
+      allow create: if signedIn();
+      allow read, update, delete: if false;
+    }
+
+    // Default lock: nothing else is public unless explicitly allowed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
