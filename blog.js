@@ -65,7 +65,14 @@ function getDisplayName(user) {
 }
 
 function membershipRef(user) {
-  return doc(db, "blogClubs", BLOG_CLUB_ID, "members", user.uid);
+  return doc(db, "blogClubMembers", user.uid);
+}
+
+function setJoinStatus(text, type = "success") {
+  const box = document.getElementById("joinStatus");
+  if (!box) return;
+  box.textContent = text;
+  box.className = `notice ${type}`;
 }
 
 async function checkMembership(user) {
@@ -73,30 +80,55 @@ async function checkMembership(user) {
     isBlogMember = false;
     return false;
   }
-  const snap = await getDoc(membershipRef(user));
-  isBlogMember = snap.exists();
-  return isBlogMember;
+  try {
+    const snap = await getDoc(membershipRef(user));
+    isBlogMember = snap.exists();
+    return isBlogMember;
+  } catch (error) {
+    console.error("Could not check blog membership:", error);
+    isBlogMember = false;
+    setJoinStatus("Could not check membership. Check Firestore rules.", "error");
+    return false;
+  }
 }
 
 async function joinBlogClub() {
   const user = auth.currentUser;
+  const button = document.getElementById("joinBlogClubBtn");
+
   if (!user) {
-    setClubStatus("Log in before joining the blog club.", "error");
+    setJoinStatus("Log in before joining the blog club.", "error");
     return;
   }
 
-  await setDoc(membershipRef(user), {
-    uid: user.uid,
-    username: getDisplayName(user),
-    email: user.email || null,
-    role: "member",
-    joinedAt: serverTimestamp()
-  }, { merge: true });
+  try {
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Joining...";
+    }
 
-  isBlogMember = true;
-  renderGateState();
-  subscribeToRoom(activeRoom);
-  setClubStatus("You joined the Kigazine Blog Club.");
+    await setDoc(membershipRef(user), {
+      clubId: BLOG_CLUB_ID,
+      uid: user.uid,
+      username: getDisplayName(user),
+      email: user.email || null,
+      role: "member",
+      joinedAt: serverTimestamp()
+    }, { merge: true });
+
+    isBlogMember = true;
+    setJoinStatus("You joined the Kigazine Blog Club.");
+    renderGateState();
+    subscribeToRoom(activeRoom);
+  } catch (error) {
+    console.error("Could not join blog club:", error);
+    setJoinStatus(`Could not join: ${error.code || error.message}`, "error");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Join Blog Club";
+    }
+  }
 }
 
 function installBlogUI() {
@@ -141,6 +173,7 @@ function installBlogUI() {
       <h3>Join the Kigazine Blog Club</h3>
       <p class="muted" style="line-height:1.6;">Join to unlock the public club feed and your private notes. Keep messages kind, safe, and school-appropriate.</p>
       <button id="joinBlogClubBtn" class="btn btn-primary" style="margin-top:12px;">Join Blog Club</button>
+      <div id="joinStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:12px;"></div>
     </div>
 
     <div id="blogClubPanel" class="card" style="padding:0;overflow:hidden;display:none;">
@@ -239,18 +272,23 @@ async function sendMessage() {
     return;
   }
 
-  await addDoc(collection(db, "blogClubPosts"), {
-    clubId: BLOG_CLUB_ID,
-    uid: user.uid,
-    username: getDisplayName(user),
-    text,
-    room: activeRoom,
-    visibility: activeRoom,
-    createdAt: serverTimestamp()
-  });
+  try {
+    await addDoc(collection(db, "blogClubPosts"), {
+      clubId: BLOG_CLUB_ID,
+      uid: user.uid,
+      username: getDisplayName(user),
+      text,
+      room: activeRoom,
+      visibility: activeRoom,
+      createdAt: serverTimestamp()
+    });
 
-  input.value = "";
-  setClubStatus(activeRoom === "private" ? "Private note saved." : "Club post sent.");
+    input.value = "";
+    setClubStatus(activeRoom === "private" ? "Private note saved." : "Club post sent.");
+  } catch (error) {
+    console.error("Could not post to blog club:", error);
+    setClubStatus(`Could not post: ${error.code || error.message}`, "error");
+  }
 }
 
 function subscribeToRoom(room = "public") {
