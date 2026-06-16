@@ -4,6 +4,12 @@
 // <script type="module" src="blog.js"></script>
 
 import {
+  initializeApp,
+  getApps,
+  getApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
   getFirestore,
   collection,
   addDoc,
@@ -21,8 +27,18 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const db = getFirestore();
-const auth = getAuth();
+const firebaseConfig = {
+  apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+  authDomain: "kigazine-302ac.firebaseapp.com",
+  projectId: "kigazine-302ac",
+  storageBucket: "kigazine-302ac.firebasestorage.app",
+  messagingSenderId: "821833747017",
+  appId: "1:821833747017:web:dc20a182d1935408c34d98"
+};
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 const BLOG_SECTION_ID = "blogSection";
 const BLOG_NAV_ID = "blogNavBtn";
