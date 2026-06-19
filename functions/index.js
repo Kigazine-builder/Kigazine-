@@ -6,7 +6,6 @@ const OpenAI = require("openai");
 admin.initializeApp();
 
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
-const db = admin.firestore();
 
 const MAX_TEXT_CHARS = 6000;
 
@@ -217,19 +216,3 @@ exports.moderateComment = onDocumentCreated(
     await updateCommentAfterModeration(snap.ref, decision);
   }
 );
-
-exports.recheckPendingContent = async function recheckPendingContent() {
-  const magazines = await db.collection("magazines")
-    .where("status", "in", ["pending_review", "pending_ai_review"])
-    .limit(20)
-    .get();
-
-  for (const docSnap of magazines.docs) {
-    const data = docSnap.data() || {};
-    const text = [data.title, data.description, data.content]
-      .filter(Boolean)
-      .join("\n\n");
-    const decision = await moderateText(text);
-    await updateMagazineAfterModeration(docSnap.ref, decision);
-  }
-};
