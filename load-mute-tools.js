@@ -7,8 +7,24 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(script);
   }
 
+  installFitnessSidebarLink();
   installMagazineEditSection();
 });
+
+function installFitnessSidebarLink() {
+  const nav = document.querySelector(".nav");
+  if (!nav || document.getElementById("fitnessNavLink")) return;
+
+  const fitnessLink = document.createElement("a");
+  fitnessLink.id = "fitnessNavLink";
+  fitnessLink.className = "nav-btn";
+  fitnessLink.href = "fitness.html";
+  fitnessLink.textContent = "🏃 Fitness";
+
+  const helpButton = Array.from(nav.querySelectorAll(".nav-btn"))
+    .find(button => button.textContent.includes("Help"));
+  nav.insertBefore(fitnessLink, helpButton || null);
+}
 
 async function installMagazineEditSection() {
   const nav = document.querySelector(".nav");
