@@ -1,584 +1,173 @@
-<!-- public/index.html -->
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8" />
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
-/>
-
-<title>Kigazine Ai</title>
-
-<style>
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-
-  margin: 0;
-
-  background:
-    linear-gradient(
-      to bottom right,
-      #020617,
-      #0f172a,
-      #111827
-    );
-
-  color: white;
-
-  font-family: Arial, sans-serif;
-}
-
-.app {
-
-  display: flex;
-
-  min-height: 100dvh;
-}
-
-.sidebar {
-
-  width: 260px;
-
-  background:
-    rgba(2, 6, 23, 0.95);
-
-  border-right:
-    1px solid rgba(59,130,246,0.2);
-
-  padding: 20px;
-}
-
-.logo {
-
-  font-size: 32px;
-
-  font-weight: bold;
-
-  margin-bottom: 20px;
-}
-
-.logo span {
-  color: #38bdf8;
-}
-
-.new-chat {
-
-  width: 100%;
-
-  padding: 14px;
-
-  border: none;
-
-  border-radius: 12px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #2563eb,
-      #38bdf8
-    );
-
-  color: white;
-
-  font-size: 16px;
-
-  cursor: pointer;
-
-  margin-bottom: 20px;
-}
-
-.mode-bar {
-
-  margin-bottom: 20px;
-}
-
-.mode-bar label {
-
-  display: block;
-
-  margin-bottom: 8px;
-
-  color: #93c5fd;
-}
-
-.mode-bar select {
-
-  width: 100%;
-
-  padding: 12px;
-
-  border-radius: 10px;
-
-  border:
-    1px solid rgba(59,130,246,0.3);
-
-  background:
-    rgba(15,23,42,0.9);
-
-  color: white;
-
-  outline: none;
-}
-
-.chat-area {
-
-  flex: 1;
-
-  display: flex;
-
-  flex-direction: column;
-
-  padding: 20px;
-}
-
-.chat-header {
-
-  font-size: 34px;
-
-  font-weight: bold;
-
-  margin-bottom: 20px;
-
-  text-shadow:
-    0 0 10px #38bdf8;
-}
-
-#chat {
-
-  flex: 1;
-
-  overflow-y: auto;
-
-  padding-right: 10px;
-}
-
-.message {
-
-  max-width: 75%;
-
-  padding: 14px 18px;
-
-  margin-bottom: 14px;
-
-  border-radius: 16px;
-
-  line-height: 1.6;
-
-  white-space: pre-wrap;
-
-  overflow-wrap: anywhere;
-
-  animation:
-    fadeIn 0.2s ease;
-}
-
-.user {
-
-  margin-left: auto;
-
-  background:
-    linear-gradient(
-      135deg,
-      #2563eb,
-      #38bdf8
-    );
-
-  box-shadow:
-    0 0 15px rgba(56,189,248,0.2);
-}
-
-.bot {
-
-  background:
-    rgba(30,41,59,0.95);
-
-  border:
-    1px solid rgba(96,165,250,0.2);
-}
-
-.input-area {
-
-  display: flex;
-
-  gap: 10px;
-
-  margin-top: 15px;
-}
-
-input {
-
-  flex: 1;
-
-  padding: 15px;
-
-  border-radius: 14px;
-
-  border:
-    1px solid rgba(59,130,246,0.3);
-
-  background:
-    rgba(15,23,42,0.95);
-
-  color: white;
-
-  outline: none;
-
-  font-size: 16px;
-}
-
-input:focus {
-
-  border-color: #38bdf8;
-
-  box-shadow:
-    0 0 10px rgba(56,189,248,0.3);
-}
-
-button {
-
-  padding: 15px 24px;
-
-  border: none;
-
-  border-radius: 14px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #2563eb,
-      #38bdf8
-    );
-
-  color: white;
-
-  cursor: pointer;
-
-  font-weight: bold;
-}
-
-button:disabled {
-
-  opacity: 0.6;
-
-  cursor: not-allowed;
-}
-
-.footer {
-
-  text-align: center;
-
-  margin-top: 10px;
-
-  color: #94a3b8;
-
-  font-size: 14px;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-
-  background: #2563eb;
-
-  border-radius: 10px;
-}
-
-@keyframes fadeIn {
-
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 900px) {
-
-  .sidebar {
-    display: none;
-  }
-
-  .message {
-    max-width: 90%;
-  }
-
-}
-
-</style>
-
-</head>
-
 <body>
 
 <div class="app">
 
-<div class="sidebar">
+  <style>
+    @media (max-width: 900px) {
+      .app {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(59,130,246,0.2);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        padding: 12px 20px;
+      }
+      .logo { margin-bottom: 0; font-size: 24px; }
+      .new-chat { margin-bottom: 0; width: auto; padding: 10px 16px; }
+      .mode-bar { margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
+      .mode-bar label { display: none; } /* Hide label on mobile to save space */
+      .mode-bar select { padding: 8px; }
+    }
+    
+    /* Style for basic markdown rendering */
+    .message code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+  </style>
 
-  <div class="logo">
-    Kigazine <span>Ai</span>
+  <div class="sidebar">
+    <div class="logo">Kigazine <span>Ai</span></div>
+    <button class="new-chat" onclick="newChat()">+ New Chat</button>
+    <div class="mode-bar">
+      <label>Choose Mode</label>
+      <select id="mode">
+        <option value="friendly">Friendly 😊</option>
+        <option value="normal" selected>Normal ⚡</option>
+        <option value="work">Work 💼</option>
+        <option value="coding">Coding 💻</option>
+        <option value="school">School 📚</option>
+        <option value="creative">Creative 🎨</option>
+        <option value="kids">Kids 🧸</option>
+      </select>
+    </div>
   </div>
 
-  <button
-    class="new-chat"
-    onclick="newChat()"
-  >
-    + New Chat
-  </button>
+  <div class="chat-area">
+    <div class="chat-header">Kigazine Ai</div>
+    <div id="chat"></div>
 
-  <div class="mode-bar">
-
-    <label>
-      Choose Mode
-    </label>
-
-    <select id="mode">
-
-      <option value="friendly">
-        Friendly 😊
-      </option>
-
-      <option value="normal">
-        Normal ⚡
-      </option>
-
-      <option value="work">
-        Work 💼
-      </option>
-
-      <option value="coding">
-        Coding 💻
-      </option>
-
-      <option value="school">
-        School 📚
-      </option>
-
-      <option value="creative">
-        Creative 🎨
-      </option>
-
-      <option value="kids">
-        Kids 🧸
-      </option>
-
-    </select>
-
+    <div class="input-area">
+      <input type="text" id="input" placeholder="Ask Kigazine Ai anything..." autocomplete="off" />
+      <button id="send">Send</button>
+    </div>
+    <div class="footer">Powered by OpenAI</div>
   </div>
-
-</div>
-
-<div class="chat-area">
-
-  <div class="chat-header">
-    Kigazine Ai
-  </div>
-
-  <div id="chat"></div>
-
-  <div class="input-area">
-
-    <input
-      type="text"
-      id="input"
-      placeholder="Ask Kigazine Ai anything..."
-      autocomplete="off"
-    />
-
-    <button id="send">
-      Send
-    </button>
-
-  </div>
-
-  <div class="footer">
-    Powered by OpenAI
-  </div>
-
-</div>
 
 </div>
 
 <script>
-
-const chat =
-  document.getElementById("chat");
-
-const input =
-  document.getElementById("input");
-
-const send =
-  document.getElementById("send");
-
-const mode =
-  document.getElementById("mode");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const mode = document.getElementById("mode");
 
 function makeSessionId() {
   return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-let sessionId =
-  localStorage.getItem("sessionId");
+let sessionId = localStorage.getItem("sessionId");
+if (!sessionId || typeof sessionId !== "string") {
+  sessionId = makeSessionId();
+  localStorage.setItem("sessionId", sessionId);
+}
 
-if (
-  !sessionId ||
-  typeof sessionId !== "string"
-) {
-
-  sessionId =
-    makeSessionId();
-
-  localStorage.setItem(
-    "sessionId",
-    sessionId
-  );
-
+// Simple internal formatter to handle basic markdown (**bold** and `code`) safely
+function formatMarkdown(text) {
+  let escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  
+  // Convert **bold** to <strong>
+  escaped = escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // Convert `code` to <code>
+  escaped = escaped.replace(/`(.*?)`/g, "<code>$1</code>");
+  
+  return escaped;
 }
 
 function addMessage(text, type) {
-
-  const div =
-    document.createElement("div");
-
-  div.className =
-    `message ${type}`;
-
-  div.textContent = text;
+  const div = document.createElement("div");
+  div.className = `message ${type}`;
+  
+  if (type === 'bot' && text !== "Kigazine Ai is typing...") {
+    div.innerHTML = formatMarkdown(text);
+  } else {
+    div.textContent = text;
+  }
 
   chat.appendChild(div);
-
   requestAnimationFrame(() => {
-
-    chat.scrollTop =
-      chat.scrollHeight;
-
+    chat.scrollTop = chat.scrollHeight;
   });
-
 }
 
 async function newChat() {
-
   try {
     await fetch("/api/reset", {
-
       method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
-
-      body: JSON.stringify({
-        sessionId
-      })
-
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId })
     });
   } catch (error) {
     console.warn("Reset failed:", error);
   }
-
-  localStorage.removeItem(
-    "sessionId"
-  );
-
+  localStorage.removeItem("sessionId");
   location.reload();
-
 }
 
 async function sendMessage() {
-
   if (send.disabled) return;
 
-  const message =
-    input.value.trim();
-
+  const message = input.value.trim();
   if (!message) return;
 
   addMessage(message, "user");
-
   input.value = "";
-
-  input.focus();
-
+  
+  // UI Lock down during processing
   send.disabled = true;
+  input.disabled = true; 
 
-  const typing =
-    document.createElement("div");
-
-  typing.className =
-    "message bot";
-
+  const typing = document.createElement("div");
+  typing.className = "message bot";
   typing.id = "typing";
-
-  typing.textContent =
-    "Kigazine Ai is typing...";
-
+  typing.textContent = "Kigazine Ai is typing...";
   chat.appendChild(typing);
-
+  
   requestAnimationFrame(() => {
-
-    chat.scrollTop =
-      chat.scrollHeight;
-
+    chat.scrollTop = chat.scrollHeight;
   });
 
   try {
-
-    const response =
-      await fetch("/api/chat", {
-
+    const response = await fetch("/api/chat", {
       method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
-
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-
         message,
-
         sessionId,
-
         mode: mode.value
-
       })
-
     });
 
-    document
-      .getElementById("typing")
-      ?.remove();
+    document.getElementById("typing")?.remove();
 
     let data = {};
-
     try {
       data = await response.json();
     } catch (error) {
-      throw new Error("The server did not return JSON.");
+      throw new Error("The server did not return valid JSON.");
     }
 
     if (!response.ok) {
-
-      throw new Error(
-        data.error ||
-        "Kigazine Ai backend error."
-      );
-
+      throw new Error(data.error || "Kigazine Ai backend error.");
     }
 
     if (data.sessionId) {
@@ -586,48 +175,25 @@ async function sendMessage() {
       localStorage.setItem("sessionId", sessionId);
     }
 
-    addMessage(
-      data.reply || "Kigazine Ai did not send a reply.",
-      "bot"
-    );
-
-    send.disabled = false;
+    addMessage(data.reply || "Kigazine Ai did not send a reply.", "bot");
 
   } catch (error) {
-
-    document
-      .getElementById("typing")
-      ?.remove();
-
-    addMessage(
-      error.message ||
-      "Error communicating with Kigazine Ai.",
-      "bot"
-    );
-
+    document.getElementById("typing")?.remove();
+    addMessage(error.message || "Error communicating with Kigazine Ai.", "bot");
+  } finally {
+    // Always unlock UI elements when done
     send.disabled = false;
-
+    input.disabled = false;
+    input.focus();
   }
-
 }
 
-send.addEventListener(
-  "click",
-  sendMessage
-);
-
-input.addEventListener(
-  "keydown",
-  e => {
-
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-
+send.addEventListener("click", sendMessage);
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    sendMessage();
   }
-);
-
+});
 </script>
-
 </body>
-</html>
+
