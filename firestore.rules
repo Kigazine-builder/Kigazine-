@@ -7,53 +7,254 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
 
-    // User profiles
-    match /users/{userId} {
+    function isBuiltInAdmin() {
+      return signedIn()
+        && request.auth.token.email in [
+          'ethan02px2035@saschina.org'
+        ];
+    }
+
+    function hasUserProfile(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function isAdmin() {
+      return isBuiltInAdmin()
+        || (
+          signedIn()
+          && hasUserProfile(request.auth.uid)
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        );
+    }
+
+    function hasText(value, maxSize) {
+      return value is string && value.size() > 0 && value.size() <= maxSize;
+    }
+
+    function isGroupOwner(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/blogGroups/$(groupId))
+        && get(/databases/$(database)/documents/blogGroups/$(groupId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isGroupMember(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/blogGroupMembers/$(groupId + '_' + request.auth.uid));
+    }
+
+    // Kigazine user profiles.
+    // Used by signup, profile pictures, members, friends, admin tools, and messages username lookup.
+    match /users/{uid} {
       allow read: if signedIn();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 40
+        && (
+          request.resource.data.role == 'writer'
+          || (isBuiltInAdmin() && request.resource.data.role == 'admin')
+        );
+
+      allow update: if isAdmin()
+        || (
+          isOwner(uid)
+          && request.resource.data.email == resource.data.email
+          && (
+            request.resource.data.role == resource.data.role
+            || (isBuiltInAdmin() && request.resource.data.role == 'admin')
+          )
+        );
+
       allow delete: if false;
     }
 
-    // Public magazines
+    // Public magazine posts.
+    // The app creates pending_review posts with uid, then admins approve them.
     match /magazines/{magazineId} {
+      allow read: if resource.data.isPublic == true
+        || (signedIn() && resource.data.uid == request.auth.uid)
+        || isAdmin();
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && hasText(request.resource.data.title, 120)
+        && hasText(request.resource.data.description, 500)
+        && hasText(request.resource.data.content, 20000)
+        && request.resource.data.isPublic == false
+        && request.resource.data.status == 'pending_review';
+
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    // Top-level comments collection used by index.html.
+    // Comments are submitted as pending_review and admins approve them.
+    match /comments/{commentId} {
       allow read: if true;
 
       allow create: if signedIn()
-        && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.status in ["pending", "approved"];
+        && request.resource.data.uid == request.auth.uid
+        && hasText(request.resource.data.postId, 200)
+        && hasText(request.resource.data.content, 2000)
+        && request.resource.data.status == 'pending_review';
 
-      allow update: if signedIn()
-        && resource.data.authorId == request.auth.uid;
-
-      allow delete: if signedIn()
-        && resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
     }
 
-    // Comments under magazines
-    match /magazines/{magazineId}/comments/{commentId} {
-      allow read: if true;
-
+    // Reports from the public feed.
+    match /reports/{reportId} {
       allow create: if signedIn()
-        && request.resource.data.authorId == request.auth.uid;
+        && hasText(request.resource.data.postId, 200)
+        && hasText(request.resource.data.reason, 120)
+        && request.resource.data.status == 'new';
 
-      allow update, delete: if signedIn()
-        && resource.data.authorId == request.auth.uid;
+      allow read, update, delete: if isAdmin();
     }
 
-    // Private messages
+    // Private messages from messages.js.
     match /messages/{messageId} {
       allow read: if signedIn()
-        && request.auth.uid in resource.data.members;
+        && request.auth.uid in resource.data.participants;
 
       allow create: if signedIn()
-        && request.auth.uid in request.resource.data.members;
+        && request.resource.data.fromUid == request.auth.uid
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.toUid in request.resource.data.participants
+        && request.resource.data.participants.size() == 2
+        && hasText(request.resource.data.text, 1000);
 
       allow update, delete: if false;
+    }
+
+    // Banned email list.
+    // Public get is needed because the login/signup screen checks this before a user is signed in.
+    match /bannedEmails/{emailId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Group chat directory from blog.js.
+    match /blogGroups/{groupId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && hasText(request.resource.data.name, 40)
+        && request.resource.data.joinMode in ['open', 'approval'];
+
+      allow update: if isGroupOwner(groupId)
+        || (isGroupMember(groupId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']));
+
+      allow delete: if isGroupOwner(groupId);
+    }
+
+    // Group chat membership records from blog.js.
+    // Document id format is: groupId_uid
+    match /blogGroupMembers/{memberId} {
+      allow read: if signedIn();
+
+      allow create, update: if signedIn()
+        && request.resource.data.uid is string
+        && request.resource.data.groupId is string
+        && memberId == request.resource.data.groupId + '_' + request.resource.data.uid
+        && (
+          isGroupOwner(request.resource.data.groupId)
+          || (
+            request.resource.data.uid == request.auth.uid
+            && exists(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId))
+            && get(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId)).data.joinMode == 'open'
+          )
+        );
+
+      allow delete: if signedIn()
+        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
+    }
+
+    // Join requests for approval-only groups.
+    // Document id format is: groupId_uid
+    match /blogGroupJoinRequests/{requestId} {
+      allow read: if signedIn()
+        && (resource.data.uid == request.auth.uid || resource.data.ownerUid == request.auth.uid || isAdmin());
+
+      allow create, update: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.ownerUid is string
+        && request.resource.data.groupId is string
+        && requestId == request.resource.data.groupId + '_' + request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+        && request.resource.data.status in ['approved', 'denied'];
+
+      allow delete: if isAdmin();
+    }
+
+    // Group chat messages from blog.js.
+    match /blogGroupMessages/{messageId} {
+      allow read: if isGroupMember(resource.data.groupId) || isGroupOwner(resource.data.groupId);
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.groupId is string
+        && hasText(request.resource.data.text, 1000)
+        && (isGroupMember(request.resource.data.groupId) || isGroupOwner(request.resource.data.groupId));
+
+      allow update: if false;
+
+      allow delete: if signedIn()
+        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
+    }
+
+    // Older/common collection names kept so older pages do not break.
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      }
+
+      match /members/{uid} {
+        allow read: if true;
+        allow create: if isOwner(uid);
+        allow update, delete: if isOwner(uid)
+          || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid);
+      }
+    }
+
+    match /hq/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+    }
+
+    match /kigazineHQ/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+    }
+
+    match /hqMessages/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
     }
   }
 }
