@@ -75,11 +75,10 @@ service cloud.firestore {
     }
 
     // Public magazine posts.
-    // The app creates pending_review posts with uid, then admins approve them.
+    // HQ/admin currently reads the whole collection, then filters pending_review in app code.
+    // So signed-in users can read magazine documents, but only admins/authors can approve/delete.
     match /magazines/{magazineId} {
-      allow read: if resource.data.isPublic == true
-        || (signedIn() && resource.data.uid == request.auth.uid)
-        || isAdmin();
+      allow read: if signedIn() || resource.data.isPublic == true;
 
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
