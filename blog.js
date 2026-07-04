@@ -53,6 +53,7 @@ let memberships = [];
 let pendingRequests = [];
 let ownerRequests = [];
 let activeGroupId = "";
+let subscribedGroupId = ""; // Tracks which group message listener is actually running
 let unsubscribeMessages = null;
 let unsubscribeGroups = null;
 let unsubscribeMemberships = null;
@@ -81,6 +82,12 @@ function setStatus(id, text, type = "success") {
   if (!box) return;
   box.textContent = text;
   box.className = `notice ${type}`;
+}
+
+// Automatically clears status boxes after a short delay
+function setTemporaryStatus(id, text, type = "success", delay = 4000) {
+  setStatus(id, text, type);
+  setTimeout(() => clearStatus(id), delay);
 }
 
 function clearStatus(id) {
@@ -135,7 +142,6 @@ function installBlogUI() {
         chatBtn.classList.add("active");
       }
       renderGroups();
-      renderChatPanel();
     });
     nav.insertBefore(chatBtn, nav.children[nav.children.length - 1] || null);
   }
@@ -224,6 +230,7 @@ function installBlogUI() {
     <div id="ownerRequestsCard" class="card hidden" style="margin-top:16px;">
       <h3>Owner approval requests</h3>
       <p class="muted" style="line-height:1.65;">Approve people you trust to join your permission-only groups.</p>
+      <div id="ownerRequestsStatus" class="notice hidden" role="status" aria-live="polite"></div>
       <div id="ownerRequestList" class="admin-review-list"></div>
     </div>
   `;
@@ -231,7 +238,9 @@ function installBlogUI() {
   main.appendChild(section);
 
   document.getElementById("createGroupBtn")?.addEventListener("click", createGroup);
-  document.getElementById("refreshGroupsBtn")?.addEventListener("click", loadOnce);
+  document.getElementById("refreshGroupsBtn")?.addEventListener("click", () => {
+    renderGroups(); // Explicit UI sync refresh from existing snapshot data
+  });
   document.getElementById("sendChatBtn")?.addEventListener("click", sendMessage);
   document.getElementById("chatInput")?.addEventListener("keydown", event => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -284,12 +293,12 @@ async function createGroup() {
       joinedAt: serverTimestamp()
     });
 
-    nameInput.value = "";
-    descInput.value = "";
+    if (nameInput) nameInput.value = "";
+    if (descInput) descInput.value = "";
+    
     activeGroupId = groupRef.id;
-    setStatus("groupCreateStatus", "Group created. You are the owner.");
+    setStatus("groupCreateStatus", "Group created! Opening chat...");
     renderGroups();
-    subscribeToMessages(activeGroupId);
   } catch (error) {
     console.error("Could not create group:", error);
     setStatus("groupCreateStatus", `Could not create group: ${error.code || error.message}`, "error");
@@ -312,7 +321,6 @@ async function joinGroup(groupId) {
     }, { merge: true });
     activeGroupId = groupId;
     renderGroups();
-    subscribeToMessages(groupId);
   } catch (error) {
     console.error("Could not join group:", error);
     alert(`Could not join group: ${error.code || error.message}`);
@@ -347,6 +355,7 @@ async function approveRequest(requestDocId) {
   if (!request) return;
 
   try {
+    setStatus("ownerRequestsStatus", "Processing approval...", "success");
     await setDoc(doc(db, "blogGroupMembers", membershipId(request.groupId, request.uid)), {
       groupId: request.groupId,
       uid: request.uid,
@@ -355,25 +364,29 @@ async function approveRequest(requestDocId) {
       role: "member",
       joinedAt: serverTimestamp()
     }, { merge: true });
+    
     await updateDoc(doc(db, "blogGroupJoinRequests", requestDocId), {
       status: "approved",
       decidedAt: serverTimestamp()
     });
+    setTemporaryStatus("ownerRequestsStatus", "Request approved successfully!");
   } catch (error) {
     console.error("Could not approve request:", error);
-    alert(`Could not approve request: ${error.code || error.message}`);
+    setStatus("ownerRequestsStatus", `Could not approve request: ${error.message}`, "error");
   }
 }
 
 async function denyRequest(requestDocId) {
   try {
+    setStatus("ownerRequestsStatus", "Processing denial...", "success");
     await updateDoc(doc(db, "blogGroupJoinRequests", requestDocId), {
       status: "denied",
       decidedAt: serverTimestamp()
     });
+    setTemporaryStatus("ownerRequestsStatus", "Request denied.");
   } catch (error) {
     console.error("Could not deny request:", error);
-    alert(`Could not deny request: ${error.code || error.message}`);
+    setStatus("ownerRequestsStatus", `Could not deny request: ${error.message}`, "error");
   }
 }
 
@@ -382,7 +395,6 @@ function handleGroupClick(event) {
   if (openButton) {
     activeGroupId = openButton.dataset.openGroup;
     renderGroups();
-    subscribeToMessages(activeGroupId);
     return;
   }
 
@@ -470,17 +482,15 @@ function renderChatPanel() {
   const meta = document.getElementById("activeGroupMeta");
   const input = document.getElementById("chatInput");
   const button = document.getElementById("sendChatBtn");
-  const feed = document.getElementById("chatMessages");
   const group = getActiveGroup();
 
-  if (!title || !meta || !input || !button || !feed) return;
+  if (!title || !meta || !input || !button) return;
 
   if (!group) {
     title.textContent = "Choose a group";
     meta.textContent = "Join a group to read and send messages.";
     input.disabled = true;
     button.disabled = true;
-    if (!unsubscribeMessages) feed.innerHTML = `<p class="muted">No group selected.</p>`;
     return;
   }
 
@@ -490,8 +500,17 @@ function renderChatPanel() {
   input.disabled = !member;
   button.disabled = !member;
 
-  if (!member) {
-    feed.innerHTML = `<p class="muted">Join this group before reading or sending messages.</p>`;
+  // Crucial: Only initiate sub/unsub sequence if the target chat state changed
+  if (member && subscribedGroupId !== group.id) {
+    subscribeToMessages(group.id);
+  } else if (!member) {
+    if (unsubscribeMessages) {
+      unsubscribeMessages();
+      unsubscribeMessages = null;
+    }
+    subscribedGroupId = "";
+    const feed = document.getElementById("chatMessages");
+    if (feed) feed.innerHTML = `<p class="muted">Join this group before reading or sending messages.</p>`;
   }
 }
 
@@ -552,7 +571,7 @@ async function sendMessage() {
     await updateDoc(doc(db, "blogGroups", group.id), {
       updatedAt: serverTimestamp()
     });
-    input.value = "";
+    if (input) input.value = "";
     setStatus("chatStatus", "Message sent.");
   } catch (error) {
     console.error("Could not send group message:", error);
@@ -571,11 +590,13 @@ function subscribeToMessages(groupId) {
 
   const group = groups.find(item => item.id === groupId);
   if (!group || !isMember(groupId)) {
-    renderChatPanel();
+    subscribedGroupId = "";
     return;
   }
 
+  subscribedGroupId = groupId;
   feed.innerHTML = `<p class="muted">Loading messages...</p>`;
+  
   const q = query(
     collection(db, "blogGroupMessages"),
     where("groupId", "==", groupId),
@@ -614,7 +635,11 @@ function subscribeToMessages(groupId) {
       button.addEventListener("click", async () => {
         const id = button.getAttribute("data-delete-message");
         if (!id) return;
-        await deleteDoc(doc(db, "blogGroupMessages", id));
+        try {
+          await deleteDoc(doc(db, "blogGroupMessages", id));
+        } catch (err) {
+          console.error("Deletion rejected by Firestore security policies:", err.message);
+        }
       });
     });
 
@@ -633,6 +658,7 @@ function subscribeRealtime(user) {
     pendingRequests = [];
     ownerRequests = [];
     activeGroupId = "";
+    subscribedGroupId = "";
     renderGroups();
     return;
   }
@@ -641,9 +667,10 @@ function subscribeRealtime(user) {
     query(collection(db, "blogGroups"), orderBy("createdAt", "desc"), limit(80)),
     snapshot => {
       groups = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
-      if (activeGroupId && !groups.some(group => group.id === activeGroupId)) activeGroupId = "";
+      if (activeGroupId && !groups.some(group => group.id === activeGroupId)) {
+        activeGroupId = "";
+      }
       renderGroups();
-      if (activeGroupId && isMember(activeGroupId)) subscribeToMessages(activeGroupId);
     },
     error => console.error("Could not load groups:", error)
   );
@@ -653,7 +680,6 @@ function subscribeRealtime(user) {
     snapshot => {
       memberships = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
       renderGroups();
-      if (activeGroupId && isMember(activeGroupId)) subscribeToMessages(activeGroupId);
     },
     error => console.error("Could not load memberships:", error)
   );
@@ -688,28 +714,12 @@ function cleanupRealtime() {
   unsubscribeOwnerRequests = null;
 }
 
-async function loadOnce() {
-  const user = auth.currentUser;
-  if (!user) return;
-  try {
-    const groupSnap = await getDocs(query(collection(db, "blogGroups"), orderBy("createdAt", "desc"), limit(80)));
-    groups = groupSnap.docs.map(item => ({ id: item.id, ...item.data() }));
-    const memberSnap = await getDocs(query(collection(db, "blogGroupMembers"), where("uid", "==", user.uid)));
-    memberships = memberSnap.docs.map(item => ({ id: item.id, ...item.data() }));
-    renderGroups();
-  } catch (error) {
-    console.error("Could not refresh groups:", error);
-  }
-}
-
 onAuthStateChanged(auth, user => {
   installBlogUI();
   subscribeRealtime(user);
   renderGroups();
-  renderChatPanel();
 });
 
 window.kigazineLoadBlogs = () => {
   renderGroups();
-  if (activeGroupId) subscribeToMessages(activeGroupId);
 };
