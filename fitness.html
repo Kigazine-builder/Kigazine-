@@ -46,7 +46,16 @@
 <body class="min-h-screen flex items-center justify-center p-4 text-slate-900">
 
     <main class="bg-white rounded-2xl shadow-lg max-w-md w-full overflow-hidden border border-slate-200">
-        <header class="bg-slate-950 px-6 py-6 text-white">
+        <header class="bg-slate-950 px-6 py-5 text-white">
+            <button
+                id="backBtn"
+                type="button"
+                class="mb-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold transition"
+                aria-label="Go back to previous page"
+            >
+                ← Back
+            </button>
+
             <h1 class="text-2xl font-extrabold tracking-tight">
                 Kigazine Fitness Tracker
             </h1>
@@ -159,6 +168,7 @@
         let pulseRadius = 0;
         let pulseOpacity = 1;
 
+        const backBtn = document.getElementById("backBtn");
         const exerciseContainer = document.getElementById("exercise-buttons");
         const demoText = document.getElementById("demo-text");
         const repBtn = document.getElementById("repBtn");
@@ -172,6 +182,14 @@
         const coachCtx = coachCanvas.getContext("2d");
 
         const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        backBtn.addEventListener("click", () => {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
 
         function configureCanvas(canvas, ctx, cssWidth, cssHeight) {
             const dpr = Math.max(window.devicePixelRatio || 1, 1);
