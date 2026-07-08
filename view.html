@@ -1,12 +1,1213 @@
-<section id="viewSection" class="section">
-  <div class="toolbar">
-    <div>
-      <div class="section-kicker">Approved Feed</div>
-      <h2 style="margin:0 0 6px;">Public magazines</h2>
-      <div class="muted">Approved posts that are okay for kids to read</div>
-    </div>
-    <label class="label hidden" for="searchInput">Search magazines</label>
-    <input id="searchInput" class="search" placeholder="Search magazines..." aria-label="Search magazines" />
-  </div>
-  <div id="magGrid" class="mag-grid"></div>
-</section>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+
+  <!-- Security hardening for a single-file local page -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      base-uri 'none';
+      object-src 'none';
+      img-src 'self' data:;
+      connect-src 'none';
+      form-action 'self';
+      style-src 'self' 'unsafe-inline';
+      script-src 'self' 'unsafe-inline';
+      upgrade-insecure-requests;
+    "
+  />
+
+  <title>Public Magazines | Secure Local Assistant</title>
+
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --panel-soft: #fafafa;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e5e7eb;
+      --brand: #111827;
+      --brand-soft: #eef2ff;
+      --danger-bg: #fff1f2;
+      --danger-border: #fecdd3;
+      --danger-text: #9f1239;
+      --success-bg: #ecfdf3;
+      --success-border: #bbf7d0;
+      --success-text: #166534;
+      --shadow: 0 14px 35px rgba(16, 24, 40, 0.08);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --focus: 0 0 0 4px rgba(99, 102, 241, 0.18);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1020;
+      --panel: #111827;
+      --panel-soft: #0f172a;
+      --text: #f9fafb;
+      --muted: #cbd5e1;
+      --border: #263244;
+      --brand: #e5e7eb;
+      --brand-soft: #1e293b;
+      --danger-bg: #3f111a;
+      --danger-border: #7f1d1d;
+      --danger-text: #fecdd3;
+      --success-bg: #052e16;
+      --success-border: #166534;
+      --success-text: #bbf7d0;
+      --shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: light dark;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(99, 102, 241, 0.13), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero,
+    .section,
+    .ai-assistant {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 22px;
+      padding: 24px;
+      background: linear-gradient(135deg, var(--panel), var(--panel-soft));
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.03rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .section,
+    .ai-assistant {
+      margin-top: 22px;
+      padding: 22px;
+    }
+
+    .toolbar,
+    .ai-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-kicker {
+      margin-bottom: 6px;
+      color: #4f46e5;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    [data-theme="dark"] .section-kicker {
+      color: #a5b4fc;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .search-wrap {
+      position: relative;
+      width: min(360px, 100%);
+    }
+
+    .search {
+      width: 100%;
+      padding: 12px 42px 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    .clear-search {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 999px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .clear-search:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .feed-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 12px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .select {
+      min-width: 180px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    .mag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .mag-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--panel-soft);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .mag-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.38);
+      box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+    }
+
+    .mag-card h3,
+    .mag-card p {
+      margin: 0;
+    }
+
+    .mag-card p {
+      color: var(--muted);
+    }
+
+    .card-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 4px 10px;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .safe-badge {
+      border-color: var(--success-border);
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .empty-state {
+      padding: 34px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--panel-soft);
+    }
+
+    .empty-state h3,
+    .empty-state p {
+      margin: 0;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--muted);
+    }
+
+    .ai-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn,
+    .ai-action-btn,
+    .ai-send-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 800;
+      background: var(--brand);
+      color: var(--bg);
+    }
+
+    [data-theme="dark"] .btn,
+    [data-theme="dark"] .ai-action-btn,
+    [data-theme="dark"] .ai-send-btn {
+      color: #111827;
+    }
+
+    .btn.secondary,
+    .ai-action-btn.secondary {
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    .btn:hover,
+    .ai-action-btn:hover,
+    .ai-send-btn:hover {
+      opacity: 0.92;
+    }
+
+    .ai-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 350px;
+      min-height: 190px;
+      overflow-y: auto;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--panel-soft);
+      margin-bottom: 14px;
+    }
+
+    .ai-message {
+      max-width: 88%;
+      padding: 11px 13px;
+      border-radius: 15px;
+      line-height: 1.48;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ai-message.user {
+      align-self: flex-end;
+      background: var(--brand);
+      color: var(--bg);
+    }
+
+    [data-theme="dark"] .ai-message.user {
+      color: #111827;
+    }
+
+    .ai-message.bot {
+      align-self: flex-start;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .ai-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .ai-input {
+      width: 100%;
+      min-height: 86px;
+      max-height: 240px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    .security-note {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--success-border);
+      border-radius: var(--radius-md);
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: 0.94rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        display: block;
+      }
+
+      .hero-actions {
+        justify-content: flex-start;
+        margin-top: 16px;
+      }
+
+      .toolbar,
+      .ai-header {
+        flex-direction: column;
+      }
+
+      .search-wrap {
+        width: 100%;
+      }
+
+      .mag-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ai-form {
+        grid-template-columns: 1fr;
+      }
+
+      .ai-send-btn {
+        justify-self: start;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+        padding-top: 16px;
+      }
+
+      .hero,
+      .section,
+      .ai-assistant {
+        padding: 18px;
+      }
+
+      .mag-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ai-message {
+        max-width: 96%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <div class="section-kicker">Safe Reading Space</div>
+        <h1>Public Magazines</h1>
+        <p>
+          A curated feed of approved, child-friendly posts. Use the secure local assistant to summarize visible magazines, review page quality, or bug-check pasted code.
+        </p>
+      </div>
+
+      <div class="hero-actions">
+        <button id="themeToggle" class="btn secondary" type="button" aria-pressed="false">
+          Toggle theme
+        </button>
+      </div>
+    </header>
+
+    <section id="viewSection" class="section" aria-labelledby="publicMagazinesTitle">
+      <div class="toolbar">
+        <div>
+          <div class="section-kicker">Approved Feed</div>
+          <h2 id="publicMagazinesTitle" style="margin:0 0 6px;">Public Magazines</h2>
+          <div class="muted">Curated, approved posts suitable for young readers.</div>
+        </div>
+
+        <div class="search-wrap">
+          <label class="sr-only" for="searchInput">Search public magazines</label>
+          <input
+            id="searchInput"
+            class="search"
+            type="search"
+            placeholder="Search by title, topic, or tag..."
+            aria-label="Search public magazines"
+            autocomplete="off"
+            maxlength="120"
+          />
+          <button id="clearSearchBtn" class="clear-search hidden" type="button" aria-label="Clear search">
+            ×
+          </button>
+        </div>
+      </div>
+
+      <div class="feed-meta">
+        <span id="resultCount" class="muted">Showing approved magazines</span>
+
+        <div>
+          <label class="sr-only" for="categoryFilter">Filter by category</label>
+          <select id="categoryFilter" class="select" aria-label="Filter by category">
+            <option value="all">All categories</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="magGrid" class="mag-grid" aria-live="polite"></div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <h3>No magazines found</h3>
+        <p>Try a different title, topic, category, or keyword.</p>
+      </div>
+    </section>
+
+    <section id="aiAssistant" class="ai-assistant" aria-labelledby="aiAssistantTitle">
+      <div class="ai-header">
+        <div>
+          <div class="section-kicker">Secure Local Assistant</div>
+          <h2 id="aiAssistantTitle" style="margin:0 0 6px;">Summary & Bug Checker</h2>
+          <div class="muted">
+            Summarize visible magazines, check this page, or paste code for a quick bug and security review.
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-actions">
+        <button type="button" class="ai-action-btn" data-ai-action="summarize">
+          Summarize visible magazines
+        </button>
+
+        <button type="button" class="ai-action-btn secondary" data-ai-action="bug-check-page">
+          Bug-check this page
+        </button>
+
+        <button type="button" class="ai-action-btn secondary" data-ai-action="security-review">
+          Security review
+        </button>
+
+        <button type="button" class="ai-action-btn secondary" data-ai-action="clear-chat">
+          Clear chat
+        </button>
+      </div>
+
+      <div id="aiMessages" class="ai-messages" aria-live="polite">
+        <div class="ai-message bot">
+          Hi! I am a local assistant. I do not send your text to any server. Ask me to summarize the visible magazines, bug-check this page, or review pasted code.
+        </div>
+      </div>
+
+      <form id="aiForm" class="ai-form" autocomplete="off">
+        <label class="sr-only" for="aiInput">Ask the local assistant</label>
+        <textarea
+          id="aiInput"
+          class="ai-input"
+          rows="4"
+          maxlength="5000"
+          placeholder="Ask a question, paste code, or describe a bug..."
+        ></textarea>
+
+        <button id="aiSendBtn" class="ai-send-btn" type="submit">
+          Ask
+        </button>
+      </form>
+
+      <div class="security-note">
+        Security mode: no external libraries, no API key in the browser, no network requests, user text rendered with textContent, and only approved posts are shown.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const magazines = Object.freeze([
+        Object.freeze({
+          id: "mag-001",
+          title: "The Secret Life of Honeybees",
+          category: "Nature",
+          ageRange: "Ages 8+",
+          approved: true,
+          summary: "A simple guide to how bees work together, make honey, and help flowers grow.",
+          tags: Object.freeze(["bees", "nature", "teamwork"])
+        }),
+        Object.freeze({
+          id: "mag-002",
+          title: "A Beginner's Guide to the Moon",
+          category: "Space",
+          ageRange: "Ages 9+",
+          approved: true,
+          summary: "Learn why the Moon changes shape in the sky and why astronauts study it.",
+          tags: Object.freeze(["moon", "space", "science"])
+        }),
+        Object.freeze({
+          id: "mag-003",
+          title: "How to Build Better Study Habits",
+          category: "Learning",
+          ageRange: "Ages 10+",
+          approved: true,
+          summary: "Practical tips for planning homework, taking breaks, and remembering new ideas.",
+          tags: Object.freeze(["study", "school", "habits"])
+        }),
+        Object.freeze({
+          id: "mag-004",
+          title: "Kindness in the Classroom",
+          category: "Life Skills",
+          ageRange: "Ages 7+",
+          approved: true,
+          summary: "Short examples showing how listening, sharing, and helping can make school happier.",
+          tags: Object.freeze(["kindness", "friendship", "school"])
+        }),
+        Object.freeze({
+          id: "mag-005",
+          title: "Why Clean Water Matters",
+          category: "Environment",
+          ageRange: "Ages 10+",
+          approved: true,
+          summary: "A child-friendly explanation of clean water, pollution, and small ways to protect rivers.",
+          tags: Object.freeze(["water", "environment", "health"])
+        }),
+        Object.freeze({
+          id: "mag-006",
+          title: "Fun Facts About Ancient Maps",
+          category: "History",
+          ageRange: "Ages 9+",
+          approved: true,
+          summary: "Explore how people drew maps before satellites and what those maps tell us about history.",
+          tags: Object.freeze(["maps", "history", "exploration"])
+        })
+      ]);
+
+      const state = {
+        query: "",
+        category: "all",
+        filteredMagazines: []
+      };
+
+      const elements = {
+        themeToggle: document.getElementById("themeToggle"),
+        viewSection: document.getElementById("viewSection"),
+        searchInput: document.getElementById("searchInput"),
+        clearSearchBtn: document.getElementById("clearSearchBtn"),
+        categoryFilter: document.getElementById("categoryFilter"),
+        resultCount: document.getElementById("resultCount"),
+        magGrid: document.getElementById("magGrid"),
+        emptyState: document.getElementById("emptyState"),
+        aiMessages: document.getElementById("aiMessages"),
+        aiForm: document.getElementById("aiForm"),
+        aiInput: document.getElementById("aiInput")
+      };
+
+      function assertRequiredElements() {
+        const missing = Object.entries(elements)
+          .filter(([, element]) => !element)
+          .map(([key]) => key);
+
+        if (missing.length) {
+          throw new Error(`Missing required page elements: ${missing.join(", ")}`);
+        }
+      }
+
+      function normalizeText(value) {
+        return String(value || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase();
+      }
+
+      function createTextElement(tagName, className, text) {
+        const element = document.createElement(tagName);
+
+        if (className) {
+          element.className = className;
+        }
+
+        element.textContent = String(text || "");
+        return element;
+      }
+
+      function debounce(callback, delay = 180) {
+        let timeoutId;
+
+        return (...args) => {
+          window.clearTimeout(timeoutId);
+          timeoutId = window.setTimeout(() => callback(...args), delay);
+        };
+      }
+
+      function populateCategories() {
+        const categories = [...new Set(
+          magazines
+            .filter((magazine) => magazine.approved)
+            .map((magazine) => magazine.category)
+        )].sort((a, b) => a.localeCompare(b));
+
+        for (const category of categories) {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          elements.categoryFilter.appendChild(option);
+        }
+      }
+
+      function magazineMatches(magazine, query, category) {
+        if (!magazine.approved) return false;
+        if (category !== "all" && magazine.category !== category) return false;
+        if (!query) return true;
+
+        const searchableText = normalizeText([
+          magazine.title,
+          magazine.category,
+          magazine.ageRange,
+          magazine.summary,
+          ...magazine.tags
+        ].join(" "));
+
+        return searchableText.includes(query);
+      }
+
+      function createMagazineCard(magazine) {
+        const article = document.createElement("article");
+        article.className = "mag-card";
+        article.setAttribute("data-magazine-id", magazine.id);
+
+        const topLine = document.createElement("div");
+        topLine.className = "card-topline";
+
+        topLine.appendChild(createTextElement("span", "badge", magazine.category));
+        topLine.appendChild(createTextElement("span", "badge safe-badge", "Approved"));
+
+        const title = createTextElement("h3", "", magazine.title);
+        const summary = createTextElement("p", "", magazine.summary);
+        const age = createTextElement("span", "muted", magazine.ageRange);
+
+        const tagList = document.createElement("ul");
+        tagList.className = "tag-list";
+        tagList.setAttribute("aria-label", `Tags for ${magazine.title}`);
+
+        for (const tag of magazine.tags) {
+          const tagItem = document.createElement("li");
+          tagItem.className = "tag";
+          tagItem.textContent = tag;
+          tagList.appendChild(tagItem);
+        }
+
+        article.append(topLine, title, summary, age, tagList);
+        return article;
+      }
+
+      function renderMagazines() {
+        const query = normalizeText(state.query);
+        const category = state.category;
+
+        state.filteredMagazines = magazines.filter((magazine) =>
+          magazineMatches(magazine, query, category)
+        );
+
+        elements.magGrid.replaceChildren();
+
+        for (const magazine of state.filteredMagazines) {
+          elements.magGrid.appendChild(createMagazineCard(magazine));
+        }
+
+        const count = state.filteredMagazines.length;
+        const total = magazines.filter((magazine) => magazine.approved).length;
+
+        elements.emptyState.classList.toggle("hidden", count > 0);
+        elements.magGrid.classList.toggle("hidden", count === 0);
+        elements.clearSearchBtn.classList.toggle("hidden", !query);
+
+        elements.resultCount.textContent = query || category !== "all"
+          ? `${count} approved magazine${count === 1 ? "" : "s"} found`
+          : `Showing ${total} approved magazines`;
+      }
+
+      function appendAIMessage(text, type = "bot") {
+        const message = document.createElement("div");
+        message.className = `ai-message ${type}`;
+        message.textContent = String(text || "");
+        elements.aiMessages.appendChild(message);
+        elements.aiMessages.scrollTop = elements.aiMessages.scrollHeight;
+      }
+
+      function clearChat() {
+        elements.aiMessages.replaceChildren();
+
+        appendAIMessage(
+          "Chat cleared. I can summarize visible magazines, bug-check this page, or review pasted code.",
+          "bot"
+        );
+      }
+
+      function summarizeVisibleMagazines() {
+        const visible = state.filteredMagazines;
+
+        if (!visible.length) {
+          return "No visible approved magazines were found. Try clearing the search or choosing a different category.";
+        }
+
+        const categories = [...new Set(visible.map((magazine) => magazine.category))];
+
+        const lines = visible.map((magazine, index) =>
+          `${index + 1}. ${magazine.title}: ${magazine.summary}`
+        );
+
+        return [
+          `Summary of ${visible.length} visible approved magazine${visible.length === 1 ? "" : "s"}:`,
+          "",
+          ...lines,
+          "",
+          `Main topics: ${categories.join(", ")}.`,
+          "Overall, the visible feed is child-friendly, educational, and focused on safe learning."
+        ].join("\n");
+      }
+
+      function formatReview(title, issues, passes) {
+        const output = [`${title}:`];
+
+        if (issues.length) {
+          output.push("", "Issues to fix:");
+          issues.forEach((issue, index) => output.push(`${index + 1}. ${issue}`));
+        } else {
+          output.push("", "No critical issues found in this single-file version.");
+        }
+
+        if (passes.length) {
+          output.push("", "Checks passed:");
+          passes.forEach((pass, index) => output.push(`${index + 1}. ${pass}`));
+        }
+
+        return output.join("\n");
+      }
+
+      function bugCheckThisPage() {
+        const issues = [];
+        const passes = [];
+
+        const ids = [...document.querySelectorAll("[id]")].map((element) => element.id);
+        const uniqueIds = new Set(ids);
+
+        if (ids.length !== uniqueIds.size) {
+          issues.push("Duplicate IDs found. IDs must be unique for reliable JavaScript and accessibility.");
+        } else {
+          passes.push("No duplicate IDs detected.");
+        }
+
+        if (!elements.viewSection.getAttribute("aria-labelledby")) {
+          issues.push("The magazine section should use aria-labelledby pointing to its heading.");
+        } else {
+          passes.push("The magazine section is connected to its heading with aria-labelledby.");
+        }
+
+        if (elements.searchInput.type !== "search") {
+          issues.push("The search field should use type='search' for better mobile keyboard behavior.");
+        } else {
+          passes.push("The search field uses type='search'.");
+        }
+
+        if (!document.querySelector("label[for='searchInput']")) {
+          issues.push("The search input is missing a label.");
+        } else {
+          passes.push("The search input has an accessible label.");
+        }
+
+        if (!elements.magGrid.getAttribute("aria-live")) {
+          issues.push("The magazine grid should use aria-live so assistive technologies notice result updates.");
+        } else {
+          passes.push("The magazine grid uses aria-live for search result updates.");
+        }
+
+        if (!document.querySelector("meta[http-equiv='Content-Security-Policy']")) {
+          issues.push("No Content Security Policy meta tag found.");
+        } else {
+          passes.push("A Content Security Policy meta tag is present.");
+        }
+
+        if (document.querySelector("[onclick], [onerror], [onload]")) {
+          issues.push("Inline event attributes found. Prefer addEventListener for safer, cleaner event handling.");
+        } else {
+          passes.push("No inline event-handler attributes detected.");
+        }
+
+        if (!elements.emptyState) {
+          issues.push("No empty state found for searches with zero results.");
+        } else {
+          passes.push("An empty state exists for zero-result searches.");
+        }
+
+        if (!elements.resultCount) {
+          issues.push("No result count found. Users benefit from visible search feedback.");
+        } else {
+          passes.push("A result count is shown.");
+        }
+
+        return formatReview("Page bug check", issues, passes);
+      }
+
+      function securityReviewThisPage() {
+        const issues = [];
+        const passes = [];
+
+        const csp = document.querySelector("meta[http-equiv='Content-Security-Policy']");
+
+        if (!csp) {
+          issues.push("Add a Content Security Policy. It helps reduce script injection and data exfiltration risk.");
+        } else {
+          const content = csp.getAttribute("content") || "";
+
+          if (!content.includes("connect-src 'none'")) {
+            issues.push("Consider connect-src 'none' if this file should never make network requests.");
+          } else {
+            passes.push("Network requests are blocked with connect-src 'none'.");
+          }
+
+          if (!content.includes("object-src 'none'")) {
+            issues.push("Add object-src 'none' to block plugin/object embedding.");
+          } else {
+            passes.push("Plugin/object embedding is blocked.");
+          }
+
+          if (!content.includes("base-uri 'none'")) {
+            issues.push("Add base-uri 'none' to prevent base tag injection.");
+          } else {
+            passes.push("Base URI injection is restricted.");
+          }
+        }
+
+        if (document.querySelector("script[src], link[href^='http'], img[src^='http']")) {
+          issues.push("External resources detected. Use only trusted sources and add integrity/crossorigin where appropriate.");
+        } else {
+          passes.push("No external scripts, stylesheets, or remote images detected.");
+        }
+
+        if (document.body.textContent.match(/sk-[A-Za-z0-9_-]{20,}/)) {
+          issues.push("Possible API key pattern detected. Never place API keys in frontend HTML or JavaScript.");
+        } else {
+          passes.push("No obvious API key pattern detected.");
+        }
+
+        passes.push("User-provided text is inserted with textContent, not HTML rendering.");
+        passes.push("Only posts marked approved are rendered in the public feed.");
+        passes.push("The assistant is local-only and does not send pasted code or user text to a server.");
+
+        return formatReview("Security review", issues, passes);
+      }
+
+      function looksLikeCode(text) {
+        return /(<\/?[a-z][\s\S]*>|function\s+|const\s+|let\s+|var\s+|=>|class\s+|document\.|console\.|TypeError|ReferenceError|SyntaxError|fetch\(|eval\(|innerHTML|localStorage|sessionStorage)/i.test(text);
+      }
+
+      function bugCheckPastedText(text) {
+        const value = String(text || "").slice(0, 5000);
+        const issues = [];
+        const passes = [];
+
+        if (!value.trim()) {
+          return "Please paste code, an error message, or a bug description.";
+        }
+
+        if (/innerHTML\s*=|insertAdjacentHTML\s*\(/i.test(value)) {
+          issues.push("Possible HTML injection risk. Use textContent for plain text, or sanitize trusted HTML before rendering.");
+        } else {
+          passes.push("No direct HTML rendering assignment detected.");
+        }
+
+        if (/\beval\s*\(|new Function\s*\(/i.test(value)) {
+          issues.push("Dangerous dynamic code execution detected. Avoid eval and Function constructors.");
+        }
+
+        if (/document\.write\s*\(/i.test(value)) {
+          issues.push("document.write can overwrite the page and create injection risks. Prefer DOM methods such as createElement and textContent.");
+        }
+
+        if (/\son\w+\s*=/i.test(value)) {
+          issues.push("Inline event handler attributes detected. Prefer addEventListener.");
+        }
+
+        if (/javascript:/i.test(value)) {
+          issues.push("javascript: URLs detected. They are risky and should be removed.");
+        }
+
+        if (/sk-[A-Za-z0-9_-]{20,}|api[_-]?key|secret|token/i.test(value)) {
+          issues.push("Possible secret, API key, or token reference detected. Do not place secrets in frontend code.");
+        }
+
+        if (/fetch\s*\(\s*["']http:\/\//i.test(value)) {
+          issues.push("Insecure HTTP request detected. Use HTTPS.");
+        }
+
+        if (/target\s*=\s*["']_blank["']/i.test(value) && !/rel\s*=\s*["'][^"']*noopener/i.test(value)) {
+          issues.push("Links using target='_blank' should include rel='noopener noreferrer'.");
+        }
+
+        if (/<img\b/i.test(value) && !/alt\s*=/i.test(value)) {
+          issues.push("Image tag may be missing alt text. Add alt='' for decorative images or descriptive alt text for meaningful images.");
+        }
+
+        if (/<input\b/i.test(value) && !/(<label\b|aria-label\s*=|aria-labelledby\s*=)/i.test(value)) {
+          issues.push("Input may be missing an accessible label. Add a label, aria-label, or aria-labelledby.");
+        }
+
+        if (/Cannot read propert(?:y|ies) of null|is null|null is not an object/i.test(value)) {
+          issues.push("Null DOM reference error detected. Check that the element ID exists before using it, or run the script after the DOM loads.");
+        }
+
+        if (/ReferenceError/i.test(value)) {
+          issues.push("ReferenceError detected. Check spelling, variable scope, and whether the script runs before declarations are created.");
+        }
+
+        if (/SyntaxError/i.test(value)) {
+          issues.push("SyntaxError detected. Check brackets, quotes, commas, and unsupported syntax.");
+        }
+
+        if (!issues.length) {
+          return [
+            "Bug check result:",
+            "",
+            "No obvious issue was detected by the local checker.",
+            "This is a rule-based check, so it may miss logic bugs. For a deeper review, test the code in the browser console and check edge cases.",
+            "",
+            "Checks passed:",
+            ...passes.map((pass, index) => `${index + 1}. ${pass}`)
+          ].join("\n");
+        }
+
+        return [
+          "Bug check result:",
+          "",
+          "Issues found:",
+          ...issues.map((issue, index) => `${index + 1}. ${issue}`),
+          "",
+          "Suggested next steps:",
+          "1. Fix the highest-risk security issue first.",
+          "2. Test the page in the browser console.",
+          "3. Re-paste the updated code here for another local check."
+        ].join("\n");
+      }
+
+      function respondToUser(text) {
+        const value = String(text || "").trim();
+
+        if (!value) {
+          return "Please type a question, paste code, or choose one of the action buttons.";
+        }
+
+        const normalized = normalizeText(value);
+
+        if (looksLikeCode(value)) {
+          return bugCheckPastedText(value);
+        }
+
+        if (normalized.includes("summar")) {
+          return summarizeVisibleMagazines();
+        }
+
+        if (normalized.includes("bug") || normalized.includes("error") || normalized.includes("fix")) {
+          return bugCheckThisPage();
+        }
+
+        if (normalized.includes("security") || normalized.includes("secure") || normalized.includes("safe")) {
+          return securityReviewThisPage();
+        }
+
+        return [
+          "I can help with three things in this single-file version:",
+          "",
+          "1. Summarize the visible approved magazines.",
+          "2. Bug-check this page.",
+          "3. Review pasted HTML, CSS, JavaScript, or error messages for common bugs and security issues.",
+          "",
+          "Try typing: “summarize this feed”, “security review”, or paste code that you want checked."
+        ].join("\n");
+      }
+
+      function handleAction(action) {
+        if (action === "summarize") {
+          appendAIMessage("Please summarize the visible magazines.", "user");
+          appendAIMessage(summarizeVisibleMagazines(), "bot");
+          return;
+        }
+
+        if (action === "bug-check-page") {
+          appendAIMessage("Please bug-check this page.", "user");
+          appendAIMessage(bugCheckThisPage(), "bot");
+          return;
+        }
+
+        if (action === "security-review") {
+          appendAIMessage("Please do a security review.", "user");
+          appendAIMessage(securityReviewThisPage(), "bot");
+          return;
+        }
+
+        if (action === "clear-chat") {
+          clearChat();
+        }
+      }
+
+      function initializeEvents() {
+        const renderDebounced = debounce(() => {
+          state.query = elements.searchInput.value;
+          renderMagazines();
+        });
+
+        elements.searchInput.addEventListener("input", renderDebounced);
+
+        elements.clearSearchBtn.addEventListener("click", () => {
+          elements.searchInput.value = "";
+          state.query = "";
+          renderMagazines();
+          elements.searchInput.focus();
+        });
+
+        elements.categoryFilter.addEventListener("change", () => {
+          state.category = elements.categoryFilter.value;
+          renderMagazines();
+        });
+
+        document.querySelectorAll("[data-ai-action]").forEach((button) => {
+          button.addEventListener("click", () => handleAction(button.dataset.aiAction));
+        });
+
+        elements.aiForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const value = elements.aiInput.value.trim();
+
+          if (!value) {
+            elements.aiInput.focus();
+            return;
+          }
+
+          appendAIMessage(value.slice(0, 5000), "user");
+          appendAIMessage(respondToUser(value), "bot");
+
+          elements.aiInput.value = "";
+        });
+
+        elements.themeToggle.addEventListener("click", () => {
+          const isDark = document.documentElement.dataset.theme === "dark";
+
+          document.documentElement.dataset.theme = isDark ? "light" : "dark";
+          elements.themeToggle.setAttribute("aria-pressed", String(!isDark));
+        });
+      }
+
+      function init() {
+        assertRequiredElements();
+        populateCategories();
+        renderMagazines();
+        initializeEvents();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, { once: true });
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
