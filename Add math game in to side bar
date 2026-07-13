@@ -1,0 +1,84 @@
+<style>
+  #kigazineMathGameLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 11px 18px;
+    border: 1px solid rgba(98, 233, 255, 0.45);
+    border-radius: 14px;
+
+    color: #071426;
+    background: linear-gradient(
+      135deg,
+      #bcf8ff,
+      #62e9ff 55%,
+      #9c7cff
+    );
+
+    box-shadow:
+      0 10px 25px rgba(46, 183, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
+  }
+
+  #kigazineMathGameLink:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+
+    box-shadow:
+      0 14px 32px rgba(46, 183, 255, 0.35),
+      0 0 18px rgba(156, 124, 255, 0.25);
+  }
+
+  #kigazineMathGameLink:active {
+    transform: scale(0.97);
+  }
+
+  #kigazineMathGameLink:focus-visible {
+    outline: 3px solid #ffd66b;
+    outline-offset: 3px;
+  }
+</style>
+
+<script>
+  (() => {
+    function addMathGameButton() {
+      const nav = document.querySelector(".nav");
+
+      if (!nav || document.getElementById("kigazineMathGameLink")) {
+        return;
+      }
+
+      const gameLink = document.createElement("a");
+
+      gameLink.id = "kigazineMathGameLink";
+      gameLink.className = "nav-btn";
+
+      // Replace this with the published URL of your math game.
+      gameLink.href = "https://example.com/math-game";
+
+      gameLink.target = "_blank";
+      gameLink.rel = "noopener noreferrer";
+      gameLink.textContent = "🎮 Play the Math Game!";
+      gameLink.setAttribute("aria-label", "Open the Math Game in a new tab");
+
+      nav.appendChild(gameLink);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", addMathGameButton);
+    } else {
+      addMathGameButton();
+    }
+  })();
+</script>
