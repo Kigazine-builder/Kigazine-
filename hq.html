@@ -1,22 +1,25 @@
-========================
-FILE 1: hq.html
-========================
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
   <title>Kigazine HQ</title>
 
   <style>
     :root {
+      --background: #07111f;
       --panel: rgba(255, 255, 255, 0.08);
-      --line: rgba(255, 255, 255, 0.15);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --border: rgba(255, 255, 255, 0.15);
       --text: #f8fafc;
       --muted: #94a3b8;
       --blue: #60a5fa;
       --green: #86efac;
+      --yellow: #facc15;
       --red: #f87171;
     }
 
@@ -24,12 +27,23 @@ FILE 1: hq.html
       box-sizing: border-box;
     }
 
+    html {
+      min-height: 100%;
+      background: var(--background);
+    }
+
     body {
-      margin: 0;
       min-height: 100vh;
+      margin: 0;
       color: var(--text);
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", Arial, sans-serif;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
 
       background:
         radial-gradient(
@@ -42,22 +56,37 @@ FILE 1: hq.html
           rgba(250, 204, 21, 0.14),
           transparent 30%
         ),
-        linear-gradient(135deg, #07111f, #0f2a4d 55%, #081827);
+        linear-gradient(
+          135deg,
+          #07111f,
+          #0f2a4d 55%,
+          #081827
+        );
+    }
+
+    button,
+    a {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
     }
 
     header {
       padding: 30px 22px;
-      border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid var(--border);
       background: rgba(3, 7, 18, 0.45);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .header-inner {
+      display: flex;
       max-width: 1180px;
       margin: auto;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 18px;
       flex-wrap: wrap;
     }
@@ -65,6 +94,7 @@ FILE 1: hq.html
     .brand h1 {
       margin: 0;
       font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.1;
       letter-spacing: -1.5px;
     }
 
@@ -74,18 +104,20 @@ FILE 1: hq.html
       font-size: 16px;
     }
 
-    .nav a {
+    .navigation a,
+    .navigation button {
       display: inline-block;
       margin: 4px;
       padding: 11px 15px;
       color: white;
       text-decoration: none;
-      border: 1px solid var(--line);
+      border: 1px solid var(--border);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.06);
     }
 
-    .nav a:hover {
+    .navigation a:hover,
+    .navigation button:hover {
       background: rgba(255, 255, 255, 0.12);
     }
 
@@ -95,22 +127,26 @@ FILE 1: hq.html
       padding: 24px;
     }
 
-    .grid {
+    .statistics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(220px, 1fr)
+      );
       gap: 18px;
       margin-bottom: 22px;
     }
 
     .card {
       padding: 22px;
-      border: 1px solid var(--line);
+      border: 1px solid var(--border);
       border-radius: 22px;
       background: var(--panel);
       box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
     }
 
     .number {
+      min-height: 46px;
       color: var(--blue);
       font-size: 42px;
       font-weight: 900;
@@ -127,9 +163,10 @@ FILE 1: hq.html
       margin-top: 8px;
       color: var(--muted);
       font-size: 13px;
+      line-height: 1.45;
     }
 
-    .two-col {
+    .two-column-grid {
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       gap: 18px;
@@ -140,11 +177,17 @@ FILE 1: hq.html
       font-size: 22px;
     }
 
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 16px;
+    }
+
     table {
       width: 100%;
+      min-width: 520px;
       overflow: hidden;
       border-collapse: collapse;
-      border-radius: 16px;
       background: rgba(255, 255, 255, 0.045);
     }
 
@@ -187,7 +230,12 @@ FILE 1: hq.html
       font-weight: 800;
     }
 
-    .bar-wrap {
+    .success {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .bar-wrapper {
       height: 10px;
       margin-top: 7px;
       overflow: hidden;
@@ -197,7 +245,11 @@ FILE 1: hq.html
 
     .bar {
       height: 100%;
-      background: linear-gradient(90deg, #60a5fa, #facc15);
+      background: linear-gradient(
+        90deg,
+        var(--blue),
+        var(--yellow)
+      );
     }
 
     .pill {
@@ -212,17 +264,156 @@ FILE 1: hq.html
       font-weight: 700;
     }
 
+    .action-button {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 10px 14px;
+      color: white;
+      border: 1px solid rgba(96, 165, 250, 0.45);
+      border-radius: 12px;
+      background: rgba(96, 165, 250, 0.18);
+      font-weight: 750;
+    }
+
+    .action-button:hover {
+      background: rgba(96, 165, 250, 0.28);
+    }
+
     footer {
+      display: flex;
       max-width: 1180px;
       margin: auto;
       padding: 8px 24px 30px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
       color: var(--muted);
       font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .footer-button {
+      padding: 7px 10px;
+      color: #cbd5e1;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      display: none;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-panel {
+      width: min(820px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #0b1d33;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .modal-header h2 {
+      margin-bottom: 6px;
+    }
+
+    .modal-header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .close-button {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 20px;
+    }
+
+    pre {
+      margin: 18px 0 0;
+      padding: 16px;
+      overflow-x: auto;
+      color: #dbeafe;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.3);
+      font:
+        13px/1.55
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+      white-space: pre;
+    }
+
+    .modal-actions {
+      display: flex;
+      margin-top: 14px;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .copy-message {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
     }
 
     @media (max-width: 850px) {
-      .two-col {
+      .two-column-grid {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 24px 18px;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .brand h1 {
+        font-size: 38px;
+      }
+
+      table {
+        min-width: 460px;
       }
     }
   </style>
@@ -233,95 +424,242 @@ FILE 1: hq.html
     <div class="header-inner">
       <div class="brand">
         <h1>📍 Kigazine HQ</h1>
-        <p>Live public dashboard for activity, publishing, and creator stats.</p>
+        <p>
+          Live public dashboard for activity, publishing,
+          and creator statistics.
+        </p>
       </div>
 
-      <nav class="nav">
+      <nav class="navigation" aria-label="Main navigation">
         <a href="index.html">Home</a>
         <a href="hq.html">HQ</a>
+
+        <button
+          id="openRulesButton"
+          type="button"
+        >
+          Firestore setup
+        </button>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="grid">
-      <div class="card">
-        <div class="number" id="totalMagazines">0</div>
+    <section class="statistics-grid">
+      <article class="card">
+        <div class="number" id="totalMagazines">—</div>
         <div class="label">Magazines Published</div>
-        <div class="hint">Total public magazine posts found.</div>
-      </div>
+        <div class="hint">
+          Total public magazine posts found.
+        </div>
+      </article>
 
-      <div class="card">
-        <div class="number" id="totalUsers">0</div>
+      <article class="card">
+        <div class="number" id="totalUsers">—</div>
         <div class="label">Kigazine Users</div>
-        <div class="hint">Public profiles found.</div>
-      </div>
+        <div class="hint" id="usersHint">
+          Public profiles or known writers found.
+        </div>
+      </article>
 
-      <div class="card">
-        <div class="number" id="activeUsers">0</div>
+      <article class="card">
+        <div class="number" id="activeUsers">—</div>
         <div class="label">Active Writers</div>
-        <div class="hint">People who have published at least once.</div>
-      </div>
+        <div class="hint">
+          People who have published at least once.
+        </div>
+      </article>
 
-      <div class="card">
-        <div class="number" id="todayMagazines">0</div>
+      <article class="card">
+        <div class="number" id="todayMagazines">—</div>
         <div class="label">Published Today</div>
-        <div class="hint">Based on magazine createdAt dates.</div>
-      </div>
+        <div class="hint">
+          Based on magazine publication dates.
+        </div>
+      </article>
     </section>
 
-    <section class="two-col">
-      <div class="card">
+    <section class="two-column-grid">
+      <article class="card">
         <h2>🔥 Most Active People</h2>
 
-        <table>
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Magazines</th>
-              <th>Activity</th>
-            </tr>
-          </thead>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Magazines</th>
+                <th>Activity</th>
+              </tr>
+            </thead>
 
-          <tbody id="leaderboard">
-            <tr>
-              <td colspan="3" class="quiet">Loading activity...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <tbody id="leaderboard">
+              <tr>
+                <td colspan="3" class="quiet">
+                  Loading activity…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
 
-      <div class="card">
+      <article class="card">
         <h2>⚡ HQ Signals</h2>
-        <div id="signals" class="quiet">Loading signals...</div>
-      </div>
+
+        <div id="signals" class="quiet">
+          Loading Firestore data…
+        </div>
+      </article>
     </section>
 
     <section class="card" style="margin-top: 18px">
       <h2>🆕 Recent Magazines</h2>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Date</th>
-          </tr>
-        </thead>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Date</th>
+            </tr>
+          </thead>
 
-        <tbody id="recentMagazines">
-          <tr>
-            <td colspan="3" class="quiet">Loading magazines...</td>
-          </tr>
-        </tbody>
-      </table>
+          <tbody id="recentMagazines">
+            <tr>
+              <td colspan="3" class="quiet">
+                Loading magazines…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 
   <footer>
-    Kigazine HQ updates from public Firestore data after page reload. 🔵
+    <span>
+      Kigazine HQ reads public Firestore data after
+      each page reload. 🔵
+    </span>
+
+    <button
+      class="footer-button"
+      id="footerRulesButton"
+      type="button"
+    >
+      View Firestore rules
+    </button>
   </footer>
 
+  <div
+    class="modal"
+    id="rulesModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rulesModalTitle"
+  >
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 id="rulesModalTitle">
+            Firestore read-rules snippet
+          </h2>
+
+          <p>
+            Copy this snippet into the Firestore Rules
+            editor. Merge it with any existing write rules
+            used by your publishing system, then click
+            <strong>Publish</strong>.
+          </p>
+        </div>
+
+        <button
+          class="close-button"
+          id="closeRulesButton"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <pre id="rulesPreview"></pre>
+
+      <div class="modal-actions">
+        <button
+          class="action-button"
+          id="copyRulesButton"
+          type="button"
+        >
+          Copy rules
+        </button>
+
+        <span
+          class="copy-message"
+          id="copyMessage"
+          aria-live="polite"
+        ></span>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    This block is intentionally non-executable.
+
+    It keeps the Firestore rules inside this one HTML file
+    without displaying them at the top of the webpage.
+  -->
+  <script id="firestoreRules" type="text/plain">
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /*
+      Public visitors may read only public magazines.
+
+      The webpage query contains:
+      where("isPublic", "==", true)
+    */
+    match /magazines/{magazineId} {
+      allow read: if resource.data.isPublic == true;
+
+      /*
+        KEEP YOUR EXISTING create, update and delete
+        rules for magazines here.
+
+        Do not grant public write access.
+      */
+    }
+
+    /*
+      Store only public profile information here.
+      Do not store private email addresses, phone
+      numbers or account information here.
+    */
+    match /publicProfiles/{userId} {
+      allow read: if true;
+
+      /*
+        KEEP YOUR EXISTING owner-only write rules here.
+      */
+    }
+
+    /*
+      Private account documents remain owner-only.
+    */
+    match /users/{userId} {
+      allow read, write:
+        if request.auth != null
+        && request.auth.uid == userId;
+    }
+  }
+}
+  </script>
+
+  <!-- This is the only executable dashboard script. -->
   <script type="module">
     import {
       initializeApp
@@ -336,18 +674,30 @@ FILE 1: hq.html
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
-      authDomain: "kigazine-302ac.firebaseapp.com",
-      projectId: "kigazine-302ac",
-      storageBucket: "kigazine-302ac.firebasestorage.app",
-      messagingSenderId: "821833747017",
-      appId: "1:821833747017:web:dc20a182d1935408c34d98"
+      apiKey:
+        "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+
+      authDomain:
+        "kigazine-302ac.firebaseapp.com",
+
+      projectId:
+        "kigazine-302ac",
+
+      storageBucket:
+        "kigazine-302ac.firebasestorage.app",
+
+      messagingSenderId:
+        "821833747017",
+
+      appId:
+        "1:821833747017:web:dc20a182d1935408c34d98"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const $ = id => document.getElementById(id);
+    const element = id =>
+      document.getElementById(id);
 
     function escapeHTML(value) {
       return String(value ?? "")
@@ -358,69 +708,125 @@ FILE 1: hq.html
         .replaceAll("'", "&#039;");
     }
 
-    function getDate(value) {
-      if (!value) return null;
-
-      if (typeof value.toDate === "function") {
-        return value.toDate();
+    function parseFirestoreDate(value) {
+      if (!value) {
+        return null;
       }
 
-      if (typeof value === "string" || typeof value === "number") {
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? null : date;
+      if (typeof value.toDate === "function") {
+        const date = value.toDate();
+
+        return Number.isNaN(date.getTime())
+          ? null
+          : date;
       }
 
       if (
         typeof value === "object" &&
         typeof value.seconds === "number"
       ) {
-        return new Date(value.seconds * 1000);
+        const date = new Date(value.seconds * 1000);
+
+        return Number.isNaN(date.getTime())
+          ? null
+          : date;
+      }
+
+      if (
+        typeof value === "string" ||
+        typeof value === "number"
+      ) {
+        const date = new Date(value);
+
+        return Number.isNaN(date.getTime())
+          ? null
+          : date;
       }
 
       return null;
     }
 
-    function sameDay(first, second) {
+    function datesAreSameDay(firstDate, secondDate) {
       return Boolean(
-        first &&
-        second &&
-        first.getFullYear() === second.getFullYear() &&
-        first.getMonth() === second.getMonth() &&
-        first.getDate() === second.getDate()
+        firstDate &&
+        secondDate &&
+        firstDate.getFullYear() ===
+          secondDate.getFullYear() &&
+        firstDate.getMonth() ===
+          secondDate.getMonth() &&
+        firstDate.getDate() ===
+          secondDate.getDate()
       );
     }
 
-    function getAuthor(data) {
+    function getMagazineAuthor(data) {
       return (
         data.authorName ||
         data.username ||
         data.author ||
         data.displayName ||
+        data.userName ||
         data.user ||
+        data.email ||
         data.authorId ||
+        data.userId ||
+        data.uid ||
         "Unknown"
       );
     }
 
-    function readableError(error) {
-      if (!error) return "Unknown Firestore error.";
+    function getMagazineTitle(data) {
+      return (
+        data.title ||
+        data.name ||
+        data.magazineTitle ||
+        "Untitled Magazine"
+      );
+    }
+
+    function getMagazineDate(data) {
+      return parseFirestoreDate(
+        data.createdAt ||
+        data.publishedAt ||
+        data.updatedAt ||
+        data.date ||
+        data.time
+      );
+    }
+
+    function readableFirestoreError(error) {
+      if (!error) {
+        return "Unknown Firestore error.";
+      }
 
       if (error.code === "permission-denied") {
-        return "Permission denied. Publish the Firestore Rules included below.";
+        return (
+          "Permission denied. Publish the required " +
+          "Firestore read rules."
+        );
       }
 
       if (error.code === "failed-precondition") {
-        return "Firestore requires an index for this query.";
+        return (
+          "Firestore rejected the query. An index or " +
+          "matching rule may be required."
+        );
       }
 
       if (error.code === "unavailable") {
-        return "Firestore is temporarily unavailable.";
+        return (
+          "Firestore is temporarily unavailable. " +
+          "Try reloading the page."
+        );
       }
 
-      return error.message || "Unknown Firestore error.";
+      return (
+        error.message ||
+        "An unknown Firestore error occurred."
+      );
     }
 
-    async function readFirestore(reference, label) {
+    async function safelyRead(reference, label) {
       try {
         const snapshot = await getDocs(reference);
 
@@ -429,7 +835,14 @@ FILE 1: hq.html
           error: null
         };
       } catch (error) {
-        console.error(`Firestore error in ${label}:`, error);
+        console.error(
+          `[Kigazine HQ: ${label}]`,
+          {
+            code: error?.code,
+            message: error?.message,
+            error
+          }
+        );
 
         return {
           snapshot: null,
@@ -438,133 +851,69 @@ FILE 1: hq.html
       }
     }
 
-    async function loadHQ() {
-      const magazinesQuery = query(
-        collection(db, "magazines"),
-        where("isPublic", "==", true)
-      );
+    function displayMagazineError(error) {
+      const message =
+        readableFirestoreError(error);
 
-      const profilesCollection = collection(db, "publicProfiles");
+      element("totalMagazines").textContent = "?";
+      element("activeUsers").textContent = "?";
+      element("todayMagazines").textContent = "?";
+      element("totalUsers").textContent = "?";
 
-      const [magazinesResult, profilesResult] = await Promise.all([
-        readFirestore(magazinesQuery, "magazines"),
-        readFirestore(profilesCollection, "publicProfiles")
-      ]);
+      element("leaderboard").innerHTML = `
+        <tr>
+          <td colspan="3" class="error">
+            ${escapeHTML(message)}
+          </td>
+        </tr>
+      `;
 
-      if (magazinesResult.error) {
-        const message = readableError(magazinesResult.error);
+      element("recentMagazines").innerHTML = `
+        <tr>
+          <td colspan="3" class="error">
+            ${escapeHTML(message)}
+          </td>
+        </tr>
+      `;
 
-        $("totalMagazines").textContent = "?";
-        $("activeUsers").textContent = "?";
-        $("todayMagazines").textContent = "?";
+      element("signals").innerHTML = `
+        <p class="error">
+          Firestore error:
+          ${escapeHTML(error?.code || "unknown")}
+        </p>
 
-        $("leaderboard").innerHTML = `
-          <tr>
-            <td colspan="3" class="error">
-              ${escapeHTML(message)}
-            </td>
-          </tr>
-        `;
+        <p class="quiet" style="line-height: 1.6">
+          Open Firestore setup, copy the rules snippet,
+          merge it with your existing rules and publish it.
+        </p>
 
-        $("recentMagazines").innerHTML = `
-          <tr>
-            <td colspan="3" class="error">
-              ${escapeHTML(message)}
-            </td>
-          </tr>
-        `;
+        <button
+          class="action-button"
+          id="errorRulesButton"
+          type="button"
+        >
+          Open Firestore setup
+        </button>
+      `;
 
-        $("signals").innerHTML = `
-          <span class="error">
-            Firestore error:
-            ${escapeHTML(magazinesResult.error.code || "unknown")}
-          </span>
-        `;
-
-        return;
-      }
-
-      const magazines = [];
-      const authorCounts = {};
-      const today = new Date();
-
-      let todayCount = 0;
-
-      magazinesResult.snapshot.forEach(documentSnapshot => {
-        const data = documentSnapshot.data();
-
-        const author = getAuthor(data);
-        const title = data.title || data.name || "Untitled Magazine";
-
-        const createdAt = getDate(
-          data.createdAt ||
-          data.publishedAt ||
-          data.date ||
-          data.time
+      element("errorRulesButton")
+        ?.addEventListener(
+          "click",
+          openRulesModal
         );
+    }
 
-        authorCounts[author] = (authorCounts[author] || 0) + 1;
+    function renderLeaderboard(authorCounts) {
+      const sortedAuthors =
+        Object.entries(authorCounts)
+          .sort(
+            (first, second) =>
+              second[1] - first[1]
+          )
+          .slice(0, 10);
 
-        if (sameDay(createdAt, today)) {
-          todayCount += 1;
-        }
-
-        magazines.push({
-          id: documentSnapshot.id,
-          title,
-          author,
-          createdAt
-        });
-      });
-
-      const totalMagazines = magazines.length;
-      const activeUsers = Object.keys(authorCounts).length;
-
-      const totalUsers = profilesResult.snapshot
-        ? profilesResult.snapshot.size
-        : 0;
-
-      $("totalMagazines").textContent = totalMagazines;
-      $("activeUsers").textContent = activeUsers;
-      $("todayMagazines").textContent = todayCount;
-      $("totalUsers").textContent = profilesResult.error ? "?" : totalUsers;
-
-      const sortedAuthors = Object.entries(authorCounts)
-        .sort((first, second) => second[1] - first[1])
-        .slice(0, 10);
-
-      const maximumCount = sortedAuthors[0]?.[1] || 1;
-
-      $("leaderboard").innerHTML = sortedAuthors.length
-        ? sortedAuthors
-            .map(([user, count]) => {
-              const percentage = Math.round(
-                (count / maximumCount) * 100
-              );
-
-              return `
-                <tr>
-                  <td>
-                    <strong>${escapeHTML(user)}</strong>
-                  </td>
-
-                  <td>${count}</td>
-
-                  <td>
-                    <span class="status">Active</span>
-
-                    <div class="bar-wrap">
-                      <div
-                        class="bar"
-                        style="width: ${percentage}%"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-              `;
-            })
-            .join("")
-        : `
+      if (sortedAuthors.length === 0) {
+        element("leaderboard").innerHTML = `
           <tr>
             <td colspan="3" class="quiet">
               No published activity yet.
@@ -572,36 +921,74 @@ FILE 1: hq.html
           </tr>
         `;
 
-      magazines.sort((first, second) => {
-        if (!first.createdAt && !second.createdAt) return 0;
-        if (!first.createdAt) return 1;
-        if (!second.createdAt) return -1;
+        return sortedAuthors;
+      }
 
-        return second.createdAt - first.createdAt;
+      const maximumCount =
+        sortedAuthors[0][1] || 1;
+
+      element("leaderboard").innerHTML =
+        sortedAuthors
+          .map(([user, count]) => {
+            const percentage = Math.round(
+              (count / maximumCount) * 100
+            );
+
+            return `
+              <tr>
+                <td>
+                  <strong>
+                    ${escapeHTML(user)}
+                  </strong>
+                </td>
+
+                <td>${count}</td>
+
+                <td>
+                  <span class="status">
+                    Active
+                  </span>
+
+                  <div class="bar-wrapper">
+                    <div
+                      class="bar"
+                      style="width: ${percentage}%"
+                    ></div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+
+      return sortedAuthors;
+    }
+
+    function renderRecentMagazines(magazines) {
+      magazines.sort((first, second) => {
+        if (
+          !first.createdAt &&
+          !second.createdAt
+        ) {
+          return 0;
+        }
+
+        if (!first.createdAt) {
+          return 1;
+        }
+
+        if (!second.createdAt) {
+          return -1;
+        }
+
+        return (
+          second.createdAt -
+          first.createdAt
+        );
       });
 
-      $("recentMagazines").innerHTML = magazines.length
-        ? magazines
-            .slice(0, 12)
-            .map(magazine => {
-              const date = magazine.createdAt
-                ? magazine.createdAt.toLocaleString()
-                : "Unknown";
-
-              return `
-                <tr>
-                  <td>
-                    <strong>${escapeHTML(magazine.title)}</strong>
-                  </td>
-
-                  <td>${escapeHTML(magazine.author)}</td>
-
-                  <td>${escapeHTML(date)}</td>
-                </tr>
-              `;
-            })
-            .join("")
-        : `
+      if (magazines.length === 0) {
+        element("recentMagazines").innerHTML = `
           <tr>
             <td colspan="3" class="quiet">
               No public magazines found.
@@ -609,559 +996,357 @@ FILE 1: hq.html
           </tr>
         `;
 
-      const average = activeUsers
-        ? (totalMagazines / activeUsers).toFixed(1)
-        : "0";
+        return;
+      }
 
-      const topWriter = sortedAuthors[0]?.[0] || "Nobody yet";
-      const topCount = sortedAuthors[0]?.[1] || 0;
+      element("recentMagazines").innerHTML =
+        magazines
+          .slice(0, 12)
+          .map(magazine => {
+            const formattedDate =
+              magazine.createdAt
+                ? magazine.createdAt
+                    .toLocaleString()
+                : "Unknown";
 
-      $("signals").innerHTML = `
+            return `
+              <tr>
+                <td>
+                  <strong>
+                    ${escapeHTML(
+                      magazine.title
+                    )}
+                  </strong>
+                </td>
+
+                <td>
+                  ${escapeHTML(
+                    magazine.author
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHTML(
+                    formattedDate
+                  )}
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+    }
+
+    function renderSignals({
+      totalMagazines,
+      activeWriterCount,
+      sortedAuthors,
+      profilesLoaded
+    }) {
+      const average =
+        activeWriterCount > 0
+          ? (
+              totalMagazines /
+              activeWriterCount
+            ).toFixed(1)
+          : "0";
+
+      const topWriter =
+        sortedAuthors[0]?.[0] ||
+        "Nobody yet";
+
+      const topCount =
+        sortedAuthors[0]?.[1] || 0;
+
+      const profileStatus =
+        profilesLoaded
+          ? "loaded"
+          : "estimated from writers";
+
+      element("signals").innerHTML = `
         <span class="pill">
-          Top writer: ${escapeHTML(topWriter)}
+          Top writer:
+          ${escapeHTML(topWriter)}
         </span>
 
         <span class="pill">
-          Top count: ${topCount}
+          Top count:
+          ${topCount}
         </span>
 
         <span class="pill">
-          Average per writer: ${average}
+          Average per writer:
+          ${average}
         </span>
 
         <span class="pill">
-          Public profiles:
-          ${profilesResult.error ? "blocked" : "loaded"}
+          User count:
+          ${escapeHTML(profileStatus)}
         </span>
 
-        <p class="quiet" style="margin-top: 14px; line-height: 1.6">
-          Reading public documents from
-          <strong>magazines</strong>
-          and
-          <strong>publicProfiles</strong>.
+        <p
+          class="quiet"
+          style="
+            margin-top: 14px;
+            line-height: 1.6;
+          "
+        >
+          The dashboard loaded
+          <strong>${totalMagazines}</strong>
+          public magazines from Firestore.
         </p>
       `;
     }
 
-    loadHQ();
-  </script>
-</body>
-</html>
-
-
-========================
-FILE 2: FIRESTORE RULES
-Firebase Console → Firestore Database → Rules
-========================
-
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    match /magazines/{magazineId} {
-
-      /*
-        Public dashboard access.
-
-        The HTML query also uses:
-        where("isPublic", "==", true)
-      */
-      allow read: if resource.data.isPublic == true;
-
-      /*
-        Authenticated users may create their own magazines.
-      */
-      allow create: if request.auth != null
-                    && request.resource.data.authorId == request.auth.uid
-                    && request.resource.data.isPublic is bool;
-
-      /*
-        Authenticated users may update their own magazines.
-        Ownership cannot be transferred.
-      */
-      allow update: if request.auth != null
-                    && resource.data.authorId == request.auth.uid
-                    && request.resource.data.authorId == resource.data.authorId
-                    && request.resource.data.isPublic is bool;
-
-      /*
-        Authenticated users may delete their own magazines.
-      */
-      allow delete: if request.auth != null
-                    && resource.data.authorId == request.auth.uid;
-    }
-
-    match /publicProfiles/{userId} {
-
-      /*
-        Store only public information here.
-      */
-      allow read: if true;
-
-      allow create, update: if request.auth != null
-                            && request.auth.uid == userId
-                            && request.resource.data.keys().hasOnly([
-                              "displayName",
-                              "username",
-                              "photoURL"
-                            ]);
-
-      allow delete: if request.auth != null
-                    && request.auth.uid == userId;
-    }
-
-    match /users/{userId} {
-
-      /*
-        Private user account data.
-      */
-      allow read, create, update, delete:
-        if request.auth != null
-        && request.auth.uid == userId;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}9<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kigazine HQ</title>
-  <style>
-    :root {
-      --bg: #07111f;
-      --panel: rgba(255,255,255,0.08);
-      --panel2: rgba(255,255,255,0.12);
-      --line: rgba(255,255,255,0.15);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --blue: #60a5fa;
-      --green: #86efac;
-      --gold: #facc15;
-      --red: #f87171;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(96,165,250,0.24), transparent 34%),
-        radial-gradient(circle at bottom right, rgba(250,204,21,0.14), transparent 30%),
-        linear-gradient(135deg, #07111f, #0f2a4d 55%, #081827);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    header {
-      padding: 30px 22px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(3,7,18,0.45);
-      backdrop-filter: blur(12px);
-    }
-
-    .header-inner {
-      max-width: 1180px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: clamp(34px, 5vw, 58px);
-      letter-spacing: -1.5px;
-    }
-
-    .brand p {
-      color: #cbd5e1;
-      margin: 8px 0 0;
-      font-size: 16px;
-    }
-
-    .nav a {
-      color: white;
-      text-decoration: none;
-      padding: 11px 15px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      display: inline-block;
-      margin: 4px;
-    }
-
-    main {
-      max-width: 1180px;
-      margin: auto;
-      padding: 24px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-      margin-bottom: 22px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 22px;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
-    }
-
-    .number {
-      font-size: 42px;
-      font-weight: 900;
-      color: var(--blue);
-      line-height: 1;
-    }
-
-    .label {
-      color: #cbd5e1;
-      margin-top: 8px;
-      font-weight: 650;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 8px;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-    }
-
-    @media (max-width: 850px) {
-      .two-col { grid-template-columns: 1fr; }
-    }
-
-    h2 {
-      margin: 0 0 14px;
-      font-size: 22px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      overflow: hidden;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.045);
-    }
-
-    th, td {
-      padding: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      color: #bfdbfe;
-      background: rgba(96,165,250,0.13);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    tr:last-child td { border-bottom: 0; }
-
-    .status {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(34,197,94,0.18);
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .quiet {
-      color: var(--muted);
-    }
-
-    .bar-wrap {
-      height: 10px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 7px;
-    }
-
-    .bar {
-      height: 100%;
-      background: linear-gradient(90deg, #60a5fa, #facc15);
-      width: 0%;
-    }
-
-    .pill {
-      display: inline-block;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #e2e8f0;
-      margin: 4px 4px 0 0;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .error {
-      color: var(--red);
-      font-weight: 800;
-    }
-
-    footer {
-      max-width: 1180px;
-      margin: auto;
-      padding: 8px 24px 30px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-inner">
-      <div class="brand">
-        <h1>📍 Kigazine HQ</h1>
-        <p>Live public dashboard for activity, publishing, and creator stats.</p>
-      </div>
-      <nav class="nav">
-        <a href="index.html">Home</a>
-        <a href="hq.html">HQ</a>
-      </nav>
-    </div>
-  </header>
-
-  <main>
-    <section class="grid">
-      <div class="card">
-        <div class="number" id="totalMagazines">0</div>
-        <div class="label">Magazines Published</div>
-        <div class="hint">Total public magazine posts found.</div>
-      </div>
-      <div class="card">
-        <div class="number" id="totalUsers">0</div>
-        <div class="label">Kigazine Users</div>
-        <div class="hint">Accounts found in the users collection.</div>
-      </div>
-      <div class="card">
-        <div class="number" id="activeUsers">0</div>
-        <div class="label">Active Writers</div>
-        <div class="hint">People who have published at least once.</div>
-      </div>
-      <div class="card">
-        <div class="number" id="todayMagazines">0</div>
-        <div class="label">Published Today</div>
-        <div class="hint">Based on magazine createdAt dates.</div>
-      </div>
-    </section>
-
-    <section class="two-col">
-      <div class="card">
-        <h2>🔥 Most Active People</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Magazines</th>
-              <th>Activity</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard">
-            <tr><td colspan="3" class="quiet">Loading activity...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h2>⚡ HQ Signals</h2>
-        <div id="signals" class="quiet">Loading signals...</div>
-      </div>
-    </section>
-
-    <section class="card" style="margin-top:18px;">
-      <h2>🆕 Recent Magazines</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody id="recentMagazines">
-          <tr><td colspan="3" class="quiet">Loading magazines...</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
-
-  <footer>
-    Kigazine HQ updates when Firestore data changes after page reload. 🔵
-  </footer>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
-      authDomain: "kigazine-302ac.firebaseapp.com",
-      projectId: "kigazine-302ac",
-      storageBucket: "kigazine-302ac.firebasestorage.app",
-      messagingSenderId: "821833747017",
-      appId: "1:821833747017:web:dc20a182d1935408c34d98"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const $ = id => document.getElementById(id);
-
-    function escapeHTML(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function getDate(value) {
-      if (!value) return null;
-      if (typeof value.toDate === "function") return value.toDate();
-      if (typeof value === "string" || typeof value === "number") {
-        const d = new Date(value);
-        return Number.isNaN(d.getTime()) ? null : d;
-      }
-      return null;
-    }
-
-    function sameDay(a, b) {
-      return a && b &&
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate();
-    }
-
-    function usernameFromMagazine(data) {
-      return data.username || data.author || data.displayName || data.user || data.email || "Unknown";
-    }
-
-    async function safeGetCollection(name) {
-      try {
-        const snap = await getDocs(collection(db, name));
-        return { snap, error: null };
-      } catch (error) {
-        console.error(`Could not read ${name}:`, error);
-        return { snap: null, error };
-      }
-    }
-
     async function loadHQ() {
-      const magazinesResult = await safeGetCollection("magazines");
-      const usersResult = await safeGetCollection("users");
+      element("signals").textContent =
+        "Loading Firestore data…";
+
+      /*
+        This query must correspond with the rule:
+
+        allow read:
+          if resource.data.isPublic == true;
+      */
+      const magazinesQuery = query(
+        collection(db, "magazines"),
+        where("isPublic", "==", true)
+      );
+
+      const publicProfilesReference =
+        collection(db, "publicProfiles");
+
+      const [
+        magazinesResult,
+        profilesResult
+      ] = await Promise.all([
+        safelyRead(
+          magazinesQuery,
+          "public magazines"
+        ),
+
+        safelyRead(
+          publicProfilesReference,
+          "public profiles"
+        )
+      ]);
 
       if (magazinesResult.error) {
-        $("leaderboard").innerHTML = `<tr><td colspan="3" class="error">Could not read magazines. Check Firestore rules.</td></tr>`;
-        $("recentMagazines").innerHTML = `<tr><td colspan="3" class="error">Could not read magazines. Check Firestore rules.</td></tr>`;
-        $("signals").innerHTML = `<span class="error">Firestore blocked the magazines collection.</span>`;
+        displayMagazineError(
+          magazinesResult.error
+        );
+
         return;
       }
 
       const magazines = [];
       const authorCounts = {};
-      let todayCount = 0;
       const today = new Date();
 
-      magazinesResult.snap.forEach(doc => {
-        const data = doc.data();
-        const author = usernameFromMagazine(data);
-        const title = data.title || data.name || "Untitled Magazine";
-        const createdAt = getDate(data.createdAt || data.date || data.time || data.publishedAt);
+      let todayCount = 0;
 
-        authorCounts[author] = (authorCounts[author] || 0) + 1;
-        if (sameDay(createdAt, today)) todayCount++;
+      magazinesResult.snapshot.forEach(
+        documentSnapshot => {
+          const data =
+            documentSnapshot.data();
 
-        magazines.push({ title, author, createdAt });
+          const author =
+            getMagazineAuthor(data);
+
+          const title =
+            getMagazineTitle(data);
+
+          const createdAt =
+            getMagazineDate(data);
+
+          authorCounts[author] =
+            (authorCounts[author] || 0) + 1;
+
+          if (
+            datesAreSameDay(
+              createdAt,
+              today
+            )
+          ) {
+            todayCount += 1;
+          }
+
+          magazines.push({
+            id: documentSnapshot.id,
+            title,
+            author,
+            createdAt
+          });
+        }
+      );
+
+      const totalMagazines =
+        magazines.length;
+
+      const activeWriterCount =
+        Object.keys(authorCounts).length;
+
+      const profilesLoaded =
+        Boolean(profilesResult.snapshot);
+
+      /*
+        If publicProfiles is blocked or absent,
+        use the number of distinct magazine
+        authors instead of displaying "?".
+      */
+      const totalUsers =
+        profilesLoaded
+          ? Math.max(
+              profilesResult.snapshot.size,
+              activeWriterCount
+            )
+          : activeWriterCount;
+
+      element("totalMagazines").textContent =
+        totalMagazines;
+
+      element("activeUsers").textContent =
+        activeWriterCount;
+
+      element("todayMagazines").textContent =
+        todayCount;
+
+      element("totalUsers").textContent =
+        totalUsers;
+
+      element("usersHint").textContent =
+        profilesLoaded
+          ? "Public profiles and known writers found."
+          : "Estimated from distinct published writers.";
+
+      const sortedAuthors =
+        renderLeaderboard(authorCounts);
+
+      renderRecentMagazines(magazines);
+
+      renderSignals({
+        totalMagazines,
+        activeWriterCount,
+        sortedAuthors,
+        profilesLoaded
       });
-
-      const totalMagazines = magazines.length;
-      const totalUsers = usersResult.snap ? usersResult.snap.size : 0;
-      const activeUsers = Object.keys(authorCounts).length;
-
-      $("totalMagazines").textContent = totalMagazines;
-      $("totalUsers").textContent = usersResult.error ? "?" : totalUsers;
-      $("activeUsers").textContent = activeUsers;
-      $("todayMagazines").textContent = todayCount;
-
-      const sortedAuthors = Object.entries(authorCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-
-      const maxCount = sortedAuthors[0]?.[1] || 1;
-      $("leaderboard").innerHTML = sortedAuthors.length
-        ? sortedAuthors.map(([user, count]) => {
-            const percent = Math.round((count / maxCount) * 100);
-            return `
-              <tr>
-                <td><strong>${escapeHTML(user)}</strong></td>
-                <td>${count}</td>
-                <td>
-                  <span class="status">Active</span>
-                  <div class="bar-wrap"><div class="bar" style="width:${percent}%"></div></div>
-                </td>
-              </tr>
-            `;
-          }).join("")
-        : `<tr><td colspan="3" class="quiet">No published activity yet.</td></tr>`;
-
-      magazines.sort((a, b) => {
-        if (!a.createdAt && !b.createdAt) return 0;
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt - a.createdAt;
-      });
-
-      $("recentMagazines").innerHTML = magazines.length
-        ? magazines.slice(0, 12).map(mag => `
-            <tr>
-              <td><strong>${escapeHTML(mag.title)}</strong></td>
-              <td>${escapeHTML(mag.author)}</td>
-              <td>${mag.createdAt ? mag.createdAt.toLocaleString() : "Unknown"}</td>
-            </tr>
-          `).join("")
-        : `<tr><td colspan="3" class="quiet">No magazines found.</td></tr>`;
-
-      const average = activeUsers ? (totalMagazines / activeUsers).toFixed(1) : "0";
-      const topWriter = sortedAuthors[0]?.[0] || "Nobody yet";
-      const topCount = sortedAuthors[0]?.[1] || 0;
-
-      $("signals").innerHTML = `
-        <span class="pill">Top writer: ${escapeHTML(topWriter)}</span>
-        <span class="pill">Top count: ${topCount}</span>
-        <span class="pill">Average per active writer: ${average}</span>
-        <span class="pill">Users collection: ${usersResult.error ? "blocked" : "loaded"}</span>
-        <p class="quiet" style="margin-top:14px;line-height:1.6;">
-          HQ reads public Firestore data from <strong>magazines</strong>${usersResult.error ? "" : " and <strong>users</strong>"}.
-          If a number says 0 but you know posts exist, your Firestore field names may be different.
-        </p>
-      `;
     }
+
+    function getRulesText() {
+      return element("firestoreRules")
+        .textContent
+        .trim();
+    }
+
+    function openRulesModal() {
+      element("rulesPreview").textContent =
+        getRulesText();
+
+      element("copyMessage").textContent =
+        "";
+
+      element("rulesModal")
+        .classList
+        .add("open");
+
+      document.body.style.overflow =
+        "hidden";
+    }
+
+    function closeRulesModal() {
+      element("rulesModal")
+        .classList
+        .remove("open");
+
+      document.body.style.overflow =
+        "";
+    }
+
+    async function copyRules() {
+      const rules = getRulesText();
+
+      try {
+        await navigator.clipboard.writeText(
+          rules
+        );
+
+        element("copyMessage").textContent =
+          "Rules copied.";
+      } catch (error) {
+        const temporaryInput =
+          document.createElement("textarea");
+
+        temporaryInput.value = rules;
+        temporaryInput.setAttribute(
+          "readonly",
+          ""
+        );
+
+        temporaryInput.style.position =
+          "fixed";
+
+        temporaryInput.style.opacity =
+          "0";
+
+        document.body.appendChild(
+          temporaryInput
+        );
+
+        temporaryInput.select();
+
+        document.execCommand("copy");
+
+        temporaryInput.remove();
+
+        element("copyMessage").textContent =
+          "Rules copied.";
+      }
+    }
+
+    element("openRulesButton")
+      .addEventListener(
+        "click",
+        openRulesModal
+      );
+
+    element("footerRulesButton")
+      .addEventListener(
+        "click",
+        openRulesModal
+      );
+
+    element("closeRulesButton")
+      .addEventListener(
+        "click",
+        closeRulesModal
+      );
+
+    element("copyRulesButton")
+      .addEventListener(
+        "click",
+        copyRules
+      );
+
+    element("rulesModal")
+      .addEventListener(
+        "click",
+        event => {
+          if (
+            event.target ===
+            element("rulesModal")
+          ) {
+            closeRulesModal();
+          }
+        }
+      );
+
+    document.addEventListener(
+      "keydown",
+      event => {
+        if (event.key === "Escape") {
+          closeRulesModal();
+        }
+      }
+    );
 
     loadHQ();
   </script>
