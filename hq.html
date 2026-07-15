@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   />
+
+  <meta name="color-scheme" content="dark" />
 
   <title>Kigazine HQ</title>
 
@@ -13,8 +16,7 @@
     :root {
       --background: #07111f;
       --panel: rgba(255, 255, 255, 0.08);
-      --panel-strong: rgba(255, 255, 255, 0.12);
-      --border: rgba(255, 255, 255, 0.15);
+      --line: rgba(255, 255, 255, 0.15);
       --text: #f8fafc;
       --muted: #94a3b8;
       --blue: #60a5fa;
@@ -36,6 +38,7 @@
       min-height: 100vh;
       margin: 0;
       color: var(--text);
+
       font-family:
         Inter,
         system-ui,
@@ -75,18 +78,19 @@
 
     header {
       padding: 30px 22px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--line);
       background: rgba(3, 7, 18, 0.45);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
 
     .header-inner {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+
       display: flex;
-      max-width: 1180px;
-      margin: auto;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 18px;
       flex-wrap: wrap;
     }
@@ -94,7 +98,7 @@
     .brand h1 {
       margin: 0;
       font-size: clamp(34px, 5vw, 58px);
-      line-height: 1.1;
+      line-height: 1.08;
       letter-spacing: -1.5px;
     }
 
@@ -104,43 +108,49 @@
       font-size: 16px;
     }
 
-    .navigation a,
-    .navigation button {
+    .nav a,
+    .nav button {
       display: inline-block;
       margin: 4px;
       padding: 11px 15px;
+
       color: white;
       text-decoration: none;
-      border: 1px solid var(--border);
+
+      border: 1px solid var(--line);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.06);
     }
 
-    .navigation a:hover,
-    .navigation button:hover {
+    .nav a:hover,
+    .nav button:hover,
+    .nav a:focus-visible,
+    .nav button:focus-visible {
       background: rgba(255, 255, 255, 0.12);
+      outline: none;
     }
 
     main {
-      max-width: 1180px;
-      margin: auto;
+      width: min(1180px, 100%);
+      margin: 0 auto;
       padding: 24px;
     }
 
     .statistics-grid {
       display: grid;
-      grid-template-columns: repeat(
-        auto-fit,
-        minmax(220px, 1fr)
-      );
+      grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+
       gap: 18px;
       margin-bottom: 22px;
     }
 
     .card {
       padding: 22px;
-      border: 1px solid var(--border);
+
+      border: 1px solid var(--line);
       border-radius: 22px;
+
       background: var(--panel);
       box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
     }
@@ -156,14 +166,14 @@
     .label {
       margin-top: 8px;
       color: #cbd5e1;
-      font-weight: 650;
+      font-weight: 700;
     }
 
     .hint {
       margin-top: 8px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .two-column-grid {
@@ -186,7 +196,6 @@
     table {
       width: 100%;
       min-width: 520px;
-      overflow: hidden;
       border-collapse: collapse;
       background: rgba(255, 255, 255, 0.045);
     }
@@ -214,9 +223,11 @@
     .status {
       display: inline-block;
       padding: 5px 10px;
+
       color: var(--green);
       background: rgba(34, 197, 94, 0.18);
       border-radius: 999px;
+
       font-size: 13px;
       font-weight: 800;
     }
@@ -239,76 +250,76 @@
       height: 10px;
       margin-top: 7px;
       overflow: hidden;
+
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.1);
     }
 
     .bar {
+      width: 0;
       height: 100%;
-      background: linear-gradient(
-        90deg,
-        var(--blue),
-        var(--yellow)
-      );
+      background:
+        linear-gradient(
+          90deg,
+          var(--blue),
+          var(--yellow)
+        );
     }
 
     .pill {
       display: inline-block;
       margin: 4px 4px 0 0;
       padding: 7px 11px;
+
       color: #e2e8f0;
       background: rgba(255, 255, 255, 0.08);
+
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 999px;
+
       font-size: 13px;
       font-weight: 700;
     }
 
     .action-button {
       display: inline-block;
-      margin-top: 14px;
       padding: 10px 14px;
+
       color: white;
       border: 1px solid rgba(96, 165, 250, 0.45);
       border-radius: 12px;
       background: rgba(96, 165, 250, 0.18);
+
       font-weight: 750;
     }
 
-    .action-button:hover {
+    .action-button:hover,
+    .action-button:focus-visible {
       background: rgba(96, 165, 250, 0.28);
+      outline: none;
     }
 
     footer {
-      display: flex;
-      max-width: 1180px;
-      margin: auto;
+      width: min(1180px, 100%);
+      margin: 0 auto;
       padding: 8px 24px 30px;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
+
       color: var(--muted);
       font-size: 13px;
-      flex-wrap: wrap;
-    }
-
-    .footer-button {
-      padding: 7px 10px;
-      color: #cbd5e1;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.06);
     }
 
     .modal {
       position: fixed;
       z-index: 1000;
       inset: 0;
+
       display: none;
       padding: 20px;
+
       align-items: center;
       justify-content: center;
-      background: rgba(2, 6, 23, 0.78);
+
+      background: rgba(2, 6, 23, 0.82);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
@@ -318,12 +329,14 @@
     }
 
     .modal-panel {
-      width: min(820px, 100%);
-      max-height: 90vh;
-      overflow: auto;
+      width: min(920px, 100%);
+      max-height: 92vh;
+      overflow-y: auto;
       padding: 22px;
-      border: 1px solid var(--border);
+
+      border: 1px solid var(--line);
       border-radius: 20px;
+
       background: #0b1d33;
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
     }
@@ -349,21 +362,43 @@
       width: 38px;
       height: 38px;
       flex: 0 0 auto;
+
       color: white;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: 50%;
+
       background: rgba(255, 255, 255, 0.08);
       font-size: 20px;
     }
 
+    .setup-section {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .setup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .setup-header h3 {
+      margin: 0;
+    }
+
     pre {
-      margin: 18px 0 0;
+      margin: 12px 0 0;
       padding: 16px;
       overflow-x: auto;
+
       color: #dbeafe;
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 14px;
       background: rgba(0, 0, 0, 0.3);
+
       font:
         13px/1.55
         ui-monospace,
@@ -372,18 +407,14 @@
         Monaco,
         Consolas,
         monospace;
+
       white-space: pre;
     }
 
-    .modal-actions {
-      display: flex;
-      margin-top: 14px;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
     .copy-message {
+      min-height: 18px;
+      margin-top: 10px;
+
       color: var(--green);
       font-size: 13px;
       font-weight: 700;
@@ -397,11 +428,11 @@
 
     @media (max-width: 600px) {
       header {
-        padding: 24px 18px;
+        padding: 24px 16px;
       }
 
       main {
-        padding: 18px;
+        padding: 16px;
       }
 
       .card {
@@ -424,57 +455,85 @@
     <div class="header-inner">
       <div class="brand">
         <h1>📍 Kigazine HQ</h1>
+
         <p>
-          Live public dashboard for activity, publishing,
-          and creator statistics.
+          Live public dashboard for activity,
+          publishing, and creator statistics.
         </p>
       </div>
 
-      <nav class="navigation" aria-label="Main navigation">
+      <nav class="nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
-        <a href="hq.html">HQ</a>
 
-        <button
-          id="openRulesButton"
-          type="button"
-        >
-          Firestore setup
+        <a href="hq.html" aria-current="page">
+          HQ
+        </a>
+
+        <button id="openSetupButton" type="button">
+          Setup code
         </button>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="statistics-grid">
+    <section
+      class="statistics-grid"
+      aria-label="Kigazine statistics"
+    >
       <article class="card">
-        <div class="number" id="totalMagazines">—</div>
-        <div class="label">Magazines Published</div>
+        <div class="number" id="totalMagazines">
+          —
+        </div>
+
+        <div class="label">
+          Magazines Published
+        </div>
+
         <div class="hint">
           Total public magazine posts found.
         </div>
       </article>
 
       <article class="card">
-        <div class="number" id="totalUsers">—</div>
-        <div class="label">Kigazine Users</div>
+        <div class="number" id="totalUsers">
+          —
+        </div>
+
+        <div class="label">
+          Kigazine Users
+        </div>
+
         <div class="hint" id="usersHint">
-          Public profiles or known writers found.
+          Loading the registered-user total.
         </div>
       </article>
 
       <article class="card">
-        <div class="number" id="activeUsers">—</div>
-        <div class="label">Active Writers</div>
+        <div class="number" id="activeUsers">
+          —
+        </div>
+
+        <div class="label">
+          Active Writers
+        </div>
+
         <div class="hint">
-          People who have published at least once.
+          Distinct people who have published at least once.
         </div>
       </article>
 
       <article class="card">
-        <div class="number" id="todayMagazines">—</div>
-        <div class="label">Published Today</div>
+        <div class="number" id="todayMagazines">
+          —
+        </div>
+
+        <div class="label">
+          Published Today
+        </div>
+
         <div class="hint">
-          Based on magazine publication dates.
+          Based on each magazine's publication date.
         </div>
       </article>
     </section>
@@ -513,7 +572,10 @@
       </article>
     </section>
 
-    <section class="card" style="margin-top: 18px">
+    <section
+      class="card"
+      style="margin-top: 18px"
+    >
       <h2>🆕 Recent Magazines</h2>
 
       <div class="table-wrapper">
@@ -539,45 +601,35 @@
   </main>
 
   <footer>
-    <span>
-      Kigazine HQ reads public Firestore data after
-      each page reload. 🔵
-    </span>
-
-    <button
-      class="footer-button"
-      id="footerRulesButton"
-      type="button"
-    >
-      View Firestore rules
-    </button>
+    Kigazine HQ reads public Firestore data when
+    the page loads. 🔵
   </footer>
 
   <div
     class="modal"
-    id="rulesModal"
+    id="setupModal"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="rulesModalTitle"
+    aria-labelledby="setupTitle"
   >
     <div class="modal-panel">
       <div class="modal-header">
         <div>
-          <h2 id="rulesModalTitle">
-            Firestore read-rules snippet
+          <h2 id="setupTitle">
+            Kigazine backend setup
           </h2>
 
           <p>
-            Copy this snippet into the Firestore Rules
-            editor. Merge it with any existing write rules
-            used by your publishing system, then click
-            <strong>Publish</strong>.
+            The source code below is safely stored inside
+            this HTML file as non-executable text. Copy
+            each section into the named Firebase project
+            file and deploy it.
           </p>
         </div>
 
         <button
           class="close-button"
-          id="closeRulesButton"
+          id="closeSetupButton"
           type="button"
           aria-label="Close"
         >
@@ -585,93 +637,396 @@
         </button>
       </div>
 
-      <pre id="rulesPreview"></pre>
+      <section class="setup-section">
+        <div class="setup-header">
+          <h3>1. firestore.rules</h3>
 
-      <div class="modal-actions">
-        <button
-          class="action-button"
-          id="copyRulesButton"
-          type="button"
-        >
-          Copy rules
-        </button>
+          <button
+            class="action-button copy-source"
+            type="button"
+            data-source="firestoreRulesSource"
+          >
+            Copy
+          </button>
+        </div>
 
-        <span
-          class="copy-message"
-          id="copyMessage"
-          aria-live="polite"
-        ></span>
-      </div>
+        <pre id="firestoreRulesPreview"></pre>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-header">
+          <h3>2. functions/index.js</h3>
+
+          <button
+            class="action-button copy-source"
+            type="button"
+            data-source="functionsSource"
+          >
+            Copy
+          </button>
+        </div>
+
+        <pre id="functionsPreview"></pre>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-header">
+          <h3>3. functions/package.json</h3>
+
+          <button
+            class="action-button copy-source"
+            type="button"
+            data-source="packageSource"
+          >
+            Copy
+          </button>
+        </div>
+
+        <pre id="packagePreview"></pre>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-header">
+          <h3>4. firebase.json</h3>
+
+          <button
+            class="action-button copy-source"
+            type="button"
+            data-source="firebaseJsonSource"
+          >
+            Copy
+          </button>
+        </div>
+
+        <pre id="firebaseJsonPreview"></pre>
+      </section>
+
+      <section class="setup-section">
+        <div class="setup-header">
+          <h3>5. Deployment commands</h3>
+
+          <button
+            class="action-button copy-source"
+            type="button"
+            data-source="commandsSource"
+          >
+            Copy
+          </button>
+        </div>
+
+        <pre id="commandsPreview"></pre>
+      </section>
+
+      <div
+        class="copy-message"
+        id="copyMessage"
+        aria-live="polite"
+      ></div>
     </div>
   </div>
 
   <!--
-    This block is intentionally non-executable.
+    FIRESTORE RULES
 
-    It keeps the Firestore rules inside this one HTML file
-    without displaying them at the top of the webpage.
+    This block is inert text. It will not display at the
+    top of the webpage and will not execute as JavaScript.
   -->
-  <script id="firestoreRules" type="text/plain">
+  <script
+    id="firestoreRulesSource"
+    type="text/plain"
+  >
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /*
-      Public visitors may read only public magazines.
-
-      The webpage query contains:
-      where("isPublic", "==", true)
-    */
-    match /magazines/{magazineId} {
-      allow read: if resource.data.isPublic == true;
-
-      /*
-        KEEP YOUR EXISTING create, update and delete
-        rules for magazines here.
-
-        Do not grant public write access.
-      */
+    function signedIn() {
+      return request.auth != null;
     }
 
-    /*
-      Store only public profile information here.
-      Do not store private email addresses, phone
-      numbers or account information here.
-    */
+    function ownsMagazine(data) {
+      return signedIn() && (
+        (
+          data.keys().hasAny(["authorId"]) &&
+          data.authorId == request.auth.uid
+        ) ||
+        (
+          data.keys().hasAny(["userId"]) &&
+          data.userId == request.auth.uid
+        ) ||
+        (
+          data.keys().hasAny(["uid"]) &&
+          data.uid == request.auth.uid
+        ) ||
+        (
+          data.keys().hasAny(["ownerId"]) &&
+          data.ownerId == request.auth.uid
+        ) ||
+        (
+          data.keys().hasAny(["createdBy"]) &&
+          data.createdBy == request.auth.uid
+        )
+      );
+    }
+
+    match /magazines/{magazineId} {
+      allow read:
+        if resource.data.isPublic == true;
+
+      allow create:
+        if ownsMagazine(request.resource.data)
+        && request.resource.data.isPublic is bool;
+
+      allow update:
+        if ownsMagazine(resource.data)
+        && ownsMagazine(request.resource.data)
+        && request.resource.data.isPublic is bool;
+
+      allow delete:
+        if ownsMagazine(resource.data);
+    }
+
     match /publicProfiles/{userId} {
       allow read: if true;
 
-      /*
-        KEEP YOUR EXISTING owner-only write rules here.
-      */
+      allow create, update:
+        if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "displayName",
+          "username",
+          "name",
+          "handle",
+          "photoURL",
+          "bio",
+          "createdAt",
+          "updatedAt"
+        ]);
+
+      allow delete:
+        if signedIn()
+        && request.auth.uid == userId;
     }
 
-    /*
-      Private account documents remain owner-only.
-    */
+    match /publicStats/{documentId} {
+      allow read:
+        if documentId == "hq";
+
+      allow write:
+        if false;
+    }
+
     match /users/{userId} {
-      allow read, write:
-        if request.auth != null
+      allow read, create, update, delete:
+        if signedIn()
         && request.auth.uid == userId;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
   </script>
 
-  <!-- This is the only executable dashboard script. -->
+  <!-- CLOUD FUNCTIONS: functions/index.js -->
+  <script
+    id="functionsSource"
+    type="text/plain"
+  >
+const functionsV1 =
+  require("firebase-functions/v1");
+
+const {
+  onSchedule
+} = require("firebase-functions/v2/scheduler");
+
+const {
+  logger
+} = require("firebase-functions");
+
+const {
+  initializeApp
+} = require("firebase-admin/app");
+
+const {
+  getAuth
+} = require("firebase-admin/auth");
+
+const {
+  getFirestore,
+  FieldValue
+} = require("firebase-admin/firestore");
+
+initializeApp();
+
+const database = getFirestore();
+
+const statisticsDocument =
+  database.doc("publicStats/hq");
+
+/**
+ * Counts all Firebase Authentication accounts and
+ * stores only the aggregate total in Firestore.
+ */
+async function synchronizeUserCount() {
+  let totalUsers = 0;
+  let pageToken;
+
+  do {
+    const page = await getAuth().listUsers(
+      1000,
+      pageToken
+    );
+
+    totalUsers += page.users.length;
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  await statisticsDocument.set(
+    {
+      totalUsers,
+      updatedAt: FieldValue.serverTimestamp()
+    },
+    {
+      merge: true
+    }
+  );
+
+  logger.info(
+    "Kigazine user count synchronized",
+    {
+      totalUsers
+    }
+  );
+
+  return totalUsers;
+}
+
+/**
+ * Recount immediately after an Authentication user
+ * is created.
+ */
+exports.userCreated =
+  functionsV1.auth.user().onCreate(
+    async () => {
+      await synchronizeUserCount();
+    }
+  );
+
+/**
+ * Recount immediately after an Authentication user
+ * is deleted.
+ */
+exports.userDeleted =
+  functionsV1.auth.user().onDelete(
+    async () => {
+      await synchronizeUserCount();
+    }
+  );
+
+/**
+ * Initial backfill and periodic reconciliation.
+ */
+exports.reconcileUserCount =
+  onSchedule(
+    "every 15 minutes",
+    async () => {
+      await synchronizeUserCount();
+    }
+  );
+  </script>
+
+  <!-- CLOUD FUNCTIONS PACKAGE: functions/package.json -->
+  <script
+    id="packageSource"
+    type="text/plain"
+  >
+{
+  "name": "kigazine-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "14.1.0",
+    "firebase-functions": "7.2.5"
+  }
+}
+  </script>
+
+  <!-- FIREBASE CONFIGURATION: firebase.json -->
+  <script
+    id="firebaseJsonSource"
+    type="text/plain"
+  >
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
+  </script>
+
+  <!-- DEPLOYMENT COMMANDS -->
+  <script
+    id="commandsSource"
+    type="text/plain"
+  >
+# Required project structure:
+#
+# hq.html
+# firestore.rules
+# firebase.json
+# functions/index.js
+# functions/package.json
+
+npm install -g firebase-tools
+
+firebase login
+
+cd functions
+
+npm install
+
+cd ..
+
+firebase deploy \
+  --project kigazine-302ac \
+  --only firestore:rules,functions
+
+# The scheduled function creates publicStats/hq.
+#
+# To populate the number immediately after deployment,
+# open Google Cloud Scheduler and click "Run now" for
+# the reconcileUserCount job.
+  </script>
+
+  <!--
+    This is the only executable dashboard script.
+  -->
   <script type="module">
     import {
       initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
     import {
       getFirestore,
       collection,
+      doc,
+      getDoc,
       getDocs,
       query,
       where
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey:
@@ -693,11 +1048,22 @@ service cloud.firestore {
         "1:821833747017:web:dc20a182d1935408c34d98"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const app =
+      initializeApp(firebaseConfig);
+
+    const database =
+      getFirestore(app);
 
     const element = id =>
       document.getElementById(id);
+
+    function setText(id, value) {
+      const target = element(id);
+
+      if (target) {
+        target.textContent = value;
+      }
+    }
 
     function escapeHTML(value) {
       return String(value ?? "")
@@ -708,12 +1074,28 @@ service cloud.firestore {
         .replaceAll("'", "&#039;");
     }
 
-    function parseFirestoreDate(value) {
+    function firstNonEmpty(...values) {
+      for (const value of values) {
+        if (
+          value !== null &&
+          value !== undefined &&
+          String(value).trim() !== ""
+        ) {
+          return value;
+        }
+      }
+
+      return null;
+    }
+
+    function parseDate(value) {
       if (!value) {
         return null;
       }
 
-      if (typeof value.toDate === "function") {
+      if (
+        typeof value.toDate === "function"
+      ) {
         const date = value.toDate();
 
         return Number.isNaN(date.getTime())
@@ -725,7 +1107,20 @@ service cloud.firestore {
         typeof value === "object" &&
         typeof value.seconds === "number"
       ) {
-        const date = new Date(value.seconds * 1000);
+        const date =
+          new Date(value.seconds * 1000);
+
+        return Number.isNaN(date.getTime())
+          ? null
+          : date;
+      }
+
+      if (
+        typeof value === "object" &&
+        typeof value._seconds === "number"
+      ) {
+        const date =
+          new Date(value._seconds * 1000);
 
         return Number.isNaN(date.getTime())
           ? null
@@ -746,7 +1141,10 @@ service cloud.firestore {
       return null;
     }
 
-    function datesAreSameDay(firstDate, secondDate) {
+    function sameLocalDay(
+      firstDate,
+      secondDate
+    ) {
       return Boolean(
         firstDate &&
         secondDate &&
@@ -759,76 +1157,61 @@ service cloud.firestore {
       );
     }
 
-    function getMagazineAuthor(data) {
-      return (
-        data.authorName ||
-        data.username ||
-        data.author ||
-        data.displayName ||
-        data.userName ||
-        data.user ||
-        data.email ||
-        data.authorId ||
-        data.userId ||
-        data.uid ||
-        "Unknown"
-      );
+    function formatDate(date) {
+      if (!date) {
+        return "Unknown";
+      }
+
+      return new Intl.DateTimeFormat(
+        undefined,
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }
+      ).format(date);
     }
 
-    function getMagazineTitle(data) {
-      return (
-        data.title ||
-        data.name ||
-        data.magazineTitle ||
-        "Untitled Magazine"
-      );
-    }
-
-    function getMagazineDate(data) {
-      return parseFirestoreDate(
-        data.createdAt ||
-        data.publishedAt ||
-        data.updatedAt ||
-        data.date ||
-        data.time
-      );
-    }
-
-    function readableFirestoreError(error) {
+    function readableError(error) {
       if (!error) {
         return "Unknown Firestore error.";
       }
 
-      if (error.code === "permission-denied") {
-        return (
-          "Permission denied. Publish the required " +
-          "Firestore read rules."
-        );
-      }
+      switch (error.code) {
+        case "permission-denied":
+          return (
+            "Permission denied by Firestore " +
+            "Security Rules."
+          );
 
-      if (error.code === "failed-precondition") {
-        return (
-          "Firestore rejected the query. An index or " +
-          "matching rule may be required."
-        );
-      }
+        case "failed-precondition":
+          return (
+            "Firestore requires a matching " +
+            "query or database index."
+          );
 
-      if (error.code === "unavailable") {
-        return (
-          "Firestore is temporarily unavailable. " +
-          "Try reloading the page."
-        );
-      }
+        case "unavailable":
+          return (
+            "Firestore is temporarily unavailable."
+          );
 
-      return (
-        error.message ||
-        "An unknown Firestore error occurred."
-      );
+        default:
+          return (
+            error.message ||
+            "Unknown Firestore error."
+          );
+      }
     }
 
-    async function safelyRead(reference, label) {
+    async function safelyReadCollection(
+      reference,
+      label
+    ) {
       try {
-        const snapshot = await getDocs(reference);
+        const snapshot =
+          await getDocs(reference);
 
         return {
           snapshot,
@@ -851,71 +1234,249 @@ service cloud.firestore {
       }
     }
 
-    function displayMagazineError(error) {
-      const message =
-        readableFirestoreError(error);
+    async function safelyReadDocument(
+      reference,
+      label
+    ) {
+      try {
+        const snapshot =
+          await getDoc(reference);
 
-      element("totalMagazines").textContent = "?";
-      element("activeUsers").textContent = "?";
-      element("todayMagazines").textContent = "?";
-      element("totalUsers").textContent = "?";
-
-      element("leaderboard").innerHTML = `
-        <tr>
-          <td colspan="3" class="error">
-            ${escapeHTML(message)}
-          </td>
-        </tr>
-      `;
-
-      element("recentMagazines").innerHTML = `
-        <tr>
-          <td colspan="3" class="error">
-            ${escapeHTML(message)}
-          </td>
-        </tr>
-      `;
-
-      element("signals").innerHTML = `
-        <p class="error">
-          Firestore error:
-          ${escapeHTML(error?.code || "unknown")}
-        </p>
-
-        <p class="quiet" style="line-height: 1.6">
-          Open Firestore setup, copy the rules snippet,
-          merge it with your existing rules and publish it.
-        </p>
-
-        <button
-          class="action-button"
-          id="errorRulesButton"
-          type="button"
-        >
-          Open Firestore setup
-        </button>
-      `;
-
-      element("errorRulesButton")
-        ?.addEventListener(
-          "click",
-          openRulesModal
+        return {
+          snapshot,
+          error: null
+        };
+      } catch (error) {
+        console.error(
+          `[Kigazine HQ: ${label}]`,
+          {
+            code: error?.code,
+            message: error?.message,
+            error
+          }
         );
+
+        return {
+          snapshot: null,
+          error
+        };
+      }
     }
 
-    function renderLeaderboard(authorCounts) {
+    function createProfilesMap(snapshot) {
+      const profiles = new Map();
+
+      if (!snapshot) {
+        return profiles;
+      }
+
+      snapshot.forEach(profileDocument => {
+        const data =
+          profileDocument.data();
+
+        profiles.set(
+          profileDocument.id,
+          {
+            displayName: firstNonEmpty(
+              data.displayName,
+              data.name,
+              data.username
+            ),
+
+            username: firstNonEmpty(
+              data.username,
+              data.handle
+            )
+          }
+        );
+      });
+
+      return profiles;
+    }
+
+    function getAuthorIdentity(
+      data,
+      profiles,
+      magazineId
+    ) {
+      const authorId = firstNonEmpty(
+        data.authorId,
+        data.userId,
+        data.uid,
+        data.ownerId,
+        data.createdBy
+      );
+
+      const normalizedId =
+        authorId
+          ? String(authorId)
+          : null;
+
+      const profile =
+        normalizedId
+          ? profiles.get(normalizedId)
+          : null;
+
+      const authorName = String(
+        firstNonEmpty(
+          data.authorName,
+          data.username,
+          data.author,
+          data.displayName,
+          data.userName,
+          profile?.displayName,
+          profile?.username,
+
+          normalizedId
+            ? `User ${normalizedId.slice(0, 8)}`
+            : null,
+
+          "Unknown"
+        )
+      );
+
+      let authorKey;
+
+      if (normalizedId) {
+        authorKey =
+          `uid:${normalizedId}`;
+      } else if (
+        authorName !== "Unknown"
+      ) {
+        authorKey =
+          `name:${authorName
+            .trim()
+            .toLowerCase()}`;
+      } else {
+        authorKey =
+          `unknown:${magazineId}`;
+      }
+
+      return {
+        key: authorKey,
+        name: authorName
+      };
+    }
+
+    function displayUserCount(
+      statisticsResult
+    ) {
+      const hint =
+        element("usersHint");
+
+      if (statisticsResult.error) {
+        setText("totalUsers", "—");
+
+        hint.textContent =
+          "User count unavailable. Deploy the backend setup code.";
+
+        return {
+          loaded: false,
+          message:
+            readableError(
+              statisticsResult.error
+            )
+        };
+      }
+
+      if (
+        !statisticsResult
+          .snapshot
+          ?.exists()
+      ) {
+        setText("totalUsers", "—");
+
+        hint.textContent =
+          "Waiting for the publicStats/hq count document.";
+
+        return {
+          loaded: false,
+          message:
+            "The publicStats/hq document does not exist yet."
+        };
+      }
+
+      const data =
+        statisticsResult.snapshot.data();
+
+      const totalUsers =
+        Number(data.totalUsers);
+
+      const updatedAt =
+        parseDate(data.updatedAt);
+
+      if (
+        !Number.isSafeInteger(totalUsers) ||
+        totalUsers < 0
+      ) {
+        setText("totalUsers", "—");
+
+        hint.textContent =
+          "The stored user count is invalid.";
+
+        return {
+          loaded: false,
+          message:
+            "publicStats/hq.totalUsers must be a non-negative integer."
+        };
+      }
+
+      setText(
+        "totalUsers",
+        totalUsers.toLocaleString()
+      );
+
+      hint.textContent =
+        updatedAt
+          ? (
+              "Registered users; updated " +
+              `${formatDate(updatedAt)}.`
+            )
+          : (
+              "Registered Firebase " +
+              "Authentication users."
+            );
+
+      return {
+        loaded: true,
+        totalUsers,
+        updatedAt,
+        message: null
+      };
+    }
+
+    function renderLeaderboard(
+      authorStatistics
+    ) {
       const sortedAuthors =
-        Object.entries(authorCounts)
+        Array.from(
+          authorStatistics.values()
+        )
           .sort(
-            (first, second) =>
-              second[1] - first[1]
+            (first, second) => {
+              const countDifference =
+                second.count -
+                first.count;
+
+              return (
+                countDifference ||
+                first.name.localeCompare(
+                  second.name
+                )
+              );
+            }
           )
           .slice(0, 10);
 
-      if (sortedAuthors.length === 0) {
+      if (
+        sortedAuthors.length === 0
+      ) {
         element("leaderboard").innerHTML = `
           <tr>
-            <td colspan="3" class="quiet">
+            <td
+              colspan="3"
+              class="quiet"
+            >
               No published activity yet.
             </td>
           </tr>
@@ -925,31 +1486,40 @@ service cloud.firestore {
       }
 
       const maximumCount =
-        sortedAuthors[0][1] || 1;
+        sortedAuthors[0].count || 1;
 
       element("leaderboard").innerHTML =
         sortedAuthors
-          .map(([user, count]) => {
-            const percentage = Math.round(
-              (count / maximumCount) * 100
-            );
+          .map(author => {
+            const percentage =
+              Math.round(
+                (
+                  author.count /
+                  maximumCount
+                ) * 100
+              );
 
             return `
               <tr>
                 <td>
                   <strong>
-                    ${escapeHTML(user)}
+                    ${escapeHTML(author.name)}
                   </strong>
                 </td>
 
-                <td>${count}</td>
+                <td>
+                  ${author.count}
+                </td>
 
                 <td>
                   <span class="status">
                     Active
                   </span>
 
-                  <div class="bar-wrapper">
+                  <div
+                    class="bar-wrapper"
+                    aria-label="${percentage}% of top-writer activity"
+                  >
                     <div
                       class="bar"
                       style="width: ${percentage}%"
@@ -964,33 +1534,44 @@ service cloud.firestore {
       return sortedAuthors;
     }
 
-    function renderRecentMagazines(magazines) {
-      magazines.sort((first, second) => {
-        if (
-          !first.createdAt &&
-          !second.createdAt
-        ) {
-          return 0;
-        }
+    function renderRecentMagazines(
+      magazines
+    ) {
+      magazines.sort(
+        (first, second) => {
+          if (
+            !first.createdAt &&
+            !second.createdAt
+          ) {
+            return first.title.localeCompare(
+              second.title
+            );
+          }
 
-        if (!first.createdAt) {
-          return 1;
-        }
+          if (!first.createdAt) {
+            return 1;
+          }
 
-        if (!second.createdAt) {
-          return -1;
-        }
+          if (!second.createdAt) {
+            return -1;
+          }
 
-        return (
-          second.createdAt -
-          first.createdAt
-        );
-      });
+          return (
+            second.createdAt.getTime() -
+            first.createdAt.getTime()
+          );
+        }
+      );
 
       if (magazines.length === 0) {
-        element("recentMagazines").innerHTML = `
+        element(
+          "recentMagazines"
+        ).innerHTML = `
           <tr>
-            <td colspan="3" class="quiet">
+            <td
+              colspan="3"
+              class="quiet"
+            >
               No public magazines found.
             </td>
           </tr>
@@ -999,16 +1580,12 @@ service cloud.firestore {
         return;
       }
 
-      element("recentMagazines").innerHTML =
+      element(
+        "recentMagazines"
+      ).innerHTML =
         magazines
           .slice(0, 12)
           .map(magazine => {
-            const formattedDate =
-              magazine.createdAt
-                ? magazine.createdAt
-                    .toLocaleString()
-                : "Unknown";
-
             return `
               <tr>
                 <td>
@@ -1027,7 +1604,9 @@ service cloud.firestore {
 
                 <td>
                   ${escapeHTML(
-                    formattedDate
+                    formatDate(
+                      magazine.createdAt
+                    )
                   )}
                 </td>
               </tr>
@@ -1036,11 +1615,61 @@ service cloud.firestore {
           .join("");
     }
 
+    function renderMagazineError(
+      error
+    ) {
+      const message =
+        readableError(error);
+
+      setText(
+        "totalMagazines",
+        "?"
+      );
+
+      setText(
+        "activeUsers",
+        "?"
+      );
+
+      setText(
+        "todayMagazines",
+        "?"
+      );
+
+      element(
+        "leaderboard"
+      ).innerHTML = `
+        <tr>
+          <td
+            colspan="3"
+            class="error"
+          >
+            ${escapeHTML(message)}
+          </td>
+        </tr>
+      `;
+
+      element(
+        "recentMagazines"
+      ).innerHTML = `
+        <tr>
+          <td
+            colspan="3"
+            class="error"
+          >
+            ${escapeHTML(message)}
+          </td>
+        </tr>
+      `;
+    }
+
     function renderSignals({
       totalMagazines,
       activeWriterCount,
       sortedAuthors,
-      profilesLoaded
+      profilesResult,
+      publicProfileCount,
+      userCountStatus
     }) {
       const average =
         activeWriterCount > 0
@@ -1051,16 +1680,46 @@ service cloud.firestore {
           : "0";
 
       const topWriter =
-        sortedAuthors[0]?.[0] ||
+        sortedAuthors[0]?.name ||
         "Nobody yet";
 
       const topCount =
-        sortedAuthors[0]?.[1] || 0;
+        sortedAuthors[0]?.count ||
+        0;
 
-      const profileStatus =
-        profilesLoaded
-          ? "loaded"
-          : "estimated from writers";
+      const notices = [];
+
+      if (!userCountStatus.loaded) {
+        notices.push(`
+          <p
+            class="error"
+            style="
+              margin-top: 14px;
+              line-height: 1.6;
+            "
+          >
+            Registered-user count unavailable:
+            ${escapeHTML(
+              userCountStatus.message
+            )}
+          </p>
+        `);
+      }
+
+      if (profilesResult.error) {
+        notices.push(`
+          <p
+            class="quiet"
+            style="
+              margin-top: 14px;
+              line-height: 1.6;
+            "
+          >
+            Public profiles are blocked or unavailable.
+            Magazine author fields were used instead.
+          </p>
+        `);
+      }
 
       element("signals").innerHTML = `
         <span class="pill">
@@ -1074,267 +1733,379 @@ service cloud.firestore {
         </span>
 
         <span class="pill">
-          Average per writer:
+          Average per active writer:
           ${average}
         </span>
 
         <span class="pill">
-          User count:
-          ${escapeHTML(profileStatus)}
+          Active writers:
+          ${activeWriterCount}
         </span>
+
+        <span class="pill">
+          Public profiles:
+          ${
+            profilesResult.error
+              ? "unavailable"
+              : publicProfileCount
+          }
+        </span>
+
+        <p
+          class="success"
+          style="margin: 16px 0 0"
+        >
+          Firestore magazines loaded.
+        </p>
 
         <p
           class="quiet"
           style="
-            margin-top: 14px;
+            margin-top: 10px;
             line-height: 1.6;
           "
         >
-          The dashboard loaded
+          Loaded
           <strong>${totalMagazines}</strong>
-          public magazines from Firestore.
+          public magazines. The registered-user
+          figure is independent of the
+          active-writer figure.
         </p>
+
+        ${notices.join("")}
       `;
     }
 
     async function loadHQ() {
-      element("signals").textContent =
-        "Loading Firestore data…";
+      setText("totalMagazines", "—");
+      setText("totalUsers", "—");
+      setText("activeUsers", "—");
+      setText("todayMagazines", "—");
 
-      /*
-        This query must correspond with the rule:
+      const magazinesQuery =
+        query(
+          collection(
+            database,
+            "magazines"
+          ),
 
-        allow read:
-          if resource.data.isPublic == true;
-      */
-      const magazinesQuery = query(
-        collection(db, "magazines"),
-        where("isPublic", "==", true)
-      );
-
-      const publicProfilesReference =
-        collection(db, "publicProfiles");
+          where(
+            "isPublic",
+            "==",
+            true
+          )
+        );
 
       const [
         magazinesResult,
-        profilesResult
+        profilesResult,
+        statisticsResult
       ] = await Promise.all([
-        safelyRead(
+        safelyReadCollection(
           magazinesQuery,
           "public magazines"
         ),
 
-        safelyRead(
-          publicProfilesReference,
+        safelyReadCollection(
+          collection(
+            database,
+            "publicProfiles"
+          ),
           "public profiles"
+        ),
+
+        safelyReadDocument(
+          doc(
+            database,
+            "publicStats",
+            "hq"
+          ),
+          "public user statistics"
         )
       ]);
 
+      const userCountStatus =
+        displayUserCount(
+          statisticsResult
+        );
+
       if (magazinesResult.error) {
-        displayMagazineError(
+        renderMagazineError(
           magazinesResult.error
         );
+
+        element("signals").innerHTML = `
+          <p class="error">
+            ${escapeHTML(
+              readableError(
+                magazinesResult.error
+              )
+            )}
+          </p>
+
+          <button
+            class="action-button"
+            id="openSetupFromError"
+            type="button"
+          >
+            Open setup code
+          </button>
+        `;
+
+        element("openSetupFromError")
+          ?.addEventListener(
+            "click",
+            openSetupModal
+          );
 
         return;
       }
 
-      const magazines = [];
-      const authorCounts = {};
-      const today = new Date();
+      const profiles =
+        createProfilesMap(
+          profilesResult.snapshot
+        );
 
+      const publicProfileCount =
+        profilesResult.snapshot?.size ||
+        0;
+
+      const magazines = [];
+      const authorStatistics =
+        new Map();
+
+      const today = new Date();
       let todayCount = 0;
 
-      magazinesResult.snapshot.forEach(
-        documentSnapshot => {
-          const data =
-            documentSnapshot.data();
+      magazinesResult
+        .snapshot
+        .forEach(
+          magazineDocument => {
+            const data =
+              magazineDocument.data();
 
-          const author =
-            getMagazineAuthor(data);
+            const author =
+              getAuthorIdentity(
+                data,
+                profiles,
+                magazineDocument.id
+              );
 
-          const title =
-            getMagazineTitle(data);
+            const title = String(
+              firstNonEmpty(
+                data.title,
+                data.name,
+                data.magazineTitle,
+                "Untitled Magazine"
+              )
+            );
 
-          const createdAt =
-            getMagazineDate(data);
+            const createdAt =
+              parseDate(
+                firstNonEmpty(
+                  data.publishedAt,
+                  data.createdAt,
+                  data.date,
+                  data.time,
+                  data.updatedAt
+                )
+              );
 
-          authorCounts[author] =
-            (authorCounts[author] || 0) + 1;
+            if (
+              sameLocalDay(
+                createdAt,
+                today
+              )
+            ) {
+              todayCount += 1;
+            }
 
-          if (
-            datesAreSameDay(
-              createdAt,
-              today
-            )
-          ) {
-            todayCount += 1;
+            const existingAuthor =
+              authorStatistics.get(
+                author.key
+              );
+
+            if (existingAuthor) {
+              existingAuthor.count += 1;
+            } else {
+              authorStatistics.set(
+                author.key,
+                {
+                  key: author.key,
+                  name: author.name,
+                  count: 1
+                }
+              );
+            }
+
+            magazines.push({
+              id: magazineDocument.id,
+              title,
+              author: author.name,
+              createdAt
+            });
           }
-
-          magazines.push({
-            id: documentSnapshot.id,
-            title,
-            author,
-            createdAt
-          });
-        }
-      );
+        );
 
       const totalMagazines =
         magazines.length;
 
       const activeWriterCount =
-        Object.keys(authorCounts).length;
+        authorStatistics.size;
 
-      const profilesLoaded =
-        Boolean(profilesResult.snapshot);
+      setText(
+        "totalMagazines",
+        totalMagazines.toLocaleString()
+      );
 
-      /*
-        If publicProfiles is blocked or absent,
-        use the number of distinct magazine
-        authors instead of displaying "?".
-      */
-      const totalUsers =
-        profilesLoaded
-          ? Math.max(
-              profilesResult.snapshot.size,
-              activeWriterCount
-            )
-          : activeWriterCount;
+      setText(
+        "activeUsers",
+        activeWriterCount.toLocaleString()
+      );
 
-      element("totalMagazines").textContent =
-        totalMagazines;
-
-      element("activeUsers").textContent =
-        activeWriterCount;
-
-      element("todayMagazines").textContent =
-        todayCount;
-
-      element("totalUsers").textContent =
-        totalUsers;
-
-      element("usersHint").textContent =
-        profilesLoaded
-          ? "Public profiles and known writers found."
-          : "Estimated from distinct published writers.";
+      setText(
+        "todayMagazines",
+        todayCount.toLocaleString()
+      );
 
       const sortedAuthors =
-        renderLeaderboard(authorCounts);
+        renderLeaderboard(
+          authorStatistics
+        );
 
-      renderRecentMagazines(magazines);
+      renderRecentMagazines(
+        magazines
+      );
 
       renderSignals({
         totalMagazines,
         activeWriterCount,
         sortedAuthors,
-        profilesLoaded
+        profilesResult,
+        publicProfileCount,
+        userCountStatus
       });
     }
 
-    function getRulesText() {
-      return element("firestoreRules")
+    function getSourceText(sourceId) {
+      return element(sourceId)
         .textContent
         .trim();
     }
 
-    function openRulesModal() {
-      element("rulesPreview").textContent =
-        getRulesText();
+    function fillSetupPreviews() {
+      element(
+        "firestoreRulesPreview"
+      ).textContent =
+        getSourceText(
+          "firestoreRulesSource"
+        );
 
-      element("copyMessage").textContent =
-        "";
+      element(
+        "functionsPreview"
+      ).textContent =
+        getSourceText(
+          "functionsSource"
+        );
 
-      element("rulesModal")
-        .classList
-        .add("open");
+      element(
+        "packagePreview"
+      ).textContent =
+        getSourceText(
+          "packageSource"
+        );
+
+      element(
+        "firebaseJsonPreview"
+      ).textContent =
+        getSourceText(
+          "firebaseJsonSource"
+        );
+
+      element(
+        "commandsPreview"
+      ).textContent =
+        getSourceText(
+          "commandsSource"
+        );
+    }
+
+    function openSetupModal() {
+      fillSetupPreviews();
+
+      element(
+        "copyMessage"
+      ).textContent = "";
+
+      element(
+        "setupModal"
+      ).classList.add("open");
 
       document.body.style.overflow =
         "hidden";
     }
 
-    function closeRulesModal() {
-      element("rulesModal")
-        .classList
-        .remove("open");
+    function closeSetupModal() {
+      element(
+        "setupModal"
+      ).classList.remove("open");
 
       document.body.style.overflow =
         "";
     }
 
-    async function copyRules() {
-      const rules = getRulesText();
-
-      try {
+    async function copyText(text) {
+      if (
+        navigator.clipboard?.writeText
+      ) {
         await navigator.clipboard.writeText(
-          rules
+          text
         );
 
-        element("copyMessage").textContent =
-          "Rules copied.";
-      } catch (error) {
-        const temporaryInput =
-          document.createElement("textarea");
-
-        temporaryInput.value = rules;
-        temporaryInput.setAttribute(
-          "readonly",
-          ""
-        );
-
-        temporaryInput.style.position =
-          "fixed";
-
-        temporaryInput.style.opacity =
-          "0";
-
-        document.body.appendChild(
-          temporaryInput
-        );
-
-        temporaryInput.select();
-
-        document.execCommand("copy");
-
-        temporaryInput.remove();
-
-        element("copyMessage").textContent =
-          "Rules copied.";
+        return;
       }
+
+      const textarea =
+        document.createElement(
+          "textarea"
+        );
+
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(
+        textarea
+      );
+
+      textarea.select();
+
+      document.execCommand("copy");
+
+      textarea.remove();
     }
 
-    element("openRulesButton")
+    element("openSetupButton")
       .addEventListener(
         "click",
-        openRulesModal
+        openSetupModal
       );
 
-    element("footerRulesButton")
+    element("closeSetupButton")
       .addEventListener(
         "click",
-        openRulesModal
+        closeSetupModal
       );
 
-    element("closeRulesButton")
-      .addEventListener(
-        "click",
-        closeRulesModal
-      );
-
-    element("copyRulesButton")
-      .addEventListener(
-        "click",
-        copyRules
-      );
-
-    element("rulesModal")
+    element("setupModal")
       .addEventListener(
         "click",
         event => {
           if (
             event.target ===
-            element("rulesModal")
+            element("setupModal")
           ) {
-            closeRulesModal();
+            closeSetupModal();
           }
         }
       );
@@ -1343,12 +2114,59 @@ service cloud.firestore {
       "keydown",
       event => {
         if (event.key === "Escape") {
-          closeRulesModal();
+          closeSetupModal();
         }
       }
     );
 
-    loadHQ();
+    document
+      .querySelectorAll(".copy-source")
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          async () => {
+            try {
+              await copyText(
+                getSourceText(
+                  button.dataset.source
+                )
+              );
+
+              element(
+                "copyMessage"
+              ).textContent =
+                "Copied.";
+            } catch (error) {
+              console.error(
+                "Copy failed:",
+                error
+              );
+
+              element(
+                "copyMessage"
+              ).textContent =
+                "Copy failed. Select the code manually.";
+            }
+          }
+        );
+      });
+
+    loadHQ().catch(error => {
+      console.error(
+        "Unexpected Kigazine HQ error:",
+        error
+      );
+
+      renderMagazineError(error);
+
+      element("signals").innerHTML = `
+        <p class="error">
+          ${escapeHTML(
+            readableError(error)
+          )}
+        </p>
+      `;
+    });
   </script>
 </body>
 </html>
