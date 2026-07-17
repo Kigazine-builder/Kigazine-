@@ -5,7 +5,7 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
 
   <meta name="color-scheme" content="dark" />
@@ -23,6 +23,7 @@
       --green: #86efac;
       --yellow: #facc15;
       --red: #f87171;
+      --warning: #fdba74;
     }
 
     * {
@@ -67,19 +68,15 @@
         );
     }
 
-    button,
     a {
       font: inherit;
-    }
-
-    button {
-      cursor: pointer;
     }
 
     header {
       padding: 30px 22px;
       border-bottom: 1px solid var(--line);
       background: rgba(3, 7, 18, 0.45);
+
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
@@ -89,8 +86,8 @@
       margin: 0 auto;
 
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 18px;
       flex-wrap: wrap;
     }
@@ -108,8 +105,7 @@
       font-size: 16px;
     }
 
-    .nav a,
-    .nav button {
+    .nav a {
       display: inline-block;
       margin: 4px;
       padding: 11px 15px;
@@ -123,9 +119,7 @@
     }
 
     .nav a:hover,
-    .nav button:hover,
-    .nav a:focus-visible,
-    .nav button:focus-visible {
+    .nav a:focus-visible {
       background: rgba(255, 255, 255, 0.12);
       outline: none;
     }
@@ -138,6 +132,7 @@
 
     .statistics-grid {
       display: grid;
+
       grid-template-columns:
         repeat(auto-fit, minmax(220px, 1fr));
 
@@ -146,6 +141,7 @@
     }
 
     .card {
+      min-width: 0;
       padding: 22px;
 
       border: 1px solid var(--line);
@@ -178,7 +174,7 @@
 
     .two-column-grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
       gap: 18px;
     }
 
@@ -191,6 +187,7 @@
       width: 100%;
       overflow-x: auto;
       border-radius: 16px;
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -204,7 +201,7 @@
     td {
       padding: 14px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -241,12 +238,19 @@
       font-weight: 800;
     }
 
+    .warning {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
     .success {
       color: var(--green);
       font-weight: 800;
     }
 
-    .bar-wrapper {
+    .bar-wrap {
+      width: 145px;
+      max-width: 100%;
       height: 10px;
       margin-top: 7px;
       overflow: hidden;
@@ -258,6 +262,7 @@
     .bar {
       width: 0;
       height: 100%;
+
       background:
         linear-gradient(
           90deg,
@@ -281,24 +286,6 @@
       font-weight: 700;
     }
 
-    .action-button {
-      display: inline-block;
-      padding: 10px 14px;
-
-      color: white;
-      border: 1px solid rgba(96, 165, 250, 0.45);
-      border-radius: 12px;
-      background: rgba(96, 165, 250, 0.18);
-
-      font-weight: 750;
-    }
-
-    .action-button:hover,
-    .action-button:focus-visible {
-      background: rgba(96, 165, 250, 0.28);
-      outline: none;
-    }
-
     footer {
       width: min(1180px, 100%);
       margin: 0 auto;
@@ -306,118 +293,6 @@
 
       color: var(--muted);
       font-size: 13px;
-    }
-
-    .modal {
-      position: fixed;
-      z-index: 1000;
-      inset: 0;
-
-      display: none;
-      padding: 20px;
-
-      align-items: center;
-      justify-content: center;
-
-      background: rgba(2, 6, 23, 0.82);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .modal.open {
-      display: flex;
-    }
-
-    .modal-panel {
-      width: min(920px, 100%);
-      max-height: 92vh;
-      overflow-y: auto;
-      padding: 22px;
-
-      border: 1px solid var(--line);
-      border-radius: 20px;
-
-      background: #0b1d33;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .modal-header h2 {
-      margin-bottom: 6px;
-    }
-
-    .modal-header p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    .close-button {
-      width: 38px;
-      height: 38px;
-      flex: 0 0 auto;
-
-      color: white;
-      border: 1px solid var(--line);
-      border-radius: 50%;
-
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 20px;
-    }
-
-    .setup-section {
-      margin-top: 20px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
-    }
-
-    .setup-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .setup-header h3 {
-      margin: 0;
-    }
-
-    pre {
-      margin: 12px 0 0;
-      padding: 16px;
-      overflow-x: auto;
-
-      color: #dbeafe;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.3);
-
-      font:
-        13px/1.55
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        monospace;
-
-      white-space: pre;
-    }
-
-    .copy-message {
-      min-height: 18px;
-      margin-top: 10px;
-
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 700;
     }
 
     @media (max-width: 850px) {
@@ -457,21 +332,14 @@
         <h1>📍 Kigazine HQ</h1>
 
         <p>
-          Live public dashboard for activity,
-          publishing, and creator statistics.
+          Live public dashboard for activity, publishing,
+          and creator statistics.
         </p>
       </div>
 
       <nav class="nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
-
-        <a href="hq.html" aria-current="page">
-          HQ
-        </a>
-
-        <button id="openSetupButton" type="button">
-          Setup code
-        </button>
+        <a href="hq.html" aria-current="page">HQ</a>
       </nav>
     </div>
   </header>
@@ -482,9 +350,7 @@
       aria-label="Kigazine statistics"
     >
       <article class="card">
-        <div class="number" id="totalMagazines">
-          —
-        </div>
+        <div class="number" id="totalMagazines">—</div>
 
         <div class="label">
           Magazines Published
@@ -496,9 +362,7 @@
       </article>
 
       <article class="card">
-        <div class="number" id="totalUsers">
-          —
-        </div>
+        <div class="number" id="totalUsers">—</div>
 
         <div class="label">
           Kigazine Users
@@ -510,9 +374,7 @@
       </article>
 
       <article class="card">
-        <div class="number" id="activeUsers">
-          —
-        </div>
+        <div class="number" id="activeUsers">—</div>
 
         <div class="label">
           Active Writers
@@ -524,9 +386,7 @@
       </article>
 
       <article class="card">
-        <div class="number" id="todayMagazines">
-          —
-        </div>
+        <div class="number" id="todayMagazines">—</div>
 
         <div class="label">
           Published Today
@@ -601,421 +461,13 @@
   </main>
 
   <footer>
-    Kigazine HQ reads public Firestore data when
-    the page loads. 🔵
+    Kigazine HQ reads public Firestore data when the page loads. 🔵
   </footer>
 
-  <div
-    class="modal"
-    id="setupModal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="setupTitle"
-  >
-    <div class="modal-panel">
-      <div class="modal-header">
-        <div>
-          <h2 id="setupTitle">
-            Kigazine backend setup
-          </h2>
-
-          <p>
-            The source code below is safely stored inside
-            this HTML file as non-executable text. Copy
-            each section into the named Firebase project
-            file and deploy it.
-          </p>
-        </div>
-
-        <button
-          class="close-button"
-          id="closeSetupButton"
-          type="button"
-          aria-label="Close"
-        >
-          ×
-        </button>
-      </div>
-
-      <section class="setup-section">
-        <div class="setup-header">
-          <h3>1. firestore.rules</h3>
-
-          <button
-            class="action-button copy-source"
-            type="button"
-            data-source="firestoreRulesSource"
-          >
-            Copy
-          </button>
-        </div>
-
-        <pre id="firestoreRulesPreview"></pre>
-      </section>
-
-      <section class="setup-section">
-        <div class="setup-header">
-          <h3>2. functions/index.js</h3>
-
-          <button
-            class="action-button copy-source"
-            type="button"
-            data-source="functionsSource"
-          >
-            Copy
-          </button>
-        </div>
-
-        <pre id="functionsPreview"></pre>
-      </section>
-
-      <section class="setup-section">
-        <div class="setup-header">
-          <h3>3. functions/package.json</h3>
-
-          <button
-            class="action-button copy-source"
-            type="button"
-            data-source="packageSource"
-          >
-            Copy
-          </button>
-        </div>
-
-        <pre id="packagePreview"></pre>
-      </section>
-
-      <section class="setup-section">
-        <div class="setup-header">
-          <h3>4. firebase.json</h3>
-
-          <button
-            class="action-button copy-source"
-            type="button"
-            data-source="firebaseJsonSource"
-          >
-            Copy
-          </button>
-        </div>
-
-        <pre id="firebaseJsonPreview"></pre>
-      </section>
-
-      <section class="setup-section">
-        <div class="setup-header">
-          <h3>5. Deployment commands</h3>
-
-          <button
-            class="action-button copy-source"
-            type="button"
-            data-source="commandsSource"
-          >
-            Copy
-          </button>
-        </div>
-
-        <pre id="commandsPreview"></pre>
-      </section>
-
-      <div
-        class="copy-message"
-        id="copyMessage"
-        aria-live="polite"
-      ></div>
-    </div>
-  </div>
-
-  <!--
-    FIRESTORE RULES
-
-    This block is inert text. It will not display at the
-    top of the webpage and will not execute as JavaScript.
-  -->
-  <script
-    id="firestoreRulesSource"
-    type="text/plain"
-  >
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function ownsMagazine(data) {
-      return signedIn() && (
-        (
-          data.keys().hasAny(["authorId"]) &&
-          data.authorId == request.auth.uid
-        ) ||
-        (
-          data.keys().hasAny(["userId"]) &&
-          data.userId == request.auth.uid
-        ) ||
-        (
-          data.keys().hasAny(["uid"]) &&
-          data.uid == request.auth.uid
-        ) ||
-        (
-          data.keys().hasAny(["ownerId"]) &&
-          data.ownerId == request.auth.uid
-        ) ||
-        (
-          data.keys().hasAny(["createdBy"]) &&
-          data.createdBy == request.auth.uid
-        )
-      );
-    }
-
-    match /magazines/{magazineId} {
-      allow read:
-        if resource.data.isPublic == true;
-
-      allow create:
-        if ownsMagazine(request.resource.data)
-        && request.resource.data.isPublic is bool;
-
-      allow update:
-        if ownsMagazine(resource.data)
-        && ownsMagazine(request.resource.data)
-        && request.resource.data.isPublic is bool;
-
-      allow delete:
-        if ownsMagazine(resource.data);
-    }
-
-    match /publicProfiles/{userId} {
-      allow read: if true;
-
-      allow create, update:
-        if signedIn()
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly([
-          "displayName",
-          "username",
-          "name",
-          "handle",
-          "photoURL",
-          "bio",
-          "createdAt",
-          "updatedAt"
-        ]);
-
-      allow delete:
-        if signedIn()
-        && request.auth.uid == userId;
-    }
-
-    match /publicStats/{documentId} {
-      allow read:
-        if documentId == "hq";
-
-      allow write:
-        if false;
-    }
-
-    match /users/{userId} {
-      allow read, create, update, delete:
-        if signedIn()
-        && request.auth.uid == userId;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-  </script>
-
-  <!-- CLOUD FUNCTIONS: functions/index.js -->
-  <script
-    id="functionsSource"
-    type="text/plain"
-  >
-const functionsV1 =
-  require("firebase-functions/v1");
-
-const {
-  onSchedule
-} = require("firebase-functions/v2/scheduler");
-
-const {
-  logger
-} = require("firebase-functions");
-
-const {
-  initializeApp
-} = require("firebase-admin/app");
-
-const {
-  getAuth
-} = require("firebase-admin/auth");
-
-const {
-  getFirestore,
-  FieldValue
-} = require("firebase-admin/firestore");
-
-initializeApp();
-
-const database = getFirestore();
-
-const statisticsDocument =
-  database.doc("publicStats/hq");
-
-/**
- * Counts all Firebase Authentication accounts and
- * stores only the aggregate total in Firestore.
- */
-async function synchronizeUserCount() {
-  let totalUsers = 0;
-  let pageToken;
-
-  do {
-    const page = await getAuth().listUsers(
-      1000,
-      pageToken
-    );
-
-    totalUsers += page.users.length;
-    pageToken = page.pageToken;
-  } while (pageToken);
-
-  await statisticsDocument.set(
-    {
-      totalUsers,
-      updatedAt: FieldValue.serverTimestamp()
-    },
-    {
-      merge: true
-    }
-  );
-
-  logger.info(
-    "Kigazine user count synchronized",
-    {
-      totalUsers
-    }
-  );
-
-  return totalUsers;
-}
-
-/**
- * Recount immediately after an Authentication user
- * is created.
- */
-exports.userCreated =
-  functionsV1.auth.user().onCreate(
-    async () => {
-      await synchronizeUserCount();
-    }
-  );
-
-/**
- * Recount immediately after an Authentication user
- * is deleted.
- */
-exports.userDeleted =
-  functionsV1.auth.user().onDelete(
-    async () => {
-      await synchronizeUserCount();
-    }
-  );
-
-/**
- * Initial backfill and periodic reconciliation.
- */
-exports.reconcileUserCount =
-  onSchedule(
-    "every 15 minutes",
-    async () => {
-      await synchronizeUserCount();
-    }
-  );
-  </script>
-
-  <!-- CLOUD FUNCTIONS PACKAGE: functions/package.json -->
-  <script
-    id="packageSource"
-    type="text/plain"
-  >
-{
-  "name": "kigazine-functions",
-  "private": true,
-  "main": "index.js",
-  "engines": {
-    "node": "22"
-  },
-  "dependencies": {
-    "firebase-admin": "14.1.0",
-    "firebase-functions": "7.2.5"
-  }
-}
-  </script>
-
-  <!-- FIREBASE CONFIGURATION: firebase.json -->
-  <script
-    id="firebaseJsonSource"
-    type="text/plain"
-  >
-{
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default"
-    }
-  ],
-  "firestore": {
-    "rules": "firestore.rules"
-  }
-}
-  </script>
-
-  <!-- DEPLOYMENT COMMANDS -->
-  <script
-    id="commandsSource"
-    type="text/plain"
-  >
-# Required project structure:
-#
-# hq.html
-# firestore.rules
-# firebase.json
-# functions/index.js
-# functions/package.json
-
-npm install -g firebase-tools
-
-firebase login
-
-cd functions
-
-npm install
-
-cd ..
-
-firebase deploy \
-  --project kigazine-302ac \
-  --only firestore:rules,functions
-
-# The scheduled function creates publicStats/hq.
-#
-# To populate the number immediately after deployment,
-# open Google Cloud Scheduler and click "Run now" for
-# the reconcileUserCount job.
-  </script>
-
-  <!--
-    This is the only executable dashboard script.
-  -->
   <script type="module">
     import {
       initializeApp
-    } from
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
     import {
       getFirestore,
@@ -1023,36 +475,35 @@ firebase deploy \
       doc,
       getDoc,
       getDocs,
+      getCountFromServer,
       query,
       where
-    } from
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey:
-        "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
-
-      authDomain:
-        "kigazine-302ac.firebaseapp.com",
-
-      projectId:
-        "kigazine-302ac",
-
-      storageBucket:
-        "kigazine-302ac.firebasestorage.app",
-
-      messagingSenderId:
-        "821833747017",
-
-      appId:
-        "1:821833747017:web:dc20a182d1935408c34d98"
+      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+      authDomain: "kigazine-302ac.firebaseapp.com",
+      projectId: "kigazine-302ac",
+      storageBucket: "kigazine-302ac.firebasestorage.app",
+      messagingSenderId: "821833747017",
+      appId: "1:821833747017:web:dc20a182d1935408c34d98"
     };
 
-    const app =
-      initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const database =
-      getFirestore(app);
+    const COLLECTIONS = Object.freeze({
+      magazines: "magazines",
+      users: "users",
+      publicProfiles: "publicProfiles",
+      publicStats: "publicStats"
+    });
+
+    const USER_STATISTICS_DOCUMENT = "hq";
+    const REQUEST_TIMEOUT_MS = 15000;
+
+    const numberFormatter =
+      new Intl.NumberFormat();
 
     const element = id =>
       document.getElementById(id);
@@ -1061,25 +512,59 @@ firebase deploy \
       const target = element(id);
 
       if (target) {
-        target.textContent = value;
+        target.textContent = String(value);
       }
     }
 
     function escapeHTML(value) {
       return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    function firstNonEmpty(...values) {
+    function normalizeString(value) {
+      if (
+        value === null ||
+        value === undefined
+      ) {
+        return null;
+      }
+
+      if (
+        typeof value === "string" ||
+        typeof value === "number"
+      ) {
+        const normalized =
+          String(value).trim();
+
+        return normalized || null;
+      }
+
+      return null;
+    }
+
+    function firstString(...values) {
+      for (const value of values) {
+        const normalized =
+          normalizeString(value);
+
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      return null;
+    }
+
+    function firstObject(...values) {
       for (const value of values) {
         if (
-          value !== null &&
-          value !== undefined &&
-          String(value).trim() !== ""
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value)
         ) {
           return value;
         }
@@ -1093,58 +578,82 @@ firebase deploy \
         return null;
       }
 
-      if (
-        typeof value.toDate === "function"
-      ) {
-        const date = value.toDate();
+      try {
+        if (
+          typeof value.toDate === "function"
+        ) {
+          const date = value.toDate();
 
-        return Number.isNaN(date.getTime())
-          ? null
-          : date;
-      }
+          return Number.isNaN(date.getTime())
+            ? null
+            : date;
+        }
 
-      if (
-        typeof value === "object" &&
-        typeof value.seconds === "number"
-      ) {
-        const date =
-          new Date(value.seconds * 1000);
+        if (
+          typeof value === "object" &&
+          typeof value.seconds === "number"
+        ) {
+          const milliseconds =
+            value.seconds * 1000 +
+            Math.floor(
+              Number(value.nanoseconds || 0) /
+              1000000
+            );
 
-        return Number.isNaN(date.getTime())
-          ? null
-          : date;
-      }
+          const date =
+            new Date(milliseconds);
 
-      if (
-        typeof value === "object" &&
-        typeof value._seconds === "number"
-      ) {
-        const date =
-          new Date(value._seconds * 1000);
+          return Number.isNaN(date.getTime())
+            ? null
+            : date;
+        }
 
-        return Number.isNaN(date.getTime())
-          ? null
-          : date;
-      }
+        if (
+          typeof value === "object" &&
+          typeof value._seconds === "number"
+        ) {
+          const date =
+            new Date(value._seconds * 1000);
 
-      if (
-        typeof value === "string" ||
-        typeof value === "number"
-      ) {
-        const date = new Date(value);
+          return Number.isNaN(date.getTime())
+            ? null
+            : date;
+        }
 
-        return Number.isNaN(date.getTime())
-          ? null
-          : date;
+        if (
+          typeof value === "string" ||
+          typeof value === "number"
+        ) {
+          const date = new Date(value);
+
+          return Number.isNaN(date.getTime())
+            ? null
+            : date;
+        }
+      } catch (error) {
+        console.warn(
+          "Unable to parse date:",
+          value,
+          error
+        );
       }
 
       return null;
     }
 
-    function sameLocalDay(
-      firstDate,
-      secondDate
-    ) {
+    function firstValidDate(...values) {
+      for (const value of values) {
+        const date = parseDate(value);
+
+        if (date) {
+          return date;
+        }
+      }
+
+      return null;
+    }
+
+    function sameLocalDay(firstDate, secondDate) {
       return Boolean(
         firstDate &&
         secondDate &&
@@ -1162,16 +671,20 @@ firebase deploy \
         return "Unknown";
       }
 
-      return new Intl.DateTimeFormat(
-        undefined,
-        {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit"
-        }
-      ).format(date);
+      try {
+        return new Intl.DateTimeFormat(
+          undefined,
+          {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+          }
+        ).format(date);
+      } catch {
+        return date.toLocaleString();
+      }
     }
 
     function readableError(error) {
@@ -1181,49 +694,73 @@ firebase deploy \
 
       switch (error.code) {
         case "permission-denied":
-          return (
-            "Permission denied by Firestore " +
-            "Security Rules."
-          );
+          return "Permission denied by Firestore Security Rules.";
 
         case "failed-precondition":
-          return (
-            "Firestore requires a matching " +
-            "query or database index."
-          );
+          return "Firestore requires a matching query or index.";
 
         case "unavailable":
-          return (
-            "Firestore is temporarily unavailable."
-          );
+          return "Firestore is temporarily unavailable.";
+
+        case "deadline-exceeded":
+          return "The Firestore request timed out.";
 
         default:
-          return (
-            error.message ||
-            "Unknown Firestore error."
-          );
+          return error.message ||
+            "Unknown Firestore error.";
       }
     }
 
-    async function safelyReadCollection(
+    function withTimeout(
+      promise,
+      milliseconds,
+      label
+    ) {
+      let timer;
+
+      const timeoutPromise =
+        new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            const error =
+              new Error(
+                `${label} timed out after ${milliseconds}ms.`
+              );
+
+            error.code = "deadline-exceeded";
+            reject(error);
+          }, milliseconds);
+        });
+
+      return Promise.race([
+        promise,
+        timeoutPromise
+      ]).finally(() => {
+        clearTimeout(timer);
+      });
+    }
+
+    async function safeReadCollection(
       reference,
       label
     ) {
       try {
         const snapshot =
-          await getDocs(reference);
+          await withTimeout(
+            getDocs(reference),
+            REQUEST_TIMEOUT_MS,
+            label
+          );
 
         return {
           snapshot,
           error: null
         };
       } catch (error) {
-        console.error(
+        console.warn(
           `[Kigazine HQ: ${label}]`,
           {
             code: error?.code,
-            message: error?.message,
-            error
+            message: error?.message
           }
         );
 
@@ -1234,30 +771,77 @@ firebase deploy \
       }
     }
 
-    async function safelyReadDocument(
+    async function safeReadDocument(
       reference,
       label
     ) {
       try {
         const snapshot =
-          await getDoc(reference);
+          await withTimeout(
+            getDoc(reference),
+            REQUEST_TIMEOUT_MS,
+            label
+          );
 
         return {
           snapshot,
           error: null
         };
       } catch (error) {
-        console.error(
+        console.warn(
           `[Kigazine HQ: ${label}]`,
           {
             code: error?.code,
-            message: error?.message,
-            error
+            message: error?.message
           }
         );
 
         return {
           snapshot: null,
+          error
+        };
+      }
+    }
+
+    async function safeCountCollection(
+      reference,
+      label
+    ) {
+      try {
+        const snapshot =
+          await withTimeout(
+            getCountFromServer(reference),
+            REQUEST_TIMEOUT_MS,
+            label
+          );
+
+        const count =
+          Number(snapshot.data().count);
+
+        if (
+          !Number.isSafeInteger(count) ||
+          count < 0
+        ) {
+          throw new Error(
+            `${label} returned an invalid count.`
+          );
+        }
+
+        return {
+          count,
+          error: null
+        };
+      } catch (error) {
+        console.warn(
+          `[Kigazine HQ count: ${label}]`,
+          {
+            code: error?.code,
+            message: error?.message
+          }
+        );
+
+        return {
+          count: null,
           error
         };
       }
@@ -1274,175 +858,288 @@ firebase deploy \
         const data =
           profileDocument.data();
 
-        profiles.set(
-          profileDocument.id,
-          {
-            displayName: firstNonEmpty(
-              data.displayName,
-              data.name,
-              data.username
-            ),
+        const profile = {
+          displayName: firstString(
+            data.displayName,
+            data.name,
+            data.username
+          ),
 
-            username: firstNonEmpty(
-              data.username,
-              data.handle
-            )
+          username: firstString(
+            data.username,
+            data.handle
+          ),
+
+          email: firstString(
+            data.email
+          )
+        };
+
+        const possibleKeys = [
+          profileDocument.id,
+
+          firstString(
+            data.uid,
+            data.userId,
+            data.authorId,
+            data.id
+          )
+        ];
+
+        possibleKeys.forEach(key => {
+          if (key) {
+            profiles.set(
+              String(key),
+              profile
+            );
           }
-        );
+        });
       });
 
       return profiles;
     }
 
-    function getAuthorIdentity(
+    function extractAuthorIdentity(
       data,
       profiles,
       magazineId
     ) {
-      const authorId = firstNonEmpty(
-        data.authorId,
-        data.userId,
-        data.uid,
-        data.ownerId,
-        data.createdBy
-      );
+      const authorObject =
+        firstObject(
+          data.author,
+          data.user,
+          data.owner,
+          data.createdBy
+        ) || {};
 
-      const normalizedId =
-        authorId
-          ? String(authorId)
-          : null;
+      const authorId =
+        firstString(
+          data.authorId,
+          data.userId,
+          data.uid,
+          data.ownerId,
+          data.createdById,
+
+          authorObject.uid,
+          authorObject.id,
+          authorObject.userId
+        );
 
       const profile =
-        normalizedId
-          ? profiles.get(normalizedId)
+        authorId
+          ? profiles.get(authorId)
           : null;
 
-      const authorName = String(
-        firstNonEmpty(
+      const authorEmail =
+        firstString(
+          data.authorEmail,
+          data.email,
+          authorObject.email,
+          profile?.email
+        );
+
+      const authorName =
+        firstString(
           data.authorName,
+          data.author, // 👈 Fix applied here: safely handles authors stored as primitive strings
           data.username,
-          data.author,
           data.displayName,
           data.userName,
+
+          authorObject.displayName,
+          authorObject.username,
+          authorObject.name,
+
           profile?.displayName,
           profile?.username,
 
-          normalizedId
-            ? `User ${normalizedId.slice(0, 8)}`
+          authorEmail,
+
+          authorId
+            ? `User ${authorId.slice(0, 8)}`
             : null,
 
           "Unknown"
-        )
-      );
+        );
 
-      let authorKey;
+      let key;
 
-      if (normalizedId) {
-        authorKey =
-          `uid:${normalizedId}`;
+      if (authorId) {
+        key =
+          `uid:${authorId}`;
+      } else if (authorEmail) {
+        key =
+          `email:${authorEmail
+            .trim()
+            .toLowerCase()}`;
       } else if (
+        authorName &&
         authorName !== "Unknown"
       ) {
-        authorKey =
+        key =
           `name:${authorName
             .trim()
             .toLowerCase()}`;
       } else {
-        authorKey =
+        key =
           `unknown:${magazineId}`;
       }
 
       return {
-        key: authorKey,
-        name: authorName
+        key,
+        name: authorName || "Unknown"
       };
     }
 
-    function displayUserCount(
-      statisticsResult
-    ) {
+    function getMagazineTitle(data) {
+      return firstString(
+        data.title,
+        data.name,
+        data.magazineTitle,
+        data.headline,
+        "Untitled Magazine"
+      );
+    }
+
+    function getMagazineDate(data) {
+      return firstValidDate(
+        data.publishedAt,
+        data.createdAt,
+        data.date,
+        data.time,
+        data.updatedAt
+      );
+    }
+
+    function validCount(value) {
+      const count = Number(value);
+
+      return (
+        Number.isSafeInteger(count) &&
+        count >= 0
+      )
+        ? count
+        : null;
+    }
+
+    function resolveUserCount({
+      statisticsResult,
+      usersCountResult,
+      profilesResult
+    }) {
+      if (
+        !statisticsResult.error &&
+        statisticsResult.snapshot?.exists()
+      ) {
+        const statisticsData =
+          statisticsResult.snapshot.data();
+
+        const count =
+          validCount(
+            statisticsData.totalUsers
+          );
+
+        if (count !== null) {
+          return {
+            count,
+            source:
+              "Registered-user statistics",
+            updatedAt:
+              firstValidDate(
+                statisticsData.updatedAt
+              ),
+            exact: true
+          };
+        }
+      }
+
+      if (!usersCountResult.error) {
+        const count =
+          validCount(
+            usersCountResult.count
+          );
+
+        if (count !== null) {
+          return {
+            count,
+            source:
+              "Accounts in the users collection",
+            updatedAt: null,
+            exact: true
+          };
+        }
+      }
+
+      if (
+        !profilesResult.error &&
+        profilesResult.snapshot
+      ) {
+        const count =
+          validCount(
+            profilesResult.snapshot.size
+          );
+
+        if (
+          count !== null &&
+          count > 0
+        ) {
+          return {
+            count,
+            source:
+              "Public profiles",
+            updatedAt: null,
+            exact: false
+          };
+        }
+      }
+
+      return {
+        count: null,
+        source:
+          "No public user-count source",
+        updatedAt: null,
+        exact: false
+      };
+    }
+
+    function displayUserCount(result) {
       const hint =
         element("usersHint");
 
-      if (statisticsResult.error) {
+      if (result.count === null) {
         setText("totalUsers", "—");
 
-        hint.textContent =
-          "User count unavailable. Deploy the backend setup code.";
+        if (hint) {
+          hint.textContent =
+            "The registered-user total is not publicly available.";
+        }
 
-        return {
-          loaded: false,
-          message:
-            readableError(
-              statisticsResult.error
-            )
-        };
-      }
-
-      if (
-        !statisticsResult
-          .snapshot
-          ?.exists()
-      ) {
-        setText("totalUsers", "—");
-
-        hint.textContent =
-          "Waiting for the publicStats/hq count document.";
-
-        return {
-          loaded: false,
-          message:
-            "The publicStats/hq document does not exist yet."
-        };
-      }
-
-      const data =
-        statisticsResult.snapshot.data();
-
-      const totalUsers =
-        Number(data.totalUsers);
-
-      const updatedAt =
-        parseDate(data.updatedAt);
-
-      if (
-        !Number.isSafeInteger(totalUsers) ||
-        totalUsers < 0
-      ) {
-        setText("totalUsers", "—");
-
-        hint.textContent =
-          "The stored user count is invalid.";
-
-        return {
-          loaded: false,
-          message:
-            "publicStats/hq.totalUsers must be a non-negative integer."
-        };
+        return;
       }
 
       setText(
         "totalUsers",
-        totalUsers.toLocaleString()
+        numberFormatter.format(
+          result.count
+        )
       );
 
-      hint.textContent =
-        updatedAt
-          ? (
-              "Registered users; updated " +
-              `${formatDate(updatedAt)}.`
-            )
-          : (
-              "Registered Firebase " +
-              "Authentication users."
-            );
+      if (!hint) {
+        return;
+      }
 
-      return {
-        loaded: true,
-        totalUsers,
-        updatedAt,
-        message: null
-      };
+      const accuracyText =
+        result.exact
+          ? ""
+          : " Public-profile count only.";
+
+      const updateText =
+        result.updatedAt
+          ? ` Updated ${formatDate(result.updatedAt)}.`
+          : "";
+
+      hint.textContent =
+        `${result.source}.${accuracyText}${updateText}`;
     }
 
     function renderLeaderboard(
@@ -1452,31 +1149,36 @@ firebase deploy \
         Array.from(
           authorStatistics.values()
         )
-          .sort(
-            (first, second) => {
-              const countDifference =
-                second.count -
-                first.count;
+          .sort((first, second) => {
+            const countDifference =
+              second.count -
+              first.count;
 
-              return (
-                countDifference ||
-                first.name.localeCompare(
-                  second.name
-                )
-              );
+            if (countDifference !== 0) {
+              return countDifference;
             }
-          )
+
+            return first.name.localeCompare(
+              second.name,
+              undefined,
+              {
+                sensitivity: "base"
+              }
+            );
+          })
           .slice(0, 10);
 
-      if (
-        sortedAuthors.length === 0
-      ) {
-        element("leaderboard").innerHTML = `
+      const target =
+        element("leaderboard");
+
+      if (!target) {
+        return sortedAuthors;
+      }
+
+      if (sortedAuthors.length === 0) {
+        target.innerHTML = `
           <tr>
-            <td
-              colspan="3"
-              class="quiet"
-            >
+            <td colspan="3" class="quiet">
               No published activity yet.
             </td>
           </tr>
@@ -1488,15 +1190,18 @@ firebase deploy \
       const maximumCount =
         sortedAuthors[0].count || 1;
 
-      element("leaderboard").innerHTML =
+      target.innerHTML =
         sortedAuthors
           .map(author => {
             const percentage =
-              Math.round(
-                (
-                  author.count /
-                  maximumCount
-                ) * 100
+              Math.max(
+                1,
+                Math.round(
+                  (
+                    author.count /
+                    maximumCount
+                  ) * 100
+                )
               );
 
             return `
@@ -1508,7 +1213,7 @@ firebase deploy \
                 </td>
 
                 <td>
-                  ${author.count}
+                  ${numberFormatter.format(author.count)}
                 </td>
 
                 <td>
@@ -1517,8 +1222,14 @@ firebase deploy \
                   </span>
 
                   <div
-                    class="bar-wrapper"
-                    aria-label="${percentage}% of top-writer activity"
+                    class="bar-wrap"
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="${percentage}"
+                    aria-label="${escapeHTML(
+                      `${author.name} activity`
+                    )}"
                   >
                     <div
                       class="bar"
@@ -1537,6 +1248,13 @@ firebase deploy \
     function renderRecentMagazines(
       magazines
     ) {
+      const target =
+        element("recentMagazines");
+
+      if (!target) {
+        return;
+      }
+
       magazines.sort(
         (first, second) => {
           if (
@@ -1544,7 +1262,11 @@ firebase deploy \
             !second.createdAt
           ) {
             return first.title.localeCompare(
-              second.title
+              second.title,
+              undefined,
+              {
+                sensitivity: "base"
+              }
             );
           }
 
@@ -1564,14 +1286,9 @@ firebase deploy \
       );
 
       if (magazines.length === 0) {
-        element(
-          "recentMagazines"
-        ).innerHTML = `
+        target.innerHTML = `
           <tr>
-            <td
-              colspan="3"
-              class="quiet"
-            >
+            <td colspan="3" class="quiet">
               No public magazines found.
             </td>
           </tr>
@@ -1580,87 +1297,31 @@ firebase deploy \
         return;
       }
 
-      element(
-        "recentMagazines"
-      ).innerHTML =
+      target.innerHTML =
         magazines
           .slice(0, 12)
-          .map(magazine => {
-            return `
-              <tr>
-                <td>
-                  <strong>
-                    ${escapeHTML(
-                      magazine.title
-                    )}
-                  </strong>
-                </td>
+          .map(magazine => `
+            <tr>
+              <td>
+                <strong>
+                  ${escapeHTML(magazine.title)}
+                </strong>
+              </td>
 
-                <td>
-                  ${escapeHTML(
-                    magazine.author
-                  )}
-                </td>
+              <td>
+                ${escapeHTML(magazine.author)}
+              </td>
 
-                <td>
-                  ${escapeHTML(
-                    formatDate(
-                      magazine.createdAt
-                    )
-                  )}
-                </td>
-              </tr>
-            `;
-          })
+              <td>
+                ${escapeHTML(
+                  formatDate(
+                    magazine.createdAt
+                  )
+                )}
+              </td>
+            </tr>
+          `)
           .join("");
-    }
-
-    function renderMagazineError(
-      error
-    ) {
-      const message =
-        readableError(error);
-
-      setText(
-        "totalMagazines",
-        "?"
-      );
-
-      setText(
-        "activeUsers",
-        "?"
-      );
-
-      setText(
-        "todayMagazines",
-        "?"
-      );
-
-      element(
-        "leaderboard"
-      ).innerHTML = `
-        <tr>
-          <td
-            colspan="3"
-            class="error"
-          >
-            ${escapeHTML(message)}
-          </td>
-        </tr>
-      `;
-
-      element(
-        "recentMagazines"
-      ).innerHTML = `
-        <tr>
-          <td
-            colspan="3"
-            class="error"
-          >
-            ${escapeHTML(message)}
-          </td>
-        </tr>
-      `;
     }
 
     function renderSignals({
@@ -1668,9 +1329,15 @@ firebase deploy \
       activeWriterCount,
       sortedAuthors,
       profilesResult,
-      publicProfileCount,
-      userCountStatus
+      userCountResult
     }) {
+      const target =
+        element("signals");
+
+      if (!target) {
+        return;
+      }
+
       const average =
         activeWriterCount > 0
           ? (
@@ -1687,41 +1354,52 @@ firebase deploy \
         sortedAuthors[0]?.count ||
         0;
 
-      const notices = [];
+      const userCountMessage =
+        userCountResult.count === null
+          ? `
+            <p
+              class="quiet"
+              style="
+                margin-top: 14px;
+                line-height: 1.6;
+              "
+            >
+              The registered-user total is unavailable.
+              Active writers are not being used as a substitute.
+            </p>
+          `
+          : `
+            <p
+              class="quiet"
+              style="
+                margin-top: 14px;
+                line-height: 1.6;
+              "
+            >
+              User count source:
+              <strong>
+                ${escapeHTML(userCountResult.source)}
+              </strong>.
+            </p>
+          `;
 
-      if (!userCountStatus.loaded) {
-        notices.push(`
-          <p
-            class="error"
-            style="
-              margin-top: 14px;
-              line-height: 1.6;
-            "
-          >
-            Registered-user count unavailable:
-            ${escapeHTML(
-              userCountStatus.message
-            )}
-          </p>
-        `);
-      }
+      const profilesMessage =
+        profilesResult.error
+          ? `
+            <p
+              class="quiet"
+              style="
+                margin-top: 12px;
+                line-height: 1.6;
+              "
+            >
+              Public profiles were unavailable. Author names
+              were taken from magazine documents.
+            </p>
+          `
+          : "";
 
-      if (profilesResult.error) {
-        notices.push(`
-          <p
-            class="quiet"
-            style="
-              margin-top: 14px;
-              line-height: 1.6;
-            "
-          >
-            Public profiles are blocked or unavailable.
-            Magazine author fields were used instead.
-          </p>
-        `);
-      }
-
-      element("signals").innerHTML = `
+      target.innerHTML = `
         <span class="pill">
           Top writer:
           ${escapeHTML(topWriter)}
@@ -1729,26 +1407,17 @@ firebase deploy \
 
         <span class="pill">
           Top count:
-          ${topCount}
+          ${numberFormatter.format(topCount)}
         </span>
 
         <span class="pill">
-          Average per active writer:
+          Average per writer:
           ${average}
         </span>
 
         <span class="pill">
           Active writers:
-          ${activeWriterCount}
-        </span>
-
-        <span class="pill">
-          Public profiles:
-          ${
-            profilesResult.error
-              ? "unavailable"
-              : publicProfileCount
-          }
+          ${numberFormatter.format(activeWriterCount)}
         </span>
 
         <p
@@ -1766,14 +1435,61 @@ firebase deploy \
           "
         >
           Loaded
-          <strong>${totalMagazines}</strong>
-          public magazines. The registered-user
-          figure is independent of the
-          active-writer figure.
+          <strong>
+            ${numberFormatter.format(totalMagazines)}
+          </strong>
+          public magazines.
         </p>
 
-        ${notices.join("")}
+        ${userCountMessage}
+        ${profilesMessage}
       `;
+    }
+
+    function renderMagazineError(error) {
+      const message =
+        readableError(error);
+
+      setText("totalMagazines", "?");
+      setText("activeUsers", "?");
+      setText("todayMagazines", "?");
+
+      const leaderboard =
+        element("leaderboard");
+
+      const recentMagazines =
+        element("recentMagazines");
+
+      const signals =
+        element("signals");
+
+      if (leaderboard) {
+        leaderboard.innerHTML = `
+          <tr>
+            <td colspan="3" class="error">
+              ${escapeHTML(message)}
+            </td>
+          </tr>
+        `;
+      }
+
+      if (recentMagazines) {
+        recentMagazines.innerHTML = `
+          <tr>
+            <td colspan="3" class="error">
+              ${escapeHTML(message)}
+            </td>
+          </tr>
+        `;
+      }
+
+      if (signals) {
+        signals.innerHTML = `
+          <p class="error">
+            ${escapeHTML(message)}
+          </p>
+        `;
+      }
     }
 
     async function loadHQ() {
@@ -1785,8 +1501,8 @@ firebase deploy \
       const magazinesQuery =
         query(
           collection(
-            database,
-            "magazines"
+            db,
+            COLLECTIONS.magazines
           ),
 
           where(
@@ -1799,64 +1515,55 @@ firebase deploy \
       const [
         magazinesResult,
         profilesResult,
-        statisticsResult
+        statisticsResult,
+        usersCountResult
       ] = await Promise.all([
-        safelyReadCollection(
+        safeReadCollection(
           magazinesQuery,
           "public magazines"
         ),
 
-        safelyReadCollection(
+        safeReadCollection(
           collection(
-            database,
-            "publicProfiles"
+            db,
+            COLLECTIONS.publicProfiles
           ),
           "public profiles"
         ),
 
-        safelyReadDocument(
+        safeReadDocument(
           doc(
-            database,
-            "publicStats",
-            "hq"
+            db,
+            COLLECTIONS.publicStats,
+            USER_STATISTICS_DOCUMENT
           ),
           "public user statistics"
+        ),
+
+        safeCountCollection(
+          collection(
+            db,
+            COLLECTIONS.users
+          ),
+          "users"
         )
       ]);
 
-      const userCountStatus =
-        displayUserCount(
-          statisticsResult
-        );
+      const userCountResult =
+        resolveUserCount({
+          statisticsResult,
+          usersCountResult,
+          profilesResult
+        });
+
+      displayUserCount(
+        userCountResult
+      );
 
       if (magazinesResult.error) {
         renderMagazineError(
           magazinesResult.error
         );
-
-        element("signals").innerHTML = `
-          <p class="error">
-            ${escapeHTML(
-              readableError(
-                magazinesResult.error
-              )
-            )}
-          </p>
-
-          <button
-            class="action-button"
-            id="openSetupFromError"
-            type="button"
-          >
-            Open setup code
-          </button>
-        `;
-
-        element("openSetupFromError")
-          ?.addEventListener(
-            "click",
-            openSetupModal
-          );
 
         return;
       }
@@ -1866,10 +1573,6 @@ firebase deploy \
           profilesResult.snapshot
         );
 
-      const publicProfileCount =
-        profilesResult.snapshot?.size ||
-        0;
-
       const magazines = [];
       const authorStatistics =
         new Map();
@@ -1877,75 +1580,67 @@ firebase deploy \
       const today = new Date();
       let todayCount = 0;
 
-      magazinesResult
-        .snapshot
-        .forEach(
-          magazineDocument => {
-            const data =
-              magazineDocument.data();
+      magazinesResult.snapshot.forEach(
+        magazineDocument => {
+          const data =
+            magazineDocument.data();
 
-            const author =
-              getAuthorIdentity(
-                data,
-                profiles,
-                magazineDocument.id
-              );
-
-            const title = String(
-              firstNonEmpty(
-                data.title,
-                data.name,
-                data.magazineTitle,
-                "Untitled Magazine"
-              )
+          const author =
+            extractAuthorIdentity(
+              data,
+              profiles,
+              magazineDocument.id
             );
 
-            const createdAt =
-              parseDate(
-                firstNonEmpty(
-                  data.publishedAt,
-                  data.createdAt,
-                  data.date,
-                  data.time,
-                  data.updatedAt
-                )
-              );
+          const title =
+            getMagazineTitle(data);
+
+          const createdAt =
+            getMagazineDate(data);
+
+          if (
+            sameLocalDay(
+              createdAt,
+              today
+            )
+          ) {
+            todayCount += 1;
+          }
+
+          const existingAuthor =
+            authorStatistics.get(
+              author.key
+            );
+
+          if (existingAuthor) {
+            existingAuthor.count += 1;
 
             if (
-              sameLocalDay(
-                createdAt,
-                today
-              )
+              existingAuthor.name.startsWith("User ") &&
+              !author.name.startsWith("User ")
             ) {
-              todayCount += 1;
+              existingAuthor.name =
+                author.name;
             }
-
-            const existingAuthor =
-              authorStatistics.get(
-                author.key
-              );
-
-            if (existingAuthor) {
-              existingAuthor.count += 1;
-            } else {
-              authorStatistics.set(
-                author.key,
-                {
-                  key: author.key,
-                  name: author.name,
-                  count: 1
-                }
-              );
-            }
-
-            magazines.push({
-              id: magazineDocument.id,
-              title,
-              author: author.name,
-              createdAt
-            });
+          } else {
+            authorStatistics.set(
+              author.key,
+              {
+                key: author.key,
+                name: author.name,
+                count: 1
+              }
+            );
           }
-        );
+
+          magazines.push({
+            id: magazineDocument.id,
+            title,
+            author: author.name,
+            createdAt
+          });
+        }
+      );
 
       const totalMagazines =
         magazines.length;
@@ -1955,17 +1650,23 @@ firebase deploy \
 
       setText(
         "totalMagazines",
-        totalMagazines.toLocaleString()
+        numberFormatter.format(
+          totalMagazines
+        )
       );
 
       setText(
         "activeUsers",
-        activeWriterCount.toLocaleString()
+        numberFormatter.format(
+          activeWriterCount
+        )
       );
 
       setText(
         "todayMagazines",
-        todayCount.toLocaleString()
+        numberFormatter.format(
+          todayCount
+        )
       );
 
       const sortedAuthors =
@@ -1982,174 +1683,9 @@ firebase deploy \
         activeWriterCount,
         sortedAuthors,
         profilesResult,
-        publicProfileCount,
-        userCountStatus
+        userCountResult
       });
     }
-
-    function getSourceText(sourceId) {
-      return element(sourceId)
-        .textContent
-        .trim();
-    }
-
-    function fillSetupPreviews() {
-      element(
-        "firestoreRulesPreview"
-      ).textContent =
-        getSourceText(
-          "firestoreRulesSource"
-        );
-
-      element(
-        "functionsPreview"
-      ).textContent =
-        getSourceText(
-          "functionsSource"
-        );
-
-      element(
-        "packagePreview"
-      ).textContent =
-        getSourceText(
-          "packageSource"
-        );
-
-      element(
-        "firebaseJsonPreview"
-      ).textContent =
-        getSourceText(
-          "firebaseJsonSource"
-        );
-
-      element(
-        "commandsPreview"
-      ).textContent =
-        getSourceText(
-          "commandsSource"
-        );
-    }
-
-    function openSetupModal() {
-      fillSetupPreviews();
-
-      element(
-        "copyMessage"
-      ).textContent = "";
-
-      element(
-        "setupModal"
-      ).classList.add("open");
-
-      document.body.style.overflow =
-        "hidden";
-    }
-
-    function closeSetupModal() {
-      element(
-        "setupModal"
-      ).classList.remove("open");
-
-      document.body.style.overflow =
-        "";
-    }
-
-    async function copyText(text) {
-      if (
-        navigator.clipboard?.writeText
-      ) {
-        await navigator.clipboard.writeText(
-          text
-        );
-
-        return;
-      }
-
-      const textarea =
-        document.createElement(
-          "textarea"
-        );
-
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-
-      document.body.appendChild(
-        textarea
-      );
-
-      textarea.select();
-
-      document.execCommand("copy");
-
-      textarea.remove();
-    }
-
-    element("openSetupButton")
-      .addEventListener(
-        "click",
-        openSetupModal
-      );
-
-    element("closeSetupButton")
-      .addEventListener(
-        "click",
-        closeSetupModal
-      );
-
-    element("setupModal")
-      .addEventListener(
-        "click",
-        event => {
-          if (
-            event.target ===
-            element("setupModal")
-          ) {
-            closeSetupModal();
-          }
-        }
-      );
-
-    document.addEventListener(
-      "keydown",
-      event => {
-        if (event.key === "Escape") {
-          closeSetupModal();
-        }
-      }
-    );
-
-    document
-      .querySelectorAll(".copy-source")
-      .forEach(button => {
-        button.addEventListener(
-          "click",
-          async () => {
-            try {
-              await copyText(
-                getSourceText(
-                  button.dataset.source
-                )
-              );
-
-              element(
-                "copyMessage"
-              ).textContent =
-                "Copied.";
-            } catch (error) {
-              console.error(
-                "Copy failed:",
-                error
-              );
-
-              element(
-                "copyMessage"
-              ).textContent =
-                "Copy failed. Select the code manually.";
-            }
-          }
-        );
-      });
 
     loadHQ().catch(error => {
       console.error(
@@ -2158,14 +1694,6 @@ firebase deploy \
       );
 
       renderMagazineError(error);
-
-      element("signals").innerHTML = `
-        <p class="error">
-          ${escapeHTML(
-            readableError(error)
-          )}
-        </p>
-      `;
     });
   </script>
 </body>
