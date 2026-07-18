@@ -36,7 +36,379 @@ service cloud.firestore {
     }
 
     function validArcadeTiles(value) {
-      return value is string && value.size() == 240 && value.matches('^[0-6]+$');
+      return value is string && value.size() == 240 && value.matches('^[0-6]+
+    function isGroupOwner(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/blogGroups/$(groupId))
+        && get(/databases/$(database)/documents/blogGroups/$(groupId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isGroupMember(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/blogGroupMembers/$(groupId + '_' + request.auth.uid));
+    }
+
+    // Kigazine user profiles.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isOwner(uid)
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 40
+        && (
+          request.resource.data.role == 'writer'
+          || (isBuiltInAdmin() && request.resource.data.role == 'admin')
+        );
+      allow update: if isAdmin()
+        || (
+          isOwner(uid)
+          && request.resource.data.email == resource.data.email
+          && (
+            request.resource.data.role == resource.data.role
+            || (isBuiltInAdmin() && request.resource.data.role == 'admin')
+          )
+        );
+      allow delete: if false;
+    }
+
+    // Public magazine posts.
+    match /magazines/{magazineId} {
+      allow read: if signedIn() || resource.data.isPublic == true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && hasText(request.resource.data.title, 120)
+        && hasText(request.resource.data.description, 500)
+        && hasText(request.resource.data.content, 20000)
+        && request.resource.data.isPublic == false
+        && request.resource.data.status == 'pending_review';
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    // Top-level comments collection used by index.html.
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && hasText(request.resource.data.postId, 200)
+        && hasText(request.resource.data.content, 2000)
+        && request.resource.data.status == 'pending_review';
+      allow update, delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
+    }
+
+    // Reports from the public feed.
+    match /reports/{reportId} {
+      allow create: if signedIn()
+        && hasText(request.resource.data.postId, 200)
+        && hasText(request.resource.data.reason, 120)
+        && request.resource.data.status == 'new';
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Private messages from messages.js.
+    match /messages/{messageId} {
+      allow read: if signedIn()
+        && request.auth.uid in resource.data.participants;
+      allow create: if signedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.toUid in request.resource.data.participants
+        && request.resource.data.participants.size() == 2
+        && hasText(request.resource.data.text, 1000);
+      allow update, delete: if false;
+    }
+
+    // Banned email list.
+    match /bannedEmails/{emailId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Group chat directory from blog.js.
+    match /blogGroups/{groupId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && hasText(request.resource.data.name, 40)
+        && request.resource.data.joinMode in ['open', 'approval'];
+      allow update: if isGroupOwner(groupId)
+        || (isGroupMember(groupId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']));
+      allow delete: if isGroupOwner(groupId);
+    }
+
+    // Group chat membership records from blog.js.
+    match /blogGroupMembers/{memberId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.uid is string
+        && request.resource.data.groupId is string
+        && memberId == request.resource.data.groupId + '_' + request.resource.data.uid
+        && (
+          isGroupOwner(request.resource.data.groupId)
+          || (
+            request.resource.data.uid == request.auth.uid
+            && exists(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId))
+            && get(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId)).data.joinMode == 'open'
+          )
+        );
+      allow delete: if signedIn()
+        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
+    }
+
+    // Join requests for approval-only groups.
+    match /blogGroupJoinRequests/{requestId} {
+      allow read: if signedIn()
+        && (resource.data.uid == request.auth.uid || resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create, update: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.ownerUid is string
+        && request.resource.data.groupId is string
+        && requestId == request.resource.data.groupId + '_' + request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+        && request.resource.data.status in ['approved', 'denied'];
+      allow delete: if isAdmin();
+    }
+
+    // Group chat messages from blog.js.
+    match /blogGroupMessages/{messageId} {
+      allow read: if isGroupMember(resource.data.groupId) || isGroupOwner(resource.data.groupId);
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.groupId is string
+        && hasText(request.resource.data.text, 1000)
+        && (isGroupMember(request.resource.data.groupId) || isGroupOwner(request.resource.data.groupId));
+      allow update: if false;
+      allow delete: if signedIn()
+        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
+    }
+
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      }
+
+      match /members/{uid} {
+        allow read: if true;
+        allow create: if isOwner(uid);
+        allow update, delete: if isOwner(uid)
+          || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid);
+      }
+    }
+
+    match /hq/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+    }
+
+    match /kigazineHQ/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+    }
+
+    match /hqMessages/{docId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // Private KigaMath progress. Each account can access only its own document.
+    match /kigaMathProgress/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validKigaMathProgress(uid);
+      allow delete: if isOwner(uid);
+    }
+
+    // Kigazine Blockcade arcade games.
+    match /arcadeGames/{gameId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
+        ])
+        && hasText(request.resource.data.title, 60)
+        && hasText(request.resource.data.authorName, 30)
+        && request.resource.data.width == 20
+        && request.resource.data.height == 12
+        && validArcadeTiles(request.resource.data.tiles);
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
+        ])
+        && hasText(request.resource.data.title, 60)
+        && hasText(request.resource.data.authorName, 30)
+        && request.resource.data.width == 20
+        && request.resource.data.height == 12
+        && validArcadeTiles(request.resource.data.tiles);
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      match /scores/{scoreId} {
+        allow read: if true;
+        allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'uid', 'displayName', 'seconds', 'coins', 'deaths', 'createdAt'
+          ])
+          && hasText(request.resource.data.displayName, 30)
+          && request.resource.data.seconds is number
+          && request.resource.data.seconds >= 0
+          && request.resource.data.seconds <= 3600
+          && request.resource.data.coins is int
+          && request.resource.data.coins >= 0
+          && request.resource.data.coins <= 240
+          && request.resource.data.deaths is int
+          && request.resource.data.deaths >= 0
+          && request.resource.data.deaths <= 999;
+        allow update, delete: if false;
+      }
+    }
+  }
+});
+    }
+
+    function validKigaMathAvatar(avatar) {
+      return avatar is map
+        && avatar.keys().hasOnly(['shape', 'face', 'accessory', 'color'])
+        && avatar.shape in ['circle', 'square', 'blob']
+        && avatar.face in ['happy', 'cool', 'curious', 'excited']
+        && avatar.accessory in ['none', 'cap', 'crown', 'bow']
+        && avatar.color in [
+          '#62e9ff',
+          '#9c7cff',
+          '#ff7bd5',
+          '#ffd66b',
+          '#68f3b1',
+          '#ff8f72',
+          '#9ce0ff',
+          '#d8a8ff'
+        ];
+    }
+
+    function validKigaMathProfile(profile) {
+      return profile == null
+        || (
+          profile is map
+          && profile.keys().hasOnly(['realmKey', 'club', 'nickname', 'avatar'])
+          && profile.realmKey in [
+            'science',
+            'space',
+            'ocean',
+            'nature',
+            'academy',
+            'maker'
+          ]
+          && hasText(profile.club, 40)
+          && hasText(profile.nickname, 18)
+          && profile.nickname.size() >= 2
+          && validKigaMathAvatar(profile.avatar)
+        );
+    }
+
+    function validKigaMathProgress(uid) {
+      return request.resource.data.keys().hasOnly([
+          'ownerUid',
+          'version',
+          'stars',
+          'unlocked',
+          'tools',
+          'completed',
+          'badges',
+          'profile',
+          'updatedAt'
+        ])
+        && request.resource.data.ownerUid == uid
+        && request.resource.data.version == 1
+        && request.resource.data.stars is int
+        && request.resource.data.stars >= 0
+        && request.resource.data.stars <= 1000000
+        && request.resource.data.unlocked is list
+        && request.resource.data.unlocked.size() >= 1
+        && request.resource.data.unlocked.size() <= 4
+        && request.resource.data.unlocked.hasOnly([
+          'easy',
+          'medium',
+          'hard',
+          'expert'
+        ])
+        && request.resource.data.tools is map
+        && request.resource.data.tools.keys().hasOnly([
+          'double',
+          'hint',
+          'skip',
+          'time'
+        ])
+        && request.resource.data.tools.double is int
+        && request.resource.data.tools.double >= 0
+        && request.resource.data.tools.double <= 999
+        && request.resource.data.tools.hint is int
+        && request.resource.data.tools.hint >= 0
+        && request.resource.data.tools.hint <= 999
+        && request.resource.data.tools.skip is int
+        && request.resource.data.tools.skip >= 0
+        && request.resource.data.tools.skip <= 999
+        && request.resource.data.tools.time is int
+        && request.resource.data.tools.time >= 0
+        && request.resource.data.tools.time <= 999
+        && request.resource.data.completed is list
+        && request.resource.data.completed.size() <= 20
+        && request.resource.data.completed.hasOnly([
+          'addition-easy',
+          'addition-medium',
+          'addition-hard',
+          'addition-expert',
+          'subtraction-easy',
+          'subtraction-medium',
+          'subtraction-hard',
+          'subtraction-expert',
+          'multiplication-easy',
+          'multiplication-medium',
+          'multiplication-hard',
+          'multiplication-expert',
+          'fractions-easy',
+          'fractions-medium',
+          'fractions-hard',
+          'fractions-expert',
+          'area-perimeter-easy',
+          'area-perimeter-medium',
+          'area-perimeter-hard',
+          'area-perimeter-expert'
+        ])
+        && request.resource.data.badges is list
+        && request.resource.data.badges.size() <= 10
+        && request.resource.data.badges.hasOnly([
+          'Addition Perfect Page',
+          'Addition Bright Thinker',
+          'Subtraction Perfect Page',
+          'Subtraction Bright Thinker',
+          'Multiplication Perfect Page',
+          'Multiplication Bright Thinker',
+          'Fractions Perfect Page',
+          'Fractions Bright Thinker',
+          'Area & Perimeter Perfect Page',
+          'Area & Perimeter Bright Thinker'
+        ])
+        && validKigaMathProfile(request.resource.data.profile)
+        && request.resource.data.updatedAt == request.time;
     }
 
     function isGroupOwner(groupId) {
