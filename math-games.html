@@ -1496,6 +1496,8 @@
     "use strict";
 
     const STORAGE_KEY = "kigamath-quest-v3";
+    let syncStatus = "Connecting to Firebase…";
+    let progressRevision = 0;
 
     const realms = {
       science: {
@@ -1834,30 +1836,158 @@
       return JSON.parse(JSON.stringify(value));
     }
 
+    function normalizeProgress(value = {}) {
+      const raw =
+        value && typeof value === "object" ? value : {};
+
+      const allowedLevels = Object.keys(difficulties);
+      const allowedMissions = new Set(
+        subjects.flatMap(subject =>
+          allowedLevels.map(
+            level => `${subject.id}-${level}`
+          )
+        )
+      );
+
+      const allowedBadges = new Set(
+        subjects.flatMap(subject => [
+          `${subject.name} Perfect Page`,
+          `${subject.name} Bright Thinker`
+        ])
+      );
+
+      const unlocked = Array.isArray(raw.unlocked)
+        ? [
+            ...new Set(
+              raw.unlocked.filter(level =>
+                allowedLevels.includes(level)
+              )
+            )
+          ]
+        : ["easy"];
+
+      if (!unlocked.includes("easy")) {
+        unlocked.unshift("easy");
+      }
+
+      const tools = Object.fromEntries(
+        Object.keys(defaultProgress.tools).map(toolId => {
+          const amount = Number(raw.tools?.[toolId]);
+
+          return [
+            toolId,
+            Number.isFinite(amount)
+              ? Math.max(0, Math.min(999, Math.floor(amount)))
+              : defaultProgress.tools[toolId]
+          ];
+        })
+      );
+
+      let profile = null;
+      const incomingProfile = raw.profile;
+
+      if (
+        incomingProfile &&
+        realms[incomingProfile.realmKey]
+      ) {
+        const realm = realms[incomingProfile.realmKey];
+        const nickname = String(
+          incomingProfile.nickname || ""
+        )
+          .trim()
+          .replace(/\s+/g, " ")
+          .slice(0, 18);
+
+        const club = realm.clubs.includes(
+          incomingProfile.club
+        )
+          ? incomingProfile.club
+          : null;
+
+        const avatar = incomingProfile.avatar || {};
+        const allowedColors = [
+          "#62e9ff",
+          "#9c7cff",
+          "#ff7bd5",
+          "#ffd66b",
+          "#68f3b1",
+          "#ff8f72",
+          "#9ce0ff",
+          "#d8a8ff"
+        ];
+
+        if (nickname.length >= 2 && club) {
+          profile = {
+            realmKey: incomingProfile.realmKey,
+            club,
+            nickname,
+            avatar: {
+              shape: ["circle", "square", "blob"].includes(
+                avatar.shape
+              )
+                ? avatar.shape
+                : "circle",
+              face: [
+                "happy",
+                "cool",
+                "curious",
+                "excited"
+              ].includes(avatar.face)
+                ? avatar.face
+                : "happy",
+              accessory: [
+                "none",
+                "cap",
+                "crown",
+                "bow"
+              ].includes(avatar.accessory)
+                ? avatar.accessory
+                : "none",
+              color: allowedColors.includes(avatar.color)
+                ? avatar.color
+                : "#62e9ff"
+            }
+          };
+        }
+      }
+
+      const stars = Number(raw.stars);
+
+      return {
+        stars: Number.isFinite(stars)
+          ? Math.max(0, Math.min(1000000, Math.floor(stars)))
+          : defaultProgress.stars,
+        unlocked,
+        tools,
+        completed: Array.isArray(raw.completed)
+          ? [
+              ...new Set(
+                raw.completed.filter(item =>
+                  allowedMissions.has(item)
+                )
+              )
+            ]
+          : [],
+        badges: Array.isArray(raw.badges)
+          ? [
+              ...new Set(
+                raw.badges.filter(item =>
+                  allowedBadges.has(item)
+                )
+              )
+            ]
+          : [],
+        profile
+      };
+    }
+
     function loadProgress() {
       try {
         const raw = JSON.parse(
           localStorage.getItem(STORAGE_KEY) || "{}"
         );
 
-        return {
-          ...defaultProgress,
-          ...raw,
-          tools: {
-            ...defaultProgress.tools,
-            ...(raw.tools || {})
-          },
-          unlocked:
-            Array.isArray(raw.unlocked) && raw.unlocked.length
-              ? raw.unlocked
-              : ["easy"],
-          completed: Array.isArray(raw.completed)
-            ? raw.completed
-            : [],
-          badges: Array.isArray(raw.badges)
-            ? raw.badges
-            : []
-        };
+        return normalizeProgress(raw);
       } catch (_) {
         return clone(defaultProgress);
       }
@@ -1932,31 +2062,90 @@
       }
     };
 
+    function progressPayload() {
+      return normalizeProgress({
+        stars: state.stars,
+        unlocked: state.unlocked,
+        tools: state.tools,
+        completed: state.completed,
+        badges: state.badges,
+        profile: state.realmKey
+          ? {
+              realmKey: state.realmKey,
+              club: state.club,
+              nickname: state.nickname,
+              avatar: state.avatar
+            }
+          : null
+      });
+    }
+
     function saveProgress() {
+      const payload = progressPayload();
+
       try {
         localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({
-            stars: state.stars,
-            unlocked: state.unlocked,
-            tools: state.tools,
-            completed: state.completed,
-            badges: state.badges,
-
-            profile: state.realmKey
-              ? {
-                  realmKey: state.realmKey,
-                  club: state.club,
-                  nickname: state.nickname,
-                  avatar: state.avatar
-                }
-              : null
-          })
+          JSON.stringify(payload)
         );
       } catch (_) {
         // The game remains usable if localStorage is unavailable.
       }
+
+      progressRevision += 1;
+
+      if (window.kigaMathFirebase?.save) {
+        window.kigaMathFirebase.save(payload);
+      } else {
+        window.kigaMathPendingProgress = payload;
+      }
     }
+
+    function applyCloudProgress(value) {
+      const progress = normalizeProgress(value);
+
+      state.realmKey = progress.profile?.realmKey || null;
+      state.club = progress.profile?.club || null;
+      state.nickname = progress.profile?.nickname || "";
+      state.avatar = progress.profile?.avatar || {
+        shape: "circle",
+        face: "happy",
+        accessory: "none",
+        color: "#62e9ff"
+      };
+
+      state.stars = progress.stars;
+      state.unlocked = progress.unlocked;
+      state.tools = progress.tools;
+      state.completed = progress.completed;
+      state.badges = progress.badges;
+
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(progress)
+        );
+      } catch (_) {
+        // Firestore remains the source of truth when storage is unavailable.
+      }
+
+      render();
+    }
+
+    function setSyncStatus(message) {
+      syncStatus = String(message || "Local save only");
+
+      if (document.getElementById("app")) {
+        render();
+      }
+    }
+
+    window.kigaMathSyncBridge = {
+      getProgress: () => clone(progressPayload()),
+      getRevision: () => progressRevision,
+      applyProgress: applyCloudProgress,
+      setStatus: setSyncStatus
+    };
 
     function escapeHtml(value) {
       return String(value).replace(
@@ -2081,6 +2270,13 @@
             }
 
             <span class="status-pill">⭐ ${state.stars}</span>
+
+            <span
+              class="status-pill"
+              title="KigaMath Firebase progress status"
+            >
+              ☁️ ${escapeHtml(syncStatus)}
+            </span>
 
             ${extra}
           </div>
@@ -4588,6 +4784,7 @@
       state.result = null;
       state.page = "home";
 
+      saveProgress();
       render();
     }
 
@@ -4883,6 +5080,136 @@
     );
 
     render();
+  </script>
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+      authDomain: "kigazine-302ac.firebaseapp.com",
+      projectId: "kigazine-302ac",
+      storageBucket: "kigazine-302ac.firebasestorage.app",
+      messagingSenderId: "821833747017",
+      appId: "1:821833747017:web:dc20a182d1935408c34d98"
+    };
+
+    const bridge = window.kigaMathSyncBridge;
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+
+    let activeUser = null;
+    let cloudReady = false;
+    let pendingProgress =
+      window.kigaMathPendingProgress || null;
+    let saveTimer = null;
+
+    async function writeProgress(progress) {
+      if (!activeUser) {
+        pendingProgress = progress;
+        return;
+      }
+
+      bridge.setStatus("Saving…");
+
+      try {
+        await setDoc(
+          doc(db, "kigaMathProgress", activeUser.uid),
+          {
+            ...progress,
+            ownerUid: activeUser.uid,
+            version: 1,
+            updatedAt: serverTimestamp()
+          }
+        );
+
+        bridge.setStatus("Synced");
+      } catch (error) {
+        console.error("KigaMath Firebase save failed", error);
+        pendingProgress = progress;
+        bridge.setStatus("Local save only");
+      }
+    }
+
+    function queueSave(progress) {
+      pendingProgress = progress;
+
+      if (!cloudReady || !activeUser) {
+        return;
+      }
+
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const nextProgress = pendingProgress;
+        pendingProgress = null;
+        await writeProgress(nextProgress);
+      }, 300);
+    }
+
+    window.kigaMathFirebase = {
+      save: queueSave
+    };
+
+    onAuthStateChanged(auth, async user => {
+      activeUser = user;
+      cloudReady = false;
+
+      if (!user) {
+        bridge.setStatus("Local only • log in to sync");
+        return;
+      }
+
+      bridge.setStatus("Loading progress…");
+
+      const revisionAtStart = bridge.getRevision();
+      const progressRef = doc(
+        db,
+        "kigaMathProgress",
+        user.uid
+      );
+
+      try {
+        const snapshot = await getDoc(progressRef);
+        const changedWhileLoading =
+          bridge.getRevision() !== revisionAtStart ||
+          pendingProgress !== null;
+
+        if (snapshot.exists() && !changedWhileLoading) {
+          bridge.applyProgress(snapshot.data());
+        } else {
+          pendingProgress = bridge.getProgress();
+        }
+
+        cloudReady = true;
+
+        if (pendingProgress) {
+          const nextProgress = pendingProgress;
+          pendingProgress = null;
+          await writeProgress(nextProgress);
+        } else {
+          bridge.setStatus("Synced");
+        }
+      } catch (error) {
+        console.error("KigaMath Firebase load failed", error);
+        cloudReady = true;
+        bridge.setStatus("Local save only");
+      }
+    });
   </script>
 </body>
 </html>
