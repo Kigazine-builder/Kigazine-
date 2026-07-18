@@ -1,0 +1,4888 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071426">
+  <title>KigaMath Quest | Kigazine</title>
+
+  <style>
+    :root {
+      --ink: #071426;
+      --ink-2: #0b1c33;
+      --panel: rgba(14, 35, 62, 0.88);
+      --line: rgba(132, 224, 255, 0.25);
+      --cyan: #62e9ff;
+      --cyan-2: #2eb7ff;
+      --violet: #9c7cff;
+      --pink: #ff7bd5;
+      --yellow: #ffd66b;
+      --green: #68f3b1;
+      --red: #ff7c88;
+      --white: #f7fbff;
+      --muted: #a9bdd3;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      --soft-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --font: Inter, ui-rounded, "SF Pro Rounded", "Segoe UI",
+        system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--ink);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--white);
+      font-family: var(--font);
+      background:
+        radial-gradient(
+          circle at 16% 12%,
+          rgba(46, 183, 255, 0.2),
+          transparent 26rem
+        ),
+        radial-gradient(
+          circle at 82% 18%,
+          rgba(156, 124, 255, 0.18),
+          transparent 28rem
+        ),
+        radial-gradient(
+          circle at 50% 105%,
+          rgba(255, 123, 213, 0.14),
+          transparent 34rem
+        ),
+        linear-gradient(145deg, #050d1a 0%, #08172b 48%, #071426 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image:
+        radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.85) 0 1px,
+          transparent 1.5px
+        ),
+        radial-gradient(
+          circle,
+          rgba(98, 233, 255, 0.65) 0 1px,
+          transparent 1.5px
+        );
+      background-position: 0 0, 36px 34px;
+      background-size: 74px 74px, 113px 113px;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.018),
+          transparent
+        );
+      background-size: 5px 100%;
+      mix-blend-mode: screen;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--yellow);
+      outline-offset: 3px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    #app {
+      min-height: 100vh;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 0 38px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 10px;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(6, 18, 35, 0.78);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: #04111e;
+      background:
+        linear-gradient(
+          145deg,
+          #b8f7ff,
+          #4edcff 48%,
+          #8f75ff 100%
+        );
+      box-shadow:
+        0 0 24px rgba(98, 233, 255, 0.45),
+        inset 0 1px 1px rgba(255, 255, 255, 0.75);
+      transform: skewX(-5deg);
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: clamp(19px, 3vw, 26px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #dffbff;
+      text-shadow: 0 0 18px rgba(98, 233, 255, 0.45);
+      white-space: nowrap;
+    }
+
+    .brand-kicker {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill,
+    .tag,
+    .issue-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      color: #dff7ff;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 8px 11px;
+    }
+
+    .issue-tag {
+      color: var(--yellow);
+      border-color: rgba(255, 214, 107, 0.34);
+      background: rgba(255, 214, 107, 0.08);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 11px 16px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        filter 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-primary {
+      color: #04121f;
+      background:
+        linear-gradient(
+          135deg,
+          #bcf8ff,
+          var(--cyan) 52%,
+          #83bfff
+        );
+      box-shadow:
+        0 12px 30px rgba(46, 183, 255, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .btn-violet {
+      color: white;
+      background:
+        linear-gradient(
+          135deg,
+          #b194ff,
+          #7664ef 58%,
+          #5b49d1
+        );
+      box-shadow: 0 12px 28px rgba(118, 100, 239, 0.28);
+    }
+
+    .btn-yellow {
+      color: #241800;
+      background: linear-gradient(135deg, #fff0a9, var(--yellow));
+      box-shadow: 0 12px 28px rgba(255, 214, 107, 0.24);
+    }
+
+    .btn-ghost {
+      color: #dff7ff;
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .btn-danger {
+      color: white;
+      border-color: rgba(255, 124, 136, 0.3);
+      background: rgba(255, 124, 136, 0.14);
+    }
+
+    .btn-small {
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      padding: clamp(24px, 5vw, 58px);
+      border: 1px solid rgba(98, 233, 255, 0.28);
+      border-radius: 32px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(15, 42, 74, 0.93),
+          rgba(12, 27, 52, 0.88)
+        ),
+        radial-gradient(
+          circle at 75% 20%,
+          rgba(156, 124, 255, 0.35),
+          transparent 45%
+        );
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      right: -190px;
+      top: -190px;
+      border-radius: 50%;
+      border: 1px solid rgba(98, 233, 255, 0.25);
+      box-shadow:
+        0 0 0 38px rgba(98, 233, 255, 0.035),
+        0 0 0 78px rgba(156, 124, 255, 0.025);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 14px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      max-width: 780px;
+      margin-bottom: 16px;
+      font-size: clamp(44px, 8vw, 88px);
+      line-height: 0.92;
+      letter-spacing: -0.065em;
+    }
+
+    .neon-text {
+      color: transparent;
+      background:
+        linear-gradient(
+          90deg,
+          #f7feff 0%,
+          #83efff 35%,
+          #a38bff 68%,
+          #ff9add 100%
+        );
+      background-clip: text;
+      -webkit-background-clip: text;
+      text-shadow: 0 0 38px rgba(98, 233, 255, 0.12);
+    }
+
+    .hero-lead {
+      max-width: 660px;
+      color: #bed0e3;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.65;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+
+    .cover-card {
+      position: relative;
+      align-self: stretch;
+      min-height: 350px;
+      overflow: hidden;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 25px;
+      background:
+        radial-gradient(
+          circle at 65% 18%,
+          rgba(98, 233, 255, 0.32),
+          transparent 34%
+        ),
+        linear-gradient(
+          155deg,
+          rgba(32, 67, 108, 0.92),
+          rgba(25, 24, 73, 0.94)
+        );
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        0 28px 55px rgba(0, 0, 0, 0.3);
+      transform: rotate(1.2deg);
+    }
+
+    .cover-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          110deg,
+          transparent 25%,
+          rgba(255, 255, 255, 0.09) 42%,
+          transparent 58%
+        );
+      transform: translateX(-110%);
+      animation: shine 5.5s ease-in-out infinite;
+    }
+
+    .cover-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cover-logo {
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: -0.05em;
+    }
+
+    .cover-art {
+      display: grid;
+      place-items: center;
+      min-height: 185px;
+      font-size: 110px;
+      filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.28));
+    }
+
+    .cover-headline {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .cover-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 12px 18px;
+      color: #121000;
+      background: var(--yellow);
+      font-weight: 950;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .mag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .feature-card,
+    .panel,
+    .choice-card,
+    .tool-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(
+          150deg,
+          rgba(18, 43, 74, 0.92),
+          rgba(9, 25, 47, 0.9)
+        );
+      box-shadow:
+        var(--soft-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    }
+
+    .feature-card {
+      min-height: 150px;
+      padding: 20px;
+    }
+
+    .feature-icon {
+      margin-bottom: 12px;
+      font-size: 34px;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 7px;
+      font-size: 17px;
+    }
+
+    .feature-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 18px 0;
+    }
+
+    .section-head h1,
+    .section-head h2 {
+      margin: 0;
+      letter-spacing: -0.045em;
+    }
+
+    .section-head h1 {
+      font-size: clamp(34px, 6vw, 56px);
+    }
+
+    .section-head h2 {
+      font-size: clamp(27px, 4vw, 40px);
+    }
+
+    .section-head p {
+      margin: 7px 0 0;
+      color: var(--muted);
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .choice-card {
+      width: 100%;
+      min-height: 220px;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .choice-card:hover:not(:disabled) {
+      transform: translateY(-6px);
+      border-color: rgba(98, 233, 255, 0.62);
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.32),
+        0 0 24px rgba(98, 233, 255, 0.11);
+    }
+
+    .choice-card.selected {
+      border-color: var(--yellow);
+      box-shadow:
+        0 0 0 2px rgba(255, 214, 107, 0.18),
+        0 0 30px rgba(255, 214, 107, 0.12);
+    }
+
+    .choice-card.locked::after {
+      content: "LOCKED";
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      color: #161100;
+      background: var(--yellow);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+    }
+
+    .choice-art {
+      min-height: 130px;
+      display: grid;
+      place-items: center;
+      font-size: 64px;
+      background:
+        radial-gradient(
+          circle at 50% 30%,
+          rgba(255, 255, 255, 0.18),
+          transparent 40%
+        ),
+        linear-gradient(
+          135deg,
+          rgba(98, 233, 255, 0.18),
+          rgba(156, 124, 255, 0.18)
+        );
+    }
+
+    .choice-copy {
+      padding: 17px 18px 20px;
+    }
+
+    .choice-copy h3 {
+      margin-bottom: 7px;
+      font-size: 18px;
+    }
+
+    .choice-copy p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .panel {
+      padding: clamp(18px, 4vw, 30px);
+    }
+
+    .panel-title {
+      margin-bottom: 6px;
+      font-size: 20px;
+    }
+
+    .panel-sub {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .form-label {
+      display: block;
+      margin: 18px 0 8px;
+      color: #d9f8ff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .text-input {
+      width: 100%;
+      min-height: 52px;
+      padding: 0 15px;
+      border: 1px solid rgba(98, 233, 255, 0.26);
+      border-radius: 14px;
+      color: white;
+      background: rgba(2, 12, 25, 0.5);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .text-input::placeholder {
+      color: #6f87a0;
+    }
+
+    .safety-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      margin-top: 14px;
+      padding: 13px 14px;
+      border: 1px solid rgba(104, 243, 177, 0.22);
+      border-radius: 14px;
+      color: #bdebd3;
+      background: rgba(104, 243, 177, 0.07);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .avatar-preview {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background:
+        radial-gradient(
+          circle at 50% 42%,
+          rgba(98, 233, 255, 0.23),
+          transparent 36%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(18, 44, 75, 0.92),
+          rgba(10, 25, 46, 0.92)
+        );
+    }
+
+    .avatar-shell {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 150px;
+      height: 150px;
+      border: 4px solid rgba(255, 255, 255, 0.74);
+      box-shadow:
+        0 24px 40px rgba(0, 0, 0, 0.28),
+        0 0 36px rgba(98, 233, 255, 0.2);
+      font-size: 78px;
+      line-height: 1;
+    }
+
+    .avatar-shell.small {
+      width: 38px;
+      height: 38px;
+      border-width: 2px;
+      box-shadow: none;
+      font-size: 22px;
+    }
+
+    .avatar-accessory {
+      position: absolute;
+      top: -34%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.64em;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .option-button {
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.055);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .option-button.active {
+      border-color: var(--yellow);
+      background: rgba(255, 214, 107, 0.14);
+      box-shadow: 0 0 0 2px rgba(255, 214, 107, 0.1);
+    }
+
+    .color-dot {
+      height: 38px;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .color-dot.active {
+      outline: 3px solid var(--yellow);
+      outline-offset: 2px;
+    }
+
+    .map-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .map-board {
+      padding: clamp(14px, 3vw, 24px);
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(48px, 1fr));
+      gap: 9px;
+    }
+
+    .map-tile {
+      position: relative;
+      min-width: 0;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(98, 233, 255, 0.18);
+      border-radius: 15px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(23, 55, 89, 0.82),
+          rgba(10, 27, 50, 0.92)
+        );
+      font-size: clamp(21px, 4vw, 34px);
+      cursor: pointer;
+      transition:
+        transform 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
+    }
+
+    .map-tile:hover {
+      transform: translateY(-2px);
+      border-color: rgba(98, 233, 255, 0.45);
+    }
+
+    .map-tile.path::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(98, 233, 255, 0.22);
+    }
+
+    .map-tile.guide {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(156, 124, 255, 0.22),
+          rgba(46, 183, 255, 0.14)
+        );
+    }
+
+    .map-tile.player {
+      border-color: var(--yellow);
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255, 214, 107, 0.28),
+          rgba(98, 233, 255, 0.18)
+        );
+      box-shadow: 0 0 24px rgba(255, 214, 107, 0.16);
+    }
+
+    .map-tile.reachable {
+      box-shadow: inset 0 0 0 2px rgba(104, 243, 177, 0.18);
+    }
+
+    .map-hint {
+      margin-top: 13px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .guide-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .guide-item strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .guide-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dialog-hero {
+      padding: clamp(24px, 5vw, 48px);
+      text-align: center;
+    }
+
+    .dialog-emoji {
+      margin-bottom: 12px;
+      font-size: 96px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .dialog-quote {
+      max-width: 650px;
+      margin: 18px auto 0;
+      color: #c3d7ea;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .progress-shell {
+      height: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan),
+          var(--violet),
+          var(--pink)
+        );
+      transition: width 0.3s ease;
+    }
+
+    .game-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 14px;
+    }
+
+    .meta-card {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .meta-card small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .meta-card strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 18px;
+    }
+
+    .question-card {
+      padding: clamp(20px, 5vw, 38px);
+      text-align: center;
+    }
+
+    .question-kicker {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .question-text {
+      margin: 12px 0 20px;
+      font-size: clamp(34px, 7vw, 64px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .question-note {
+      margin-bottom: 16px;
+      color: var(--muted);
+    }
+
+    .shape-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin: 12px auto 22px;
+    }
+
+    .shape-label {
+      color: #d8ecff;
+      font-weight: 900;
+    }
+
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      width: min(100%, calc(var(--cols) * 38px));
+      overflow: hidden;
+      border: 2px solid var(--cyan);
+      border-radius: 9px;
+      box-shadow: 0 0 28px rgba(98, 233, 255, 0.14);
+    }
+
+    .shape-cell {
+      min-width: 18px;
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(98, 233, 255, 0.1);
+    }
+
+    .shape-cell.area {
+      background: rgba(156, 124, 255, 0.18);
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .answer-button {
+      min-height: 68px;
+      padding: 11px;
+      border: 1px solid rgba(98, 233, 255, 0.22);
+      border-radius: 17px;
+      color: white;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(30, 65, 103, 0.86),
+          rgba(13, 34, 62, 0.92)
+        );
+      font-size: clamp(17px, 3vw, 22px);
+      font-weight: 950;
+      cursor: pointer;
+      transition:
+        transform 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
+    }
+
+    .answer-button:hover:not(:disabled) {
+      transform: translateY(-3px);
+      border-color: var(--cyan);
+    }
+
+    .answer-button.correct {
+      border-color: var(--green);
+      background: rgba(104, 243, 177, 0.18);
+      box-shadow: 0 0 22px rgba(104, 243, 177, 0.14);
+    }
+
+    .answer-button.wrong {
+      border-color: var(--red);
+      background: rgba(255, 124, 136, 0.16);
+    }
+
+    .answer-button.dim {
+      opacity: 0.45;
+    }
+
+    .feedback {
+      margin-top: 14px;
+      padding: 14px 15px;
+      border-radius: 14px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .feedback.good {
+      border: 1px solid rgba(104, 243, 177, 0.3);
+      color: #c8f8df;
+      background: rgba(104, 243, 177, 0.09);
+    }
+
+    .feedback.try {
+      border: 1px solid rgba(255, 214, 107, 0.28);
+      color: #ffedb7;
+      background: rgba(255, 214, 107, 0.08);
+    }
+
+    .tools-panel {
+      position: sticky;
+      top: 88px;
+    }
+
+    .tool-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tool-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.045);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .tool-button strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .tool-button small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tool-count {
+      min-width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #141000;
+      background: var(--yellow);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .active-banner {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 214, 107, 0.28);
+      border-radius: 13px;
+      color: #ffe9a6;
+      background: rgba(255, 214, 107, 0.08);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .tool-card {
+      padding: 20px;
+    }
+
+    .tool-card .big-icon {
+      font-size: 42px;
+    }
+
+    .tool-card h3 {
+      margin: 11px 0 6px;
+    }
+
+    .tool-card p {
+      min-height: 40px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .tool-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .result-wrap {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .result-hero {
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .result-medal {
+      font-size: 96px;
+      animation: pop 0.55s cubic-bezier(0.22, 1.5, 0.45, 1) both;
+    }
+
+    .result-score {
+      margin: 12px 0 6px;
+      font-size: clamp(54px, 9vw, 94px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .stat-card small {
+      display: block;
+      color: var(--muted);
+    }
+
+    .stat-card strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 23px;
+    }
+
+    .calculator {
+      width: min(390px, 100%);
+      margin: auto;
+    }
+
+    .calc-display {
+      padding: 17px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: rgba(0, 0, 0, 0.28);
+      text-align: right;
+    }
+
+    .calc-history {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .calc-value {
+      min-height: 48px;
+      overflow-wrap: anywhere;
+      font-size: 38px;
+      font-weight: 950;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .calc-key {
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .calc-key.op {
+      color: #bdf7ff;
+      background: rgba(98, 233, 255, 0.13);
+    }
+
+    .calc-key.eq {
+      background: linear-gradient(135deg, var(--violet), #6252df);
+    }
+
+    .calc-key.warn {
+      background: rgba(255, 124, 136, 0.13);
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      left: 50%;
+      bottom: 20px;
+      max-width: calc(100% - 28px);
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: #e8faff;
+      background: rgba(5, 17, 33, 0.94);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+      font-weight: 800;
+      transform: translateX(-50%);
+      animation: toast-in 0.25s ease both;
+    }
+
+    .confetti {
+      position: fixed;
+      z-index: 80;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .confetti span {
+      position: absolute;
+      top: -30px;
+      font-size: 22px;
+      animation: fall 2.2s ease-in forwards;
+    }
+
+    .footer-note {
+      margin-top: auto;
+      padding-top: 22px;
+      color: #7088a1;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @keyframes shine {
+      0%,
+      28% {
+        transform: translateX(-120%);
+      }
+
+      48%,
+      100% {
+        transform: translateX(120%);
+      }
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: scale(0.76);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes fall {
+      to {
+        opacity: 0;
+        transform: translateY(110vh) rotate(620deg);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .split,
+      .map-layout,
+      .game-layout,
+      .result-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .cover-card {
+        min-height: 300px;
+        transform: none;
+      }
+
+      .choice-grid,
+      .mag-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tools-panel {
+        position: static;
+      }
+
+      .game-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 18px, 1180px);
+        padding-top: 9px;
+      }
+
+      .topbar {
+        top: 5px;
+      }
+
+      .brand-kicker,
+      .issue-tag {
+        display: none;
+      }
+
+      .hero {
+        padding: 23px 18px;
+        border-radius: 24px;
+      }
+
+      .hero h1 {
+        font-size: 48px;
+      }
+
+      .choice-grid,
+      .mag-grid,
+      .shop-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-card {
+        min-height: 170px;
+      }
+
+      .choice-art {
+        min-height: 100px;
+      }
+
+      .map-grid {
+        grid-template-columns: repeat(5, minmax(42px, 1fr));
+        gap: 6px;
+      }
+
+      .map-tile {
+        border-radius: 11px;
+      }
+
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .result-score {
+        font-size: 66px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="app" aria-live="polite"></main>
+  <div id="toastHost"></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "kigamath-quest-v3";
+
+    const realms = {
+      science: {
+        name: "Science Lab",
+        emoji: "🔬",
+        color: "#62e9ff",
+        description: "Experiments, robots, and number discoveries.",
+        guides: [
+          {
+            name: "Dr. Nova",
+            emoji: "🧑‍🔬",
+            line: "Let’s test a math idea and record what we learn."
+          },
+          {
+            name: "Byte Bot",
+            emoji: "🤖",
+            line: "My circuits love clear steps and careful checking."
+          },
+          {
+            name: "Lab Owl",
+            emoji: "🦉",
+            line: "Good mathematicians explain how they know."
+          },
+          {
+            name: "Professor Pixel",
+            emoji: "👩‍🏫",
+            line: "Mistakes are useful clues, not something to fear."
+          }
+        ],
+        clubs: [
+          "🔭 Astronomy Club",
+          "🤖 Robotics Club",
+          "🧪 Experiment Team",
+          "🧠 Brain Lab"
+        ]
+      },
+
+      space: {
+        name: "Space Club",
+        emoji: "🚀",
+        color: "#9c7cff",
+        description:
+          "Explore planets while building confident math skills.",
+        guides: [
+          {
+            name: "Captain Comet",
+            emoji: "👨‍🚀",
+            line: "Every mission begins with one small, smart step."
+          },
+          {
+            name: "Orbit",
+            emoji: "🛰️",
+            line: "I can help you spot patterns in the stars."
+          },
+          {
+            name: "Luna",
+            emoji: "🌙",
+            line: "Slow thinking can be powerful thinking."
+          },
+          {
+            name: "Cosmo",
+            emoji: "👽",
+            line: "On my planet, we celebrate thoughtful work."
+          }
+        ],
+        clubs: [
+          "🌙 Moon Team",
+          "🪐 Planet Crew",
+          "✨ Star Scouts",
+          "🛰️ Orbit Club"
+        ]
+      },
+
+      ocean: {
+        name: "Ocean Study",
+        emoji: "🐙",
+        color: "#2eb7ff",
+        description: "Dive into puzzles with friendly sea guides.",
+        guides: [
+          {
+            name: "Ollie Octopus",
+            emoji: "🐙",
+            line: "I have eight arms, but one good strategy is enough."
+          },
+          {
+            name: "Dara Dolphin",
+            emoji: "🐬",
+            line: "Let’s make a splash with careful thinking."
+          },
+          {
+            name: "Tula Turtle",
+            emoji: "🐢",
+            line: "Take your time. Accuracy matters more than speed."
+          },
+          {
+            name: "Sammy Seal",
+            emoji: "🦭",
+            line: "Practice makes tricky questions feel familiar."
+          }
+        ],
+        clubs: [
+          "🐚 Reef Readers",
+          "🐬 Dolphin Team",
+          "🌊 Wave Watchers",
+          "🐢 Turtle Club"
+        ]
+      },
+
+      nature: {
+        name: "Nature Trail",
+        emoji: "🌿",
+        color: "#68f3b1",
+        description:
+          "Learn through trails, animals, and outdoor patterns.",
+        guides: [
+          {
+            name: "Ranger Fern",
+            emoji: "🧑‍🌾",
+            line: "Nature is full of shapes, groups, and patterns."
+          },
+          {
+            name: "Milo Monkey",
+            emoji: "🐵",
+            line: "Let’s swing from one step to the next."
+          },
+          {
+            name: "Pip Parrot",
+            emoji: "🦜",
+            line: "Say your strategy out loud—it can help."
+          },
+          {
+            name: "Leo Lion",
+            emoji: "🦁",
+            line: "Be brave enough to try, even when unsure."
+          }
+        ],
+        clubs: [
+          "🌱 Green Team",
+          "🦋 Butterfly Club",
+          "🦜 Bird Watchers",
+          "🌳 Forest Friends"
+        ]
+      },
+
+      academy: {
+        name: "Castle Academy",
+        emoji: "🏰",
+        color: "#ffd66b",
+        description:
+          "A bright school of puzzles, stories, and strategy.",
+        guides: [
+          {
+            name: "Coach Crown",
+            emoji: "👑",
+            line: "A strong solution is clear, checked, and explained."
+          },
+          {
+            name: "Sir Numbers",
+            emoji: "🛡️",
+            line: "We train with kindness and patient practice."
+          },
+          {
+            name: "Sage Spark",
+            emoji: "🧙",
+            line: "The best magic is learning something new."
+          },
+          {
+            name: "Page Penny",
+            emoji: "📚",
+            line: "Every page of practice builds your confidence."
+          }
+        ],
+        clubs: [
+          "📚 Story Scholars",
+          "🧩 Puzzle Guild",
+          "⭐ Bright Knights",
+          "🏆 Quest Club"
+        ]
+      },
+
+      maker: {
+        name: "Maker Studio",
+        emoji: "🛠️",
+        color: "#ff7bd5",
+        description: "Build, design, measure, and improve your ideas.",
+        guides: [
+          {
+            name: "Mia Maker",
+            emoji: "👩‍🔧",
+            line: "Designers test, adjust, and try again."
+          },
+          {
+            name: "Tinker",
+            emoji: "⚙️",
+            line: "Let’s break a big problem into smaller parts."
+          },
+          {
+            name: "Sketch",
+            emoji: "✏️",
+            line: "A quick drawing can make a problem easier."
+          },
+          {
+            name: "Patch",
+            emoji: "🧰",
+            line: "We can fix almost anything with a good plan."
+          }
+        ],
+        clubs: [
+          "🧱 Builder Club",
+          "🎨 Design Team",
+          "⚙️ Tinker Crew",
+          "📐 Young Engineers"
+        ]
+      }
+    };
+
+    const subjects = [
+      {
+        id: "addition",
+        name: "Addition",
+        emoji: "➕",
+        description: "Build fluency by combining numbers."
+      },
+      {
+        id: "subtraction",
+        name: "Subtraction",
+        emoji: "➖",
+        description: "Find differences without negative answers."
+      },
+      {
+        id: "multiplication",
+        name: "Multiplication",
+        emoji: "✖️",
+        description: "Practice equal groups and times tables."
+      },
+      {
+        id: "fractions",
+        name: "Fractions",
+        emoji: "🥧",
+        description: "Connect fractions with decimal values."
+      },
+      {
+        id: "area-perimeter",
+        name: "Area & Perimeter",
+        emoji: "📐",
+        description:
+          "Measure rectangles and understand formulas."
+      }
+    ];
+
+    const difficulties = {
+      easy: {
+        name: "Warm-up",
+        emoji: "🌱",
+        questions: 5,
+        seconds: 45,
+        reward: 10,
+        description: "Friendly numbers and plenty of time."
+      },
+      medium: {
+        name: "Practice",
+        emoji: "⭐",
+        questions: 8,
+        seconds: 35,
+        reward: 20,
+        description: "A balanced classroom challenge."
+      },
+      hard: {
+        name: "Challenge",
+        emoji: "🚀",
+        questions: 10,
+        seconds: 28,
+        reward: 35,
+        description: "Larger numbers and faster thinking."
+      },
+      expert: {
+        name: "Mastery",
+        emoji: "🏆",
+        questions: 12,
+        seconds: 22,
+        reward: 55,
+        description: "For learners ready to stretch."
+      }
+    };
+
+    const toolCatalog = [
+      {
+        id: "double",
+        name: "Star Multiplier",
+        emoji: "🌟",
+        cost: 22,
+        description:
+          "Earn 2 points for the next correct answer."
+      },
+      {
+        id: "hint",
+        name: "Clue Card",
+        emoji: "💡",
+        cost: 16,
+        description:
+          "Highlight the correct choice for this question."
+      },
+      {
+        id: "skip",
+        name: "Pass Card",
+        emoji: "⏭️",
+        cost: 18,
+        description:
+          "Move on without breaking your current streak."
+      },
+      {
+        id: "time",
+        name: "Focus Time",
+        emoji: "⏱️",
+        cost: 12,
+        description:
+          "Add 15 seconds to the current question."
+      }
+    ];
+
+    const defaultProgress = {
+      stars: 25,
+      unlocked: ["easy"],
+      tools: {
+        double: 1,
+        hint: 1,
+        skip: 1,
+        time: 1
+      },
+      completed: [],
+      badges: [],
+      profile: null
+    };
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadProgress() {
+      try {
+        const raw = JSON.parse(
+          localStorage.getItem(STORAGE_KEY) || "{}"
+        );
+
+        return {
+          ...defaultProgress,
+          ...raw,
+          tools: {
+            ...defaultProgress.tools,
+            ...(raw.tools || {})
+          },
+          unlocked:
+            Array.isArray(raw.unlocked) && raw.unlocked.length
+              ? raw.unlocked
+              : ["easy"],
+          completed: Array.isArray(raw.completed)
+            ? raw.completed
+            : [],
+          badges: Array.isArray(raw.badges)
+            ? raw.badges
+            : []
+        };
+      } catch (_) {
+        return clone(defaultProgress);
+      }
+    }
+
+    function freshRun() {
+      return {
+        index: 0,
+        total: 5,
+        points: 0,
+        correct: 0,
+        skipped: 0,
+        streak: 0,
+        maxStreak: 0,
+        current: null,
+        answered: false,
+        selected: null,
+        feedback: "",
+        activeDouble: false,
+        activeHint: false
+      };
+    }
+
+    const progress = loadProgress();
+
+    const state = {
+      page: "home",
+      previousPage: "home",
+
+      realmKey: progress.profile?.realmKey || null,
+      club: progress.profile?.club || null,
+      nickname: progress.profile?.nickname || "",
+
+      avatar: progress.profile?.avatar || {
+        shape: "circle",
+        face: "happy",
+        accessory: "none",
+        color: "#62e9ff"
+      },
+
+      mapX: 2,
+      mapY: 2,
+      guideIndex: null,
+
+      subject: null,
+      difficulty: "easy",
+
+      stars: Number.isFinite(progress.stars)
+        ? progress.stars
+        : 25,
+
+      unlocked: progress.unlocked,
+      tools: progress.tools,
+      completed: progress.completed,
+      badges: progress.badges,
+
+      run: freshRun(),
+
+      timerId: null,
+      timerEnd: null,
+      timerQuestionId: null,
+
+      result: null,
+      toastTimer: null,
+
+      calc: {
+        display: "0",
+        stored: null,
+        operator: null,
+        waiting: false,
+        evaluated: false
+      }
+    };
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            stars: state.stars,
+            unlocked: state.unlocked,
+            tools: state.tools,
+            completed: state.completed,
+            badges: state.badges,
+
+            profile: state.realmKey
+              ? {
+                  realmKey: state.realmKey,
+                  club: state.club,
+                  nickname: state.nickname,
+                  avatar: state.avatar
+                }
+              : null
+          })
+        );
+      } catch (_) {
+        // The game remains usable if localStorage is unavailable.
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(
+        /[&<>'"]/g,
+        character =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            "'": "&#39;",
+            '"': "&quot;"
+          })[character]
+      );
+    }
+
+    function escapeJs(value) {
+      return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, " ");
+    }
+
+    function currentRealm() {
+      return realms[state.realmKey] || realms.science;
+    }
+
+    function subjectLabel() {
+      return (
+        subjects.find(subject => subject.id === state.subject)
+          ?.name || "Math"
+      );
+    }
+
+    function avatarMarkup(size = "small") {
+      const face =
+        {
+          happy: "😊",
+          cool: "😎",
+          curious: "🤔",
+          excited: "🤩"
+        }[state.avatar.face] || "😊";
+
+      const accessory =
+        {
+          none: "",
+          cap: "🧢",
+          crown: "👑",
+          bow: "🎀"
+        }[state.avatar.accessory] || "";
+
+      const radius =
+        state.avatar.shape === "circle"
+          ? "50%"
+          : state.avatar.shape === "square"
+            ? "24%"
+            : "38% 62% 46% 54% / 55% 38% 62% 45%";
+
+      return `
+        <span
+          class="avatar-shell ${size === "small" ? "small" : ""}"
+          style="
+            background:${state.avatar.color};
+            border-radius:${radius}
+          "
+          aria-label="Player avatar"
+        >
+          <span>${face}</span>
+          ${
+            accessory
+              ? `<span class="avatar-accessory">${accessory}</span>`
+              : ""
+          }
+        </span>
+      `;
+    }
+
+    function topbar(extra = "") {
+      return `
+        <header class="topbar">
+          <button
+            class="brand"
+            onclick="goHome()"
+            aria-label="Go to home"
+            style="
+              border:0;
+              background:none;
+              padding:0;
+              cursor:pointer;
+              text-align:left
+            "
+          >
+            <span class="brand-mark">K</span>
+
+            <span class="brand-copy">
+              <strong class="brand-name">KigaMath</strong>
+              <span class="brand-kicker">
+                Student magazine quest
+              </span>
+            </span>
+          </button>
+
+          <div class="top-actions">
+            <button
+              class="btn btn-ghost btn-small"
+              onclick="window.location.href='index.html'"
+              aria-label="Return to Kigazine"
+            >
+              ← Kigazine
+            </button>
+
+            <span class="issue-tag">School Edition</span>
+
+            ${
+              state.realmKey
+                ? `
+                  <span class="status-pill">
+                    ${avatarMarkup()}
+                    ${escapeHtml(state.nickname || "Learner")}
+                  </span>
+                `
+                : ""
+            }
+
+            <span class="status-pill">⭐ ${state.stars}</span>
+
+            ${extra}
+          </div>
+        </header>
+      `;
+    }
+
+    function pageShell(content, options = {}) {
+      return `
+        <div class="page">
+          ${options.noTopbar ? "" : topbar(options.extra || "")}
+
+          ${content}
+
+          <div class="footer-note">
+            Practice kindly • Keep personal information private •
+            Ask a trusted grown-up or teacher when needed
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      clearTimerIfNotPlaying();
+
+      const app = document.getElementById("app");
+
+      const renderers = {
+        home: renderHome,
+        realms: renderRealms,
+        profile: renderProfile,
+        avatar: renderAvatar,
+        map: renderMap,
+        guide: renderGuide,
+        subject: renderSubject,
+        difficulty: renderDifficulty,
+        game: renderGame,
+        results: renderResults,
+        shop: renderShop,
+        calculator: renderCalculator
+      };
+
+      app.innerHTML = (renderers[state.page] || renderHome)();
+
+      if (state.page === "game" && !state.run.answered) {
+        setTimeout(startTimer, 0);
+      }
+    }
+
+    function renderHome() {
+      const canContinue = Boolean(
+        state.realmKey && state.nickname
+      );
+
+      return pageShell(`
+        <section class="hero">
+          <div>
+            <div class="eyebrow">
+              ✦ Read the question. Try a strategy. Learn something.
+            </div>
+
+            <h1 class="neon-text">
+              Math practice, made like a magazine adventure.
+            </h1>
+
+            <p class="hero-lead">
+              Choose a learning world, meet friendly guides,
+              complete short practice missions, and collect stars
+              for useful study tools.
+            </p>
+
+            <div class="hero-actions">
+              <button
+                class="btn btn-primary"
+                onclick="goToRealms()"
+              >
+                ${
+                  canContinue
+                    ? "Start a new adventure"
+                    : "Create my learner profile"
+                }
+                →
+              </button>
+
+              ${
+                canContinue
+                  ? `
+                    <button
+                      class="btn btn-violet"
+                      onclick="continueProfile()"
+                    >
+                      Continue as ${escapeHtml(state.nickname)}
+                    </button>
+                  `
+                  : ""
+              }
+
+              <button
+                class="btn btn-ghost"
+                onclick="openCalculator('home')"
+              >
+                🧮 Open calculator
+              </button>
+            </div>
+          </div>
+
+          <article
+            class="cover-card"
+            aria-label="KigaMath magazine cover"
+          >
+            <div class="cover-top">
+              <span class="cover-logo">KigaMath</span>
+              <span class="tag">ISSUE 01</span>
+            </div>
+
+            <div class="cover-art">🧠</div>
+
+            <h2 class="cover-headline">
+              The Big Brain<br>
+              Practice Issue
+            </h2>
+
+            <div class="cover-strip">
+              Puzzles • Stars • Study Skills
+            </div>
+          </article>
+        </section>
+
+        <section class="mag-grid" aria-label="Game features">
+          <article class="feature-card">
+            <div class="feature-icon">🧩</div>
+            <h3>Short missions</h3>
+            <p>
+              Five to twelve questions per mission, with clear
+              explanations after every answer.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Kind feedback</h3>
+            <p>
+              Correct answers are celebrated, and mistakes are
+              treated as useful learning clues.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>School-friendly profile</h3>
+            <p>
+              Use a nickname only. The game never asks for a
+              school, address, phone number, or email.
+            </p>
+          </article>
+        </section>
+
+        <div
+          style="
+            display:flex;
+            justify-content:center;
+            margin-top:18px
+          "
+        >
+          <button
+            class="btn btn-danger btn-small"
+            onclick="resetProgress()"
+          >
+            Reset saved progress
+          </button>
+        </div>
+      `);
+    }
+
+    function renderRealms() {
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Step 1 of 3</div>
+            <h1>Choose your learning world</h1>
+            <p>
+              Each world has the same math subjects with a
+              different magazine theme.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="goHome()"
+          >
+            ← Home
+          </button>
+        </div>
+
+        <section class="choice-grid">
+          ${Object.entries(realms)
+            .map(
+              ([key, realm]) => `
+                <button
+                  class="choice-card ${
+                    state.realmKey === key ? "selected" : ""
+                  }"
+                  onclick="chooseRealm('${key}')"
+                >
+                  <div
+                    class="choice-art"
+                    style="
+                      background:
+                        radial-gradient(
+                          circle at 50% 30%,
+                          ${realm.color}44,
+                          transparent 44%
+                        ),
+                        linear-gradient(
+                          135deg,
+                          ${realm.color}22,
+                          rgba(156,124,255,.15)
+                        )
+                    "
+                  >
+                    ${realm.emoji}
+                  </div>
+
+                  <div class="choice-copy">
+                    <span class="tag">Learning world</span>
+                    <h3 style="margin-top:10px">
+                      ${realm.name}
+                    </h3>
+                    <p>${realm.description}</p>
+                  </div>
+                </button>
+              `
+            )
+            .join("")}
+        </section>
+      `);
+    }
+
+    function renderProfile() {
+      const realm = currentRealm();
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Step 2 of 3</div>
+            <h1>Make your student cover</h1>
+            <p>Use a nickname, then choose a club badge.</p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="goToRealms()"
+          >
+            ← Worlds
+          </button>
+        </div>
+
+        <div class="split">
+          <section class="panel">
+            <h2 class="panel-title">Your nickname</h2>
+
+            <p class="panel-sub">
+              This stays on this device and appears only inside
+              the game.
+            </p>
+
+            <label class="form-label" for="nickname">
+              Nickname or screen name
+            </label>
+
+            <input
+              id="nickname"
+              class="text-input"
+              maxlength="18"
+              value="${escapeHtml(state.nickname)}"
+              placeholder="Example: StarReader"
+              autocomplete="off"
+              oninput="updateNickname(this.value)"
+              onkeydown="
+                if (event.key === 'Enter') {
+                  goToAvatar();
+                }
+              "
+            >
+
+            <div class="safety-note">
+              <span>🛡️</span>
+              <span>
+                Do not enter your full name, school, address,
+                phone number, email, password, or exact location.
+              </span>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2 class="panel-title">
+              Choose a ${realm.name} club
+            </h2>
+
+            <p class="panel-sub">
+              This is a fun badge only. It does not change the
+              question difficulty.
+            </p>
+
+            <div
+              class="choice-grid"
+              style="
+                grid-template-columns:
+                  repeat(2,minmax(0,1fr));
+                margin-top:16px
+              "
+            >
+              ${realm.clubs
+                .map(
+                  club => `
+                    <button
+                      class="choice-card ${
+                        state.club === club ? "selected" : ""
+                      }"
+                      style="min-height:120px"
+                      onclick="chooseClub('${escapeJs(club)}')"
+                    >
+                      <div class="choice-copy">
+                        <h3>${club}</h3>
+                        <p>Join this club</p>
+                      </div>
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              style="margin-top:16px"
+              onclick="goToAvatar()"
+            >
+              Design my avatar →
+            </button>
+          </section>
+        </div>
+      `);
+    }
+
+    function renderAvatar() {
+      const colors = [
+        "#62e9ff",
+        "#9c7cff",
+        "#ff7bd5",
+        "#ffd66b",
+        "#68f3b1",
+        "#ff8f72",
+        "#9ce0ff",
+        "#d8a8ff"
+      ];
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Step 3 of 3</div>
+            <h1>Design your avatar</h1>
+            <p>
+              Make a bright character for your magazine
+              adventure.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="goToProfile()"
+          >
+            ← Profile
+          </button>
+        </div>
+
+        <div class="split">
+          <section class="panel avatar-preview">
+            <div>
+              <div>${avatarMarkup("large")}</div>
+
+              <h2 style="margin:24px 0 6px">
+                ${escapeHtml(state.nickname || "Learner")}
+              </h2>
+
+              <span class="tag">
+                ${escapeHtml(state.club || "Math Club")}
+              </span>
+            </div>
+          </section>
+
+          <section class="panel">
+            <label class="form-label">Shape</label>
+
+            <div class="option-row">
+              ${[
+                ["circle", "Circle"],
+                ["square", "Square"],
+                ["blob", "Blob"]
+              ]
+                .map(
+                  ([value, label]) => `
+                    <button
+                      class="option-button ${
+                        state.avatar.shape === value
+                          ? "active"
+                          : ""
+                      }"
+                      onclick="
+                        setAvatar('shape','${value}')
+                      "
+                    >
+                      ${label}
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <label class="form-label">Expression</label>
+
+            <div class="option-row">
+              ${[
+                ["happy", "😊"],
+                ["cool", "😎"],
+                ["curious", "🤔"],
+                ["excited", "🤩"]
+              ]
+                .map(
+                  ([value, label]) => `
+                    <button
+                      class="option-button ${
+                        state.avatar.face === value
+                          ? "active"
+                          : ""
+                      }"
+                      onclick="
+                        setAvatar('face','${value}')
+                      "
+                    >
+                      ${label}
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <label class="form-label">Accessory</label>
+
+            <div class="option-row">
+              ${[
+                ["none", "None"],
+                ["cap", "🧢"],
+                ["crown", "👑"],
+                ["bow", "🎀"]
+              ]
+                .map(
+                  ([value, label]) => `
+                    <button
+                      class="option-button ${
+                        state.avatar.accessory === value
+                          ? "active"
+                          : ""
+                      }"
+                      onclick="
+                        setAvatar('accessory','${value}')
+                      "
+                    >
+                      ${label}
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <label class="form-label">Color</label>
+
+            <div class="option-row">
+              ${colors
+                .map(
+                  color => `
+                    <button
+                      class="color-dot ${
+                        state.avatar.color === color
+                          ? "active"
+                          : ""
+                      }"
+                      style="background:${color}"
+                      aria-label="Choose ${color}"
+                      onclick="
+                        setAvatar('color','${color}')
+                      "
+                    ></button>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <button
+              class="btn btn-primary btn-block"
+              style="margin-top:22px"
+              onclick="finishProfile()"
+            >
+              Open my adventure map →
+            </button>
+          </section>
+        </div>
+      `);
+    }
+
+    function renderMap() {
+      const realm = currentRealm();
+
+      const guideCells = [
+        { x: 1, y: 1 },
+        { x: 3, y: 1 },
+        { x: 1, y: 3 },
+        { x: 3, y: 3 }
+      ];
+
+      const isReachable = (x, y) =>
+        Math.abs(x - state.mapX) +
+          Math.abs(y - state.mapY) ===
+        1;
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">
+              ${realm.emoji} ${realm.name}
+            </div>
+
+            <h1>Adventure map</h1>
+
+            <p>
+              Move one square at a time and meet a guide to
+              begin a practice mission.
+            </p>
+          </div>
+
+          <div
+            style="
+              display:flex;
+              gap:8px;
+              flex-wrap:wrap
+            "
+          >
+            <button
+              class="btn btn-violet btn-small"
+              onclick="openShop('map')"
+            >
+              Study tools
+            </button>
+
+            <button
+              class="btn btn-ghost btn-small"
+              onclick="goToAvatarFromMap()"
+            >
+              Edit avatar
+            </button>
+          </div>
+        </div>
+
+        <div class="map-layout">
+          <section class="panel map-board">
+            <div class="map-grid">
+              ${Array.from({ length: 25 }, (_, index) => {
+                const x = index % 5;
+                const y = Math.floor(index / 5);
+
+                const guideIndex = guideCells.findIndex(
+                  cell => cell.x === x && cell.y === y
+                );
+
+                const isPlayer =
+                  x === state.mapX && y === state.mapY;
+
+                return `
+                  <button
+                    class="
+                      map-tile
+                      ${guideIndex >= 0 ? "guide" : "path"}
+                      ${isPlayer ? "player" : ""}
+                      ${isReachable(x, y) ? "reachable" : ""}
+                    "
+                    onclick="movePlayer(${x},${y})"
+                    aria-label="
+                      Map square ${x + 1}, ${y + 1}
+                      ${
+                        guideIndex >= 0
+                          ? `, ${realm.guides[guideIndex].name}`
+                          : ""
+                      }
+                    "
+                  >
+                    ${
+                      isPlayer
+                        ? avatarMarkup()
+                        : guideIndex >= 0
+                          ? realm.guides[guideIndex].emoji
+                          : ""
+                    }
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            <p class="map-hint">
+              Use the arrow keys or select a glowing adjacent
+              square.
+            </p>
+
+            <div
+              style="
+                display:flex;
+                gap:10px;
+                justify-content:center;
+                flex-wrap:wrap;
+                margin-top:15px
+              "
+            >
+              <button
+                class="btn btn-primary btn-small"
+                onclick="quickPractice()"
+              >
+                Quick practice
+              </button>
+
+              <button
+                class="btn btn-ghost btn-small"
+                onclick="openCalculator('map')"
+              >
+                🧮 Calculator
+              </button>
+            </div>
+          </section>
+
+          <aside class="panel">
+            <h2 class="panel-title">Meet the guides</h2>
+
+            <p class="panel-sub">
+              Each guide can start any subject.
+            </p>
+
+            <div class="guide-list">
+              ${realm.guides
+                .map(
+                  guide => `
+                    <div class="guide-item">
+                      <span style="font-size:28px">
+                        ${guide.emoji}
+                      </span>
+
+                      <div>
+                        <strong>${guide.name}</strong>
+                        <span>${guide.line}</span>
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+
+            <div class="safety-note">
+              <span>💡</span>
+              <span>
+                Keyboard tip: arrow keys move on the map.
+                During questions, number keys 1–4 choose an
+                answer.
+              </span>
+            </div>
+          </aside>
+        </div>
+      `);
+    }
+
+    function renderGuide() {
+      const guide =
+        currentRealm().guides[state.guideIndex ?? 0];
+
+      return pageShell(`
+        <section class="panel dialog-hero">
+          <div class="dialog-emoji">${guide.emoji}</div>
+
+          <div class="eyebrow">Friendly guide</div>
+
+          <h1
+            style="
+              font-size:clamp(38px,7vw,66px);
+              margin-bottom:8px
+            "
+          >
+            Meet ${guide.name}
+          </h1>
+
+          <p class="dialog-quote">
+            “${guide.line} Choose a subject, and I’ll prepare a
+            short learning mission for you.”
+          </p>
+
+          <div
+            class="hero-actions"
+            style="justify-content:center"
+          >
+            <button
+              class="btn btn-primary"
+              onclick="goToSubject()"
+            >
+              Choose a subject →
+            </button>
+
+            <button
+              class="btn btn-ghost"
+              onclick="goToMap()"
+            >
+              Back to map
+            </button>
+          </div>
+        </section>
+      `);
+    }
+
+    function renderSubject() {
+      const backAction =
+        state.guideIndex === null
+          ? "goToMap()"
+          : "goToGuide()";
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Practice desk</div>
+            <h1>Choose a subject</h1>
+            <p>
+              You will receive explanations after every
+              question.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="${backAction}"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <section class="choice-grid">
+          ${subjects
+            .map(
+              subject => `
+                <button
+                  class="choice-card ${
+                    state.subject === subject.id
+                      ? "selected"
+                      : ""
+                  }"
+                  onclick="chooseSubject('${subject.id}')"
+                >
+                  <div class="choice-art">
+                    ${subject.emoji}
+                  </div>
+
+                  <div class="choice-copy">
+                    <span class="tag">Subject</span>
+
+                    <h3 style="margin-top:10px">
+                      ${subject.name}
+                    </h3>
+
+                    <p>${subject.description}</p>
+                  </div>
+                </button>
+              `
+            )
+            .join("")}
+        </section>
+      `);
+    }
+
+    function renderDifficulty() {
+      const order = ["easy", "medium", "hard", "expert"];
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">${subjectLabel()}</div>
+            <h1>Choose a practice level</h1>
+            <p>
+              Score 70% or higher to unlock the next level.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="goToSubject()"
+          >
+            ← Subjects
+          </button>
+        </div>
+
+        <section
+          class="choice-grid"
+          style="
+            grid-template-columns:
+              repeat(2,minmax(0,1fr))
+          "
+        >
+          ${order
+            .map(level => {
+              const item = difficulties[level];
+              const unlocked =
+                state.unlocked.includes(level);
+
+              return `
+                <button
+                  class="
+                    choice-card
+                    ${!unlocked ? "locked" : ""}
+                  "
+                  ${unlocked ? "" : "disabled"}
+                  onclick="startRun('${level}')"
+                >
+                  <div class="choice-art">
+                    ${item.emoji}
+                  </div>
+
+                  <div class="choice-copy">
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+
+                    <div
+                      style="
+                        display:flex;
+                        gap:7px;
+                        flex-wrap:wrap;
+                        margin-top:11px
+                      "
+                    >
+                      <span class="tag">
+                        ${item.questions} questions
+                      </span>
+
+                      <span class="tag">
+                        ${item.seconds}s each
+                      </span>
+
+                      <span class="tag">
+                        Up to ${item.reward} ⭐
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              `;
+            })
+            .join("")}
+        </section>
+      `);
+    }
+
+    function renderGridQuestion(question) {
+      return `
+        <h1
+          class="question-text"
+          style="font-size:clamp(28px,6vw,48px)"
+        >
+          Find the ${question.isArea ? "area" : "perimeter"}
+        </h1>
+
+        <div class="shape-wrap">
+          <div class="shape-label">
+            Width: ${question.w} units
+          </div>
+
+          <div
+            class="shape-grid"
+            style="--cols:${question.w}"
+          >
+            ${Array.from(
+              { length: question.w * question.h },
+              () => `
+                <span
+                  class="
+                    shape-cell
+                    ${question.isArea ? "area" : ""}
+                  "
+                ></span>
+              `
+            ).join("")}
+          </div>
+
+          <div class="shape-label">
+            Height: ${question.h} units
+          </div>
+        </div>
+
+        <p class="question-note">
+          ${
+            question.isArea
+              ? "Area counts the square units inside."
+              : "Perimeter is the distance around the outside."
+          }
+        </p>
+      `;
+    }
+
+    function renderGame() {
+      if (!state.run.current) {
+        prepareQuestion();
+      }
+
+      const question = state.run.current;
+
+      const percent = Math.round(
+        (state.run.index / state.run.total) * 100
+      );
+
+      const activeTools = [
+        state.run.activeDouble
+          ? "🌟 Star Multiplier active"
+          : "",
+        state.run.activeHint
+          ? "💡 Clue Card active"
+          : ""
+      ].filter(Boolean);
+
+      return pageShell(
+        `
+          <div class="game-layout">
+            <section>
+              <div class="game-meta">
+                <div class="meta-card">
+                  <small>Question</small>
+                  <strong>
+                    ${state.run.index + 1}/${state.run.total}
+                  </strong>
+                </div>
+
+                <div class="meta-card">
+                  <small>Points</small>
+                  <strong>${state.run.points}</strong>
+                </div>
+
+                <div class="meta-card">
+                  <small>Streak</small>
+                  <strong>${state.run.streak} 🔥</strong>
+                </div>
+
+                <div class="meta-card">
+                  <small>Time</small>
+                  <strong id="timer">--</strong>
+                </div>
+              </div>
+
+              <div
+                class="progress-shell"
+                aria-label="Mission progress"
+              >
+                <div
+                  class="progress-fill"
+                  style="width:${percent}%"
+                ></div>
+              </div>
+
+              <section
+                class="panel question-card"
+                style="margin-top:14px"
+              >
+                <div class="question-kicker">
+                  ${subjectLabel()} •
+                  ${difficulties[state.difficulty].name}
+                </div>
+
+                ${
+                  question.type === "grid"
+                    ? renderGridQuestion(question)
+                    : `
+                      <h1 class="question-text">
+                        ${question.prompt}
+                      </h1>
+
+                      <p class="question-note">
+                        Choose the best answer.
+                      </p>
+                    `
+                }
+
+                ${
+                  activeTools.length
+                    ? `
+                      <div class="active-banner">
+                        ${activeTools.join(" • ")}
+                      </div>
+                    `
+                    : ""
+                }
+
+                <div class="answer-grid">
+                  ${question.options
+                    .map((option, index) => {
+                      const correct = sameNumber(
+                        option,
+                        question.answer
+                      );
+
+                      const selected =
+                        state.run.selected !== null &&
+                        sameNumber(
+                          option,
+                          state.run.selected
+                        );
+
+                      let className = "";
+
+                      if (state.run.answered) {
+                        if (correct) {
+                          className = "correct";
+                        } else if (selected) {
+                          className = "wrong";
+                        } else {
+                          className = "dim";
+                        }
+                      } else if (
+                        state.run.activeHint &&
+                        correct
+                      ) {
+                        className = "correct";
+                      }
+
+                      return `
+                        <button
+                          class="
+                            answer-button
+                            ${className}
+                          "
+                          ${
+                            state.run.answered
+                              ? "disabled"
+                              : ""
+                          }
+                          onclick="
+                            answerQuestion(${Number(option)})
+                          "
+                        >
+                          <span
+                            style="
+                              opacity:.55;
+                              margin-right:8px
+                            "
+                          >
+                            ${index + 1}
+                          </span>
+
+                          ${formatAnswer(
+                            option,
+                            question.unit
+                          )}
+                        </button>
+                      `;
+                    })
+                    .join("")}
+                </div>
+
+                ${
+                  state.run.feedback
+                    ? `
+                      <div
+                        class="
+                          feedback
+                          ${
+                            state.run.feedback.startsWith("✅")
+                              ? "good"
+                              : "try"
+                          }
+                        "
+                      >
+                        ${escapeHtml(state.run.feedback)}
+                      </div>
+                    `
+                    : ""
+                }
+
+                ${
+                  state.run.answered
+                    ? `
+                      <button
+                        class="btn btn-primary btn-block"
+                        style="margin-top:14px"
+                        onclick="nextQuestion()"
+                      >
+                        ${
+                          state.run.index + 1 >=
+                          state.run.total
+                            ? "See my results"
+                            : "Next question"
+                        }
+                        →
+                      </button>
+                    `
+                    : ""
+                }
+              </section>
+            </section>
+
+            <aside class="panel tools-panel">
+              <h2 class="panel-title">Study tools</h2>
+
+              <p class="panel-sub">
+                Use tools when a question feels tricky.
+              </p>
+
+              <div class="tool-list">
+                ${toolCatalog
+                  .map(
+                    tool => `
+                      <button
+                        class="tool-button"
+                        ${
+                          state.run.answered ||
+                          state.tools[tool.id] <= 0
+                            ? "disabled"
+                            : ""
+                        }
+                        onclick="useTool('${tool.id}')"
+                      >
+                        <span style="font-size:27px">
+                          ${tool.emoji}
+                        </span>
+
+                        <span>
+                          <strong>${tool.name}</strong>
+
+                          <small>
+                            ${
+                              tool.id === "time"
+                                ? "+15 seconds"
+                                : tool.description
+                            }
+                          </small>
+                        </span>
+
+                        <span class="tool-count">
+                          ${state.tools[tool.id]}
+                        </span>
+                      </button>
+                    `
+                  )
+                  .join("")}
+              </div>
+
+              <button
+                class="btn btn-ghost btn-block"
+                style="margin-top:12px"
+                onclick="leaveRun()"
+              >
+                Leave mission
+              </button>
+            </aside>
+          </div>
+        `,
+        {
+          extra: `
+            <span class="status-pill">
+              ${subjectLabel()}
+            </span>
+          `
+        }
+      );
+    }
+
+    function renderResults() {
+      const result = state.result;
+
+      if (!result) {
+        state.page = "map";
+        return renderMap();
+      }
+
+      const medal =
+        result.accuracy >= 90
+          ? "🏆"
+          : result.accuracy >= 70
+            ? "🌟"
+            : result.accuracy >= 50
+              ? "📘"
+              : "🌱";
+
+      return pageShell(`
+        <div class="result-wrap">
+          <section class="panel result-hero">
+            <div>
+              <div class="result-medal">${medal}</div>
+              <div class="eyebrow">Mission complete</div>
+
+              <h1 class="result-score neon-text">
+                ${result.accuracy}%
+              </h1>
+
+              <p class="panel-sub">
+                ${result.message}
+              </p>
+
+              <div
+                class="hero-actions"
+                style="justify-content:center"
+              >
+                <button
+                  class="btn btn-primary"
+                  onclick="retryRun()"
+                >
+                  Practice again
+                </button>
+
+                <button
+                  class="btn btn-violet"
+                  onclick="goToMap()"
+                >
+                  Return to map
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2 class="panel-title">
+              Your learning report
+            </h2>
+
+            <p class="panel-sub">
+              Accuracy uses correct answers, while bonus tools
+              affect points only.
+            </p>
+
+            <div class="stat-grid">
+              <div class="stat-card">
+                <small>Correct</small>
+                <strong>
+                  ${result.correct}/${result.total}
+                </strong>
+              </div>
+
+              <div class="stat-card">
+                <small>Points</small>
+                <strong>${result.points}</strong>
+              </div>
+
+              <div class="stat-card">
+                <small>Best streak</small>
+                <strong>${result.maxStreak} 🔥</strong>
+              </div>
+
+              <div class="stat-card">
+                <small>Stars earned</small>
+                <strong>+${result.stars} ⭐</strong>
+              </div>
+            </div>
+
+            ${
+              result.unlocked
+                ? `
+                  <div class="feedback good">
+                    🔓 You unlocked
+                    ${difficulties[result.unlocked].name}
+                    level!
+                  </div>
+                `
+                : ""
+            }
+
+            ${
+              result.badge
+                ? `
+                  <div class="feedback good">
+                    🏅 New badge:
+                    ${escapeHtml(result.badge)}
+                  </div>
+                `
+                : ""
+            }
+
+            <div class="safety-note">
+              <span>📝</span>
+              <span>${result.nextStep}</span>
+            </div>
+
+            <button
+              class="btn btn-yellow btn-block"
+              style="margin-top:14px"
+              onclick="openShop('results')"
+            >
+              Visit the study tool desk
+            </button>
+          </section>
+        </div>
+      `);
+    }
+
+    function renderShop() {
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Study tool desk</div>
+
+            <h1>Spend stars on helpful tools</h1>
+
+            <p>
+              Tools are optional. Every mission can be
+              completed without them.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="closeShop()"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <section class="shop-grid">
+          ${toolCatalog
+            .map(tool => {
+              const canBuy = state.stars >= tool.cost;
+
+              return `
+                <article class="tool-card">
+                  <div class="big-icon">${tool.emoji}</div>
+
+                  <h3>${tool.name}</h3>
+
+                  <p>${tool.description}</p>
+
+                  <div class="tool-footer">
+                    <span class="tag">
+                      Owned: ${state.tools[tool.id]}
+                    </span>
+
+                    <button
+                      class="
+                        btn
+                        ${
+                          canBuy
+                            ? "btn-primary"
+                            : "btn-ghost"
+                        }
+                        btn-small
+                      "
+                      ${canBuy ? "" : "disabled"}
+                      onclick="buyTool('${tool.id}')"
+                    >
+                      ${tool.cost} ⭐
+                    </button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("")}
+        </section>
+      `);
+    }
+
+    function renderCalculator() {
+      const calculator = state.calc;
+
+      const history =
+        calculator.stored === null
+          ? ""
+          : `${formatNumber(calculator.stored)} ${
+              displayOperator(calculator.operator)
+            }`;
+
+      const keys = [
+        ["C", "calcReset()", "warn span-2"],
+        ["DEL", "calcDelete()", "warn"],
+        ["÷", "calcOperator('/')", "op"],
+
+        ["7", "calcDigit('7')", ""],
+        ["8", "calcDigit('8')", ""],
+        ["9", "calcDigit('9')", ""],
+        ["×", "calcOperator('*')", "op"],
+
+        ["4", "calcDigit('4')", ""],
+        ["5", "calcDigit('5')", ""],
+        ["6", "calcDigit('6')", ""],
+        ["−", "calcOperator('-')", "op"],
+
+        ["1", "calcDigit('1')", ""],
+        ["2", "calcDigit('2')", ""],
+        ["3", "calcDigit('3')", ""],
+        ["+", "calcOperator('+')", "op"],
+
+        ["0", "calcDigit('0')", "span-2"],
+        [".", "calcDigit('.')", ""],
+        ["=", "calcEquals()", "eq"]
+      ];
+
+      return pageShell(`
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Number helper</div>
+            <h1>Calculator</h1>
+            <p>
+              Use this for checking work after you try a
+              strategy.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-ghost btn-small"
+            onclick="closeCalculator()"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <section class="panel calculator">
+          <div class="calc-display">
+            <div class="calc-history">
+              ${escapeHtml(history)}
+            </div>
+
+            <div class="calc-value">
+              ${escapeHtml(calculator.display)}
+            </div>
+          </div>
+
+          <div class="calc-grid">
+            ${keys
+              .map(
+                ([label, action, className]) => `
+                  <button
+                    class="calc-key ${className}"
+                    onclick="${action}"
+                  >
+                    ${label}
+                  </button>
+                `
+              )
+              .join("")}
+          </div>
+        </section>
+      `);
+    }
+
+    function goHome() {
+      clearQuestionTimer();
+      state.page = "home";
+      render();
+    }
+
+    function goToRealms() {
+      state.page = "realms";
+      render();
+    }
+
+    function goToProfile() {
+      if (!state.realmKey) {
+        goToRealms();
+        return;
+      }
+
+      state.page = "profile";
+      render();
+    }
+
+    function goToAvatar() {
+      const cleanNickname = state.nickname
+        .trim()
+        .replace(/\s+/g, " ");
+
+      if (cleanNickname.length < 2) {
+        showToast(
+          "Choose a nickname with at least 2 characters."
+        );
+        return;
+      }
+
+      if (!state.club) {
+        showToast("Choose a club badge first.");
+        return;
+      }
+
+      state.nickname = cleanNickname.slice(0, 18);
+      state.page = "avatar";
+      render();
+    }
+
+    function goToAvatarFromMap() {
+      state.page = "avatar";
+      render();
+    }
+
+    function goToMap() {
+      clearQuestionTimer();
+
+      state.page = "map";
+      state.run = freshRun();
+      state.result = null;
+
+      render();
+    }
+
+    function goToGuide() {
+      state.page = "guide";
+      render();
+    }
+
+    function goToSubject() {
+      state.page = "subject";
+      render();
+    }
+
+    function chooseRealm(key) {
+      if (!realms[key]) {
+        return;
+      }
+
+      state.realmKey = key;
+      state.club = null;
+      state.page = "profile";
+
+      render();
+    }
+
+    function updateNickname(value) {
+      state.nickname = String(value).slice(0, 18);
+    }
+
+    function chooseClub(club) {
+      state.club = club;
+      render();
+    }
+
+    function setAvatar(property, value) {
+      const allowedProperties = [
+        "shape",
+        "face",
+        "accessory",
+        "color"
+      ];
+
+      if (!allowedProperties.includes(property)) {
+        return;
+      }
+
+      state.avatar[property] = value;
+      render();
+    }
+
+    function finishProfile() {
+      saveProgress();
+
+      state.mapX = 2;
+      state.mapY = 2;
+      state.page = "map";
+
+      render();
+    }
+
+    function continueProfile() {
+      if (!state.realmKey || !state.nickname) {
+        goToRealms();
+        return;
+      }
+
+      state.page = "map";
+      render();
+    }
+
+    function movePlayer(x, y) {
+      const distance =
+        Math.abs(x - state.mapX) +
+        Math.abs(y - state.mapY);
+
+      if (distance !== 1) {
+        showToast("Move one square at a time.");
+        return;
+      }
+
+      state.mapX = x;
+      state.mapY = y;
+
+      const guideCells = [
+        { x: 1, y: 1 },
+        { x: 3, y: 1 },
+        { x: 1, y: 3 },
+        { x: 3, y: 3 }
+      ];
+
+      const guideIndex = guideCells.findIndex(
+        cell => cell.x === x && cell.y === y
+      );
+
+      if (guideIndex >= 0) {
+        state.guideIndex = guideIndex;
+        state.page = "guide";
+      }
+
+      render();
+    }
+
+    function quickPractice() {
+      state.guideIndex = null;
+      state.page = "subject";
+      render();
+    }
+
+    function chooseSubject(subjectId) {
+      const valid = subjects.some(
+        subject => subject.id === subjectId
+      );
+
+      if (!valid) {
+        return;
+      }
+
+      state.subject = subjectId;
+      state.page = "difficulty";
+
+      render();
+    }
+
+    function startRun(level) {
+      if (!state.unlocked.includes(level)) {
+        return;
+      }
+
+      state.difficulty = level;
+      state.run = freshRun();
+      state.run.total = difficulties[level].questions;
+      state.result = null;
+      state.page = "game";
+
+      prepareQuestion();
+      render();
+    }
+
+    function leaveRun() {
+      const shouldLeave = confirm(
+        "Leave this practice mission? Current answers will not be saved."
+      );
+
+      if (shouldLeave) {
+        goToMap();
+      }
+    }
+
+    function retryRun() {
+      startRun(state.difficulty);
+    }
+
+    function randomInt(minimum, maximum) {
+      return (
+        Math.floor(
+          Math.random() * (maximum - minimum + 1)
+        ) + minimum
+      );
+    }
+
+    function round2(value) {
+      return (
+        Math.round(
+          (value + Number.EPSILON) * 100
+        ) / 100
+      );
+    }
+
+    function sameNumber(first, second) {
+      return (
+        Math.abs(Number(first) - Number(second)) <
+        1e-9
+      );
+    }
+
+    function shuffled(items) {
+      const copy = [...items];
+
+      for (
+        let index = copy.length - 1;
+        index > 0;
+        index -= 1
+      ) {
+        const randomIndex = Math.floor(
+          Math.random() * (index + 1)
+        );
+
+        [copy[index], copy[randomIndex]] = [
+          copy[randomIndex],
+          copy[index]
+        ];
+      }
+
+      return copy;
+    }
+
+    function uniqueOptions(answer, seeds, generator) {
+      const wrongAnswers = [];
+
+      const add = value => {
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) {
+          return;
+        }
+
+        if (sameNumber(number, answer)) {
+          return;
+        }
+
+        if (
+          wrongAnswers.some(existing =>
+            sameNumber(existing, number)
+          )
+        ) {
+          return;
+        }
+
+        wrongAnswers.push(number);
+      };
+
+      seeds.forEach(add);
+
+      let guard = 0;
+
+      while (
+        wrongAnswers.length < 3 &&
+        guard < 100
+      ) {
+        add(generator());
+        guard += 1;
+      }
+
+      for (
+        let delta = 1;
+        wrongAnswers.length < 3;
+        delta += 1
+      ) {
+        add(Number(answer) + delta);
+      }
+
+      return shuffled([
+        Number(answer),
+        ...wrongAnswers.slice(0, 3)
+      ]);
+    }
+
+    function difficultyScale() {
+      const base =
+        {
+          easy: 0,
+          medium: 1.4,
+          hard: 2.8,
+          expert: 4.2
+        }[state.difficulty] || 0;
+
+      return (
+        base +
+        Math.min(state.run.index / 4, 2)
+      );
+    }
+
+    function generateQuestion() {
+      const scale = difficultyScale();
+
+      const id = `q-${Date.now()}-${
+        Math.random().toString(36).slice(2)
+      }`;
+
+      if (state.subject === "addition") {
+        const maximum = Math.min(
+          220,
+          Math.floor(25 + scale * 28)
+        );
+
+        const first = randomInt(2, maximum);
+        const second = randomInt(2, maximum);
+        const answer = first + second;
+
+        return {
+          id,
+          type: "number",
+          prompt: `${first} + ${second} = ?`,
+          answer,
+          unit: "",
+
+          options: uniqueOptions(
+            answer,
+            [
+              answer + randomInt(1, 12),
+              Math.max(
+                0,
+                answer - randomInt(1, 12)
+              ),
+              Math.abs(first - second)
+            ],
+            () =>
+              Math.max(
+                0,
+                answer + randomInt(-30, 30)
+              )
+          ),
+
+          explanation:
+            `${first} + ${second} = ${answer}. ` +
+            "Add the ones, then the tens and hundreds."
+        };
+      }
+
+      if (state.subject === "subtraction") {
+        const maximum = Math.min(
+          250,
+          Math.floor(35 + scale * 30)
+        );
+
+        const first = randomInt(12, maximum);
+        const second = randomInt(0, first);
+        const answer = first - second;
+
+        return {
+          id,
+          type: "number",
+          prompt: `${first} − ${second} = ?`,
+          answer,
+          unit: "",
+
+          options: uniqueOptions(
+            answer,
+            [
+              answer + randomInt(1, 12),
+              Math.max(
+                0,
+                answer - randomInt(1, 12)
+              ),
+              first + second
+            ],
+            () =>
+              Math.max(
+                0,
+                answer + randomInt(-30, 30)
+              )
+          ),
+
+          explanation:
+            `${first} − ${second} = ${answer}. ` +
+            `Start at ${first} and take away ${second}.`
+        };
+      }
+
+      if (state.subject === "multiplication") {
+        const maximum = Math.min(
+          24,
+          Math.floor(10 + scale * 3)
+        );
+
+        const first = randomInt(2, maximum);
+        const second = randomInt(2, maximum);
+        const answer = first * second;
+
+        return {
+          id,
+          type: "number",
+          prompt: `${first} × ${second} = ?`,
+          answer,
+          unit: "",
+
+          options: uniqueOptions(
+            answer,
+            [
+              answer + first,
+              Math.max(1, answer - second),
+              first + second
+            ],
+            () =>
+              Math.max(
+                1,
+                answer + randomInt(-24, 24)
+              )
+          ),
+
+          explanation:
+            `${first} × ${second} = ${answer}. ` +
+            `Think of ${first} equal groups of ${second}.`
+        };
+      }
+
+      if (state.subject === "fractions") {
+        const denominators = [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12
+        ];
+
+        const limit = Math.min(
+          denominators.length - 1,
+          Math.floor(3 + scale)
+        );
+
+        const denominator =
+          denominators[randomInt(0, limit)];
+
+        const numerator = randomInt(
+          1,
+          denominator - 1
+        );
+
+        const answer = round2(
+          numerator / denominator
+        );
+
+        return {
+          id,
+          type: "number",
+          prompt: `${numerator}/${denominator} = ?`,
+          answer,
+          unit: "",
+
+          options: uniqueOptions(
+            answer,
+            [
+              round2(answer + 0.1),
+              round2(Math.max(0, answer - 0.1)),
+              round2(denominator / numerator)
+            ],
+            () => round2(Math.random() * 1.4)
+          ),
+
+          explanation:
+            `${numerator}/${denominator} = ${answer}. ` +
+            `Divide ${numerator} by ${denominator}.`
+        };
+      }
+
+      const isArea = Math.random() > 0.5;
+
+      const maximumSide = Math.min(
+        9,
+        Math.floor(6 + scale)
+      );
+
+      const width = randomInt(3, maximumSide);
+      const height = randomInt(3, maximumSide);
+
+      const answer = isArea
+        ? width * height
+        : 2 * (width + height);
+
+      return {
+        id,
+        type: "grid",
+        isArea,
+        w: width,
+        h: height,
+        answer,
+
+        unit: isArea
+          ? "square units"
+          : "units",
+
+        options: uniqueOptions(
+          answer,
+          [
+            width + height,
+            width * height,
+            answer + randomInt(2, 7)
+          ],
+          () =>
+            Math.max(
+              1,
+              answer + randomInt(-14, 14)
+            )
+        ),
+
+        explanation: isArea
+          ? `Area = width × height = ${width} × ${height} = ${answer} square units.`
+          : `Perimeter = 2 × (width + height) = 2 × (${width} + ${height}) = ${answer} units.`
+      };
+    }
+
+    function prepareQuestion() {
+      state.run.current = generateQuestion();
+      state.run.answered = false;
+      state.run.selected = null;
+      state.run.feedback = "";
+      state.run.activeDouble = false;
+      state.run.activeHint = false;
+
+      state.timerQuestionId = null;
+      state.timerEnd = null;
+    }
+
+    function answerQuestion(value) {
+      if (state.run.answered) {
+        return;
+      }
+
+      clearQuestionTimer();
+
+      const question = state.run.current;
+
+      state.run.answered = true;
+      state.run.selected = Number(value);
+
+      if (sameNumber(value, question.answer)) {
+        const points =
+          state.run.activeDouble ? 2 : 1;
+
+        state.run.points += points;
+        state.run.correct += 1;
+        state.run.streak += 1;
+
+        state.run.maxStreak = Math.max(
+          state.run.maxStreak,
+          state.run.streak
+        );
+
+        const cheers = [
+          "Great strategy!",
+          "Careful work!",
+          "You found it!",
+          "Strong number sense!",
+          "Excellent checking!"
+        ];
+
+        state.run.feedback =
+          `✅ ${
+            cheers[randomInt(0, cheers.length - 1)]
+          }` +
+          (
+            points === 2
+              ? " Double points earned!"
+              : ""
+          );
+      } else {
+        state.run.streak = 0;
+
+        state.run.feedback =
+          `📘 Good try. ${question.explanation}`;
+      }
+
+      state.run.activeDouble = false;
+      state.run.activeHint = false;
+
+      render();
+    }
+
+    function timeoutQuestion() {
+      if (
+        state.run.answered ||
+        state.page !== "game"
+      ) {
+        return;
+      }
+
+      clearQuestionTimer();
+
+      state.run.answered = true;
+      state.run.selected = null;
+      state.run.streak = 0;
+
+      state.run.feedback =
+        `⏰ Time is up. ` +
+        state.run.current.explanation;
+
+      state.run.activeDouble = false;
+      state.run.activeHint = false;
+
+      render();
+    }
+
+    function nextQuestion() {
+      if (!state.run.answered) {
+        return;
+      }
+
+      if (
+        state.run.index + 1 >=
+        state.run.total
+      ) {
+        finishRun();
+        return;
+      }
+
+      state.run.index += 1;
+
+      prepareQuestion();
+      render();
+    }
+
+    function finishRun() {
+      clearQuestionTimer();
+
+      const accuracy = Math.round(
+        (state.run.correct / state.run.total) * 100
+      );
+
+      const configuration =
+        difficulties[state.difficulty];
+
+      const baseStars = Math.round(
+        configuration.reward * (accuracy / 100)
+      );
+
+      const streakBonus = Math.min(
+        8,
+        Math.floor(state.run.maxStreak / 2)
+      );
+
+      const stars = Math.max(
+        1,
+        baseStars + streakBonus
+      );
+
+      state.stars += stars;
+
+      const order = [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ];
+
+      const levelIndex = order.indexOf(
+        state.difficulty
+      );
+
+      let unlocked = null;
+
+      if (
+        accuracy >= 70 &&
+        levelIndex >= 0 &&
+        levelIndex < order.length - 1 &&
+        !state.unlocked.includes(
+          order[levelIndex + 1]
+        )
+      ) {
+        unlocked = order[levelIndex + 1];
+        state.unlocked.push(unlocked);
+      }
+
+      const missionKey =
+        `${state.subject}-${state.difficulty}`;
+
+      if (
+        !state.completed.includes(missionKey)
+      ) {
+        state.completed.push(missionKey);
+      }
+
+      let badge = null;
+
+      if (accuracy >= 80) {
+        badge =
+          `${subjectLabel()} ` +
+          (
+            accuracy === 100
+              ? "Perfect Page"
+              : "Bright Thinker"
+          );
+
+        if (!state.badges.includes(badge)) {
+          state.badges.push(badge);
+        } else {
+          badge = null;
+        }
+      }
+
+      const message =
+        accuracy >= 90
+          ? "Outstanding work—you showed strong accuracy and focus."
+          : accuracy >= 70
+            ? "Nice work—you are ready for the next challenge."
+            : accuracy >= 50
+              ? "You are building the skill. One more practice round will help."
+              : "A first attempt is useful data. Review the explanations and try again.";
+
+      const nextStep =
+        accuracy >= 80
+          ? "Try a harder level or explain one solution to someone else."
+          : accuracy >= 60
+            ? "Retry this level and aim to improve one question at a time."
+            : "Choose the Warm-up level and use a Clue Card when you feel stuck.";
+
+      state.result = {
+        accuracy,
+        correct: state.run.correct,
+        total: state.run.total,
+        points: state.run.points,
+        maxStreak: state.run.maxStreak,
+        stars,
+        unlocked,
+        badge,
+        message,
+        nextStep
+      };
+
+      saveProgress();
+
+      state.page = "results";
+
+      launchConfetti();
+      render();
+    }
+
+    function useTool(toolId) {
+      if (
+        state.page !== "game" ||
+        state.run.answered ||
+        state.tools[toolId] <= 0
+      ) {
+        return;
+      }
+
+      if (toolId === "double") {
+        if (state.run.activeDouble) {
+          showToast(
+            "Star Multiplier is already active."
+          );
+          return;
+        }
+
+        state.run.activeDouble = true;
+      } else if (toolId === "hint") {
+        if (state.run.activeHint) {
+          showToast(
+            "Clue Card is already active."
+          );
+          return;
+        }
+
+        state.run.activeHint = true;
+      } else if (toolId === "skip") {
+        state.tools.skip -= 1;
+        state.run.skipped += 1;
+        state.run.answered = true;
+        state.run.selected = null;
+
+        state.run.feedback =
+          `⏭️ Passed. ` +
+          state.run.current.explanation;
+
+        clearQuestionTimer();
+        saveProgress();
+        render();
+
+        return;
+      } else if (toolId === "time") {
+        state.timerEnd =
+          (state.timerEnd || Date.now()) + 15000;
+
+        updateTimer();
+        showToast("15 seconds added.");
+      } else {
+        return;
+      }
+
+      state.tools[toolId] -= 1;
+
+      saveProgress();
+      render();
+    }
+
+    function openShop(returnPage) {
+      state.previousPage =
+        returnPage || state.page;
+
+      clearQuestionTimer();
+
+      state.page = "shop";
+      render();
+    }
+
+    function closeShop() {
+      state.page =
+        state.previousPage === "results"
+          ? "results"
+          : "map";
+
+      render();
+    }
+
+    function buyTool(toolId) {
+      const tool = toolCatalog.find(
+        item => item.id === toolId
+      );
+
+      if (!tool || state.stars < tool.cost) {
+        return;
+      }
+
+      state.stars -= tool.cost;
+
+      state.tools[toolId] =
+        (state.tools[toolId] || 0) + 1;
+
+      saveProgress();
+
+      showToast(`${tool.name} added.`);
+      render();
+    }
+
+    function openCalculator(returnPage) {
+      state.previousPage =
+        returnPage || state.page;
+
+      clearQuestionTimer();
+
+      state.page = "calculator";
+      render();
+    }
+
+    function closeCalculator() {
+      state.page =
+        state.previousPage === "map"
+          ? "map"
+          : "home";
+
+      render();
+    }
+
+    function startTimer() {
+      if (
+        state.page !== "game" ||
+        state.run.answered ||
+        !state.run.current
+      ) {
+        return;
+      }
+
+      clearQuestionTimer();
+
+      if (
+        state.timerQuestionId !==
+          state.run.current.id ||
+        !state.timerEnd
+      ) {
+        state.timerQuestionId =
+          state.run.current.id;
+
+        state.timerEnd =
+          Date.now() +
+          difficulties[state.difficulty].seconds *
+            1000;
+      }
+
+      updateTimer();
+
+      state.timerId = setInterval(() => {
+        if (updateTimer() <= 0) {
+          timeoutQuestion();
+        }
+      }, 250);
+    }
+
+    function updateTimer() {
+      const seconds = Math.max(
+        0,
+        Math.ceil(
+          (state.timerEnd - Date.now()) / 1000
+        )
+      );
+
+      const timer = document.getElementById(
+        "timer"
+      );
+
+      if (timer) {
+        timer.textContent = `${seconds}s`;
+
+        timer.style.color =
+          seconds <= 5
+            ? "var(--red)"
+            : "var(--cyan)";
+      }
+
+      return seconds;
+    }
+
+    function clearQuestionTimer() {
+      if (state.timerId) {
+        clearInterval(state.timerId);
+      }
+
+      state.timerId = null;
+    }
+
+    function clearTimerIfNotPlaying() {
+      if (
+        state.page !== "game" ||
+        state.run.answered
+      ) {
+        clearQuestionTimer();
+      }
+    }
+
+    function formatAnswer(value, unit) {
+      const number = Number(value);
+
+      const displayed = Number.isInteger(number)
+        ? String(number)
+        : String(round2(number));
+
+      return `${displayed}${
+        unit ? ` ${unit}` : ""
+      }`;
+    }
+
+    function showToast(message) {
+      clearTimeout(state.toastTimer);
+
+      const host =
+        document.getElementById("toastHost");
+
+      host.innerHTML = `
+        <div class="toast" role="status">
+          ${escapeHtml(message)}
+        </div>
+      `;
+
+      state.toastTimer = setTimeout(() => {
+        host.innerHTML = "";
+      }, 2400);
+    }
+
+    function launchConfetti() {
+      const existing =
+        document.querySelector(".confetti");
+
+      if (existing) {
+        existing.remove();
+      }
+
+      const container =
+        document.createElement("div");
+
+      container.className = "confetti";
+
+      const pieces = [
+        "⭐",
+        "✨",
+        "📘",
+        "🔹",
+        "🟣"
+      ];
+
+      container.innerHTML = Array.from(
+        { length: 26 },
+        (_, index) => `
+          <span
+            style="
+              left:${Math.random() * 96}%;
+              animation-delay:${Math.random() * 0.7}s
+            "
+          >
+            ${pieces[index % pieces.length]}
+          </span>
+        `
+      ).join("");
+
+      document.body.appendChild(container);
+
+      setTimeout(() => {
+        container.remove();
+      }, 3100);
+    }
+
+    function resetProgress() {
+      const shouldReset = confirm(
+        "Reset stars, tools, unlocked levels, badges, and learner profile?"
+      );
+
+      if (!shouldReset) {
+        return;
+      }
+
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (_) {
+        // Ignore storage errors.
+      }
+
+      state.realmKey = null;
+      state.club = null;
+      state.nickname = "";
+
+      state.avatar = {
+        shape: "circle",
+        face: "happy",
+        accessory: "none",
+        color: "#62e9ff"
+      };
+
+      state.stars = defaultProgress.stars;
+      state.unlocked = ["easy"];
+      state.tools = {
+        ...defaultProgress.tools
+      };
+
+      state.completed = [];
+      state.badges = [];
+      state.run = freshRun();
+      state.result = null;
+      state.page = "home";
+
+      render();
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) {
+        return "Error";
+      }
+
+      return String(
+        Math.round(
+          (value + Number.EPSILON) * 1e10
+        ) / 1e10
+      );
+    }
+
+    function displayOperator(operator) {
+      return (
+        {
+          "+": "+",
+          "-": "−",
+          "*": "×",
+          "/": "÷"
+        }[operator] || ""
+      );
+    }
+
+    function calcReset() {
+      state.calc = {
+        display: "0",
+        stored: null,
+        operator: null,
+        waiting: false,
+        evaluated: false
+      };
+
+      render();
+    }
+
+    function calcDigit(digit) {
+      if (state.calc.display === "Error") {
+        state.calc = {
+          display: "0",
+          stored: null,
+          operator: null,
+          waiting: false,
+          evaluated: false
+        };
+      }
+
+      const calculator = state.calc;
+
+      if (
+        digit === "." &&
+        calculator.display.includes(".") &&
+        !calculator.waiting
+      ) {
+        return;
+      }
+
+      if (
+        calculator.waiting ||
+        calculator.evaluated
+      ) {
+        calculator.display =
+          digit === "." ? "0." : digit;
+
+        calculator.waiting = false;
+        calculator.evaluated = false;
+      } else if (digit === ".") {
+        calculator.display += ".";
+      } else {
+        calculator.display =
+          calculator.display === "0"
+            ? digit
+            : calculator.display.length < 16
+              ? calculator.display + digit
+              : calculator.display;
+      }
+
+      render();
+    }
+
+    function performCalculation(
+      left,
+      right,
+      operator
+    ) {
+      if (operator === "+") {
+        return left + right;
+      }
+
+      if (operator === "-") {
+        return left - right;
+      }
+
+      if (operator === "*") {
+        return left * right;
+      }
+
+      if (operator === "/") {
+        return right === 0
+          ? Number.NaN
+          : left / right;
+      }
+
+      return right;
+    }
+
+    function calcOperator(operator) {
+      const calculator = state.calc;
+      const input = Number(calculator.display);
+
+      if (!Number.isFinite(input)) {
+        state.calc = {
+          display: "0",
+          stored: null,
+          operator: null,
+          waiting: false,
+          evaluated: false
+        };
+
+        render();
+        return;
+      }
+
+      if (
+        calculator.operator &&
+        calculator.stored !== null &&
+        !calculator.waiting
+      ) {
+        const result = performCalculation(
+          calculator.stored,
+          input,
+          calculator.operator
+        );
+
+        if (!Number.isFinite(result)) {
+          calculator.display = "Error";
+          calculator.stored = null;
+          calculator.operator = null;
+          calculator.waiting = true;
+
+          render();
+          return;
+        }
+
+        calculator.stored = result;
+        calculator.display =
+          formatNumber(result);
+      } else {
+        calculator.stored = input;
+      }
+
+      calculator.operator = operator;
+      calculator.waiting = true;
+      calculator.evaluated = false;
+
+      render();
+    }
+
+    function calcEquals() {
+      const calculator = state.calc;
+
+      if (
+        calculator.stored === null ||
+        !calculator.operator ||
+        calculator.waiting
+      ) {
+        return;
+      }
+
+      const result = performCalculation(
+        calculator.stored,
+        Number(calculator.display),
+        calculator.operator
+      );
+
+      calculator.display =
+        Number.isFinite(result)
+          ? formatNumber(result)
+          : "Error";
+
+      calculator.stored = null;
+      calculator.operator = null;
+      calculator.waiting = false;
+      calculator.evaluated = true;
+
+      render();
+    }
+
+    function calcDelete() {
+      const calculator = state.calc;
+
+      if (
+        calculator.waiting ||
+        calculator.evaluated ||
+        calculator.display === "Error"
+      ) {
+        return;
+      }
+
+      calculator.display =
+        calculator.display.length > 1
+          ? calculator.display.slice(0, -1)
+          : "0";
+
+      render();
+    }
+
+    document.addEventListener(
+      "keydown",
+      event => {
+        if (state.page === "map") {
+          const moves = {
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1],
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0]
+          };
+
+          if (moves[event.key]) {
+            event.preventDefault();
+
+            const [deltaX, deltaY] =
+              moves[event.key];
+
+            const newX =
+              state.mapX + deltaX;
+
+            const newY =
+              state.mapY + deltaY;
+
+            if (
+              newX >= 0 &&
+              newX < 5 &&
+              newY >= 0 &&
+              newY < 5
+            ) {
+              movePlayer(newX, newY);
+            }
+          }
+        } else if (state.page === "game") {
+          if (
+            !state.run.answered &&
+            ["1", "2", "3", "4"].includes(
+              event.key
+            )
+          ) {
+            const option =
+              state.run.current?.options[
+                Number(event.key) - 1
+              ];
+
+            if (option !== undefined) {
+              answerQuestion(option);
+            }
+          } else if (
+            state.run.answered &&
+            event.key === "Enter"
+          ) {
+            nextQuestion();
+          }
+        } else if (
+          state.page === "calculator"
+        ) {
+          if (
+            /[0-9.]/.test(event.key) &&
+            event.key.length === 1
+          ) {
+            calcDigit(event.key);
+          } else if (
+            ["+", "-", "*", "/"].includes(
+              event.key
+            )
+          ) {
+            calcOperator(event.key);
+          } else if (
+            event.key === "Enter" ||
+            event.key === "="
+          ) {
+            calcEquals();
+          } else if (
+            event.key === "Backspace"
+          ) {
+            calcDelete();
+          } else if (
+            event.key === "Escape"
+          ) {
+            closeCalculator();
+          }
+        }
+      }
+    );
+
+    render();
+  </script>
+</body>
+</html>
