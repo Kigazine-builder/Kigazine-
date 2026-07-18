@@ -1417,7 +1417,8 @@
   <button class="nav-btn" data-section="membersSection">🧑 Members</button>
   <button class="nav-btn" data-section="createSection">✏️ Create</button>
   <button class="nav-btn" data-section="accountSection">👤 Account</button>
-  <button class="nav-btn" onclick="window.location.href='help.html'">🤖 Help</button>
+  <button class="nav-btn" type="button" onclick="window.location.href='math-games.html'">🧠 Math Games</button>
+  <button class="nav-btn" type="button" onclick="window.location.href='help.html'">🤖 Help</button>
 </nav>
 
       <div class="side-card">
@@ -2106,6 +2107,7 @@
     window.showSection = showSection;
 
     navButtons.forEach(btn => {
+      if (!btn.dataset.section) return;
       btn.addEventListener("click", () => showSection(btn.dataset.section));
     });
 
