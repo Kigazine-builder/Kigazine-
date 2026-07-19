@@ -1745,6 +1745,20 @@
         emoji: "📐",
         description:
           "Measure rectangles and understand formulas."
+      },
+      {
+        id: "physics",
+        name: "Physics",
+        emoji: "⚡",
+        description:
+          "Solve motion, force, work, and energy problems."
+      },
+      {
+        id: "science",
+        name: "Science",
+        emoji: "🔬",
+        description:
+          "Analyze measurements, density, averages, and mixtures."
       }
     ];
 
@@ -1768,18 +1782,18 @@
       hard: {
         name: "Challenge",
         emoji: "🚀",
-        questions: 10,
-        seconds: 28,
-        reward: 35,
-        description: "Larger numbers and faster thinking."
+        questions: 12,
+        seconds: 24,
+        reward: 45,
+        description: "Multi-step problems with less time."
       },
       expert: {
         name: "Mastery",
         emoji: "🏆",
-        questions: 12,
-        seconds: 22,
-        reward: 55,
-        description: "For learners ready to stretch."
+        questions: 15,
+        seconds: 17,
+        reward: 75,
+        description: "Advanced formulas, large values, and a fast timer."
       }
     };
 
@@ -2339,7 +2353,7 @@
             </div>
 
             <h1 class="neon-text">
-              Math practice, made like a magazine adventure.
+              Math and science, made like a magazine adventure.
             </h1>
 
             <p class="hero-lead">
@@ -2458,7 +2472,7 @@
             <div class="eyebrow">Step 1 of 3</div>
             <h1>Choose your learning world</h1>
             <p>
-              Each world has the same math subjects with a
+              Each world has the same STEM subjects with a
               different magazine theme.
             </p>
           </div>
@@ -4026,14 +4040,14 @@
       const base =
         {
           easy: 0,
-          medium: 1.4,
-          hard: 2.8,
-          expert: 4.2
+          medium: 1.8,
+          hard: 4,
+          expert: 6.2
         }[state.difficulty] || 0;
 
       return (
         base +
-        Math.min(state.run.index / 4, 2)
+        Math.min(state.run.index / 3, 3)
       );
     }
 
@@ -4046,8 +4060,8 @@
 
       if (state.subject === "addition") {
         const maximum = Math.min(
-          220,
-          Math.floor(25 + scale * 28)
+          500,
+          Math.floor(25 + scale * 52)
         );
 
         const first = randomInt(2, maximum);
@@ -4086,8 +4100,8 @@
 
       if (state.subject === "subtraction") {
         const maximum = Math.min(
-          250,
-          Math.floor(35 + scale * 30)
+          600,
+          Math.floor(35 + scale * 58)
         );
 
         const first = randomInt(12, maximum);
@@ -4126,8 +4140,8 @@
 
       if (state.subject === "multiplication") {
         const maximum = Math.min(
-          24,
-          Math.floor(10 + scale * 3)
+          36,
+          Math.floor(10 + scale * 4)
         );
 
         const first = randomInt(2, maximum);
@@ -4170,7 +4184,11 @@
           6,
           8,
           10,
-          12
+          12,
+          15,
+          16,
+          20,
+          25
         ];
 
         const limit = Math.min(
@@ -4213,10 +4231,280 @@
         };
       }
 
+      if (state.subject === "physics") {
+        const tier = [
+          "easy",
+          "medium",
+          "hard",
+          "expert"
+        ].indexOf(state.difficulty);
+
+        const scenarioPools = [
+          ["speed"],
+          ["speed", "force"],
+          ["force", "work"],
+          ["work", "kinetic"]
+        ];
+
+        const pool = scenarioPools[Math.max(0, tier)];
+        const scenario =
+          pool[randomInt(0, pool.length - 1)];
+
+        if (scenario === "speed") {
+          const time = randomInt(2, 8 + Math.floor(scale));
+          const speed = randomInt(3, 12 + Math.floor(scale * 2));
+          const distance = speed * time;
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `An object travels ${distance} m in ${time} s. ` +
+              "What is its average speed?",
+            answer: speed,
+            unit: "m/s",
+            options: uniqueOptions(
+              speed,
+              [
+                distance + time,
+                Math.max(1, speed - time),
+                speed + time
+              ],
+              () => Math.max(1, speed + randomInt(-8, 8))
+            ),
+            explanation:
+              `Speed = distance ÷ time = ${distance} ÷ ${time} = ` +
+              `${speed} m/s.`
+          };
+        }
+
+        if (scenario === "force") {
+          const mass = randomInt(2, 12 + Math.floor(scale));
+          const acceleration = randomInt(
+            2,
+            7 + Math.floor(scale)
+          );
+          const force = mass * acceleration;
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `A ${mass} kg object accelerates at ` +
+              `${acceleration} m/s². What force acts on it?`,
+            answer: force,
+            unit: "N",
+            options: uniqueOptions(
+              force,
+              [
+                mass + acceleration,
+                Math.max(1, force - mass),
+                force + acceleration
+              ],
+              () => Math.max(1, force + randomInt(-24, 24))
+            ),
+            explanation:
+              `Force = mass × acceleration = ${mass} × ` +
+              `${acceleration} = ${force} N.`
+          };
+        }
+
+        if (scenario === "work") {
+          const force = randomInt(8, 22 + Math.floor(scale * 2));
+          const distance = randomInt(3, 10 + Math.floor(scale));
+          const work = force * distance;
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `A ${force} N force moves an object ${distance} m. ` +
+              "How much work is done?",
+            answer: work,
+            unit: "J",
+            options: uniqueOptions(
+              work,
+              [
+                force + distance,
+                Math.max(1, work - force),
+                work + distance
+              ],
+              () => Math.max(1, work + randomInt(-60, 60))
+            ),
+            explanation:
+              `Work = force × distance = ${force} × ${distance} = ` +
+              `${work} J.`
+          };
+        }
+
+        const mass = 2 * randomInt(1, 6 + Math.floor(scale / 2));
+        const speed = randomInt(3, 9 + Math.floor(scale));
+        const energy = (mass * speed * speed) / 2;
+
+        return {
+          id,
+          type: "number",
+          prompt:
+            `A ${mass} kg object moves at ${speed} m/s. ` +
+            "What is its kinetic energy?",
+          answer: energy,
+          unit: "J",
+          options: uniqueOptions(
+            energy,
+            [
+              mass * speed,
+              mass * speed * speed,
+              (mass + speed) * 2
+            ],
+            () => Math.max(1, energy + randomInt(-90, 90))
+          ),
+          explanation:
+            `Kinetic energy = ½ × mass × speed² = ½ × ${mass} × ` +
+            `${speed}² = ${energy} J.`
+        };
+      }
+
+      if (state.subject === "science") {
+        const tier = [
+          "easy",
+          "medium",
+          "hard",
+          "expert"
+        ].indexOf(state.difficulty);
+
+        const scenarioPools = [
+          ["temperature"],
+          ["temperature", "density"],
+          ["density", "average"],
+          ["average", "concentration"]
+        ];
+
+        const pool = scenarioPools[Math.max(0, tier)];
+        const scenario =
+          pool[randomInt(0, pool.length - 1)];
+
+        if (scenario === "temperature") {
+          const start = randomInt(-8, 18);
+          const change = randomInt(6, 20 + Math.floor(scale * 2));
+          const end = start + change;
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `A sample warms from ${start}°C to ${end}°C. ` +
+              "What is the temperature increase?",
+            answer: change,
+            unit: "°C",
+            options: uniqueOptions(
+              change,
+              [
+                end,
+                Math.abs(start),
+                Math.abs(end + start)
+              ],
+              () => Math.max(1, change + randomInt(-10, 10))
+            ),
+            explanation:
+              `Temperature increase = final − initial = ${end} − ` +
+              `(${start}) = ${change}°C.`
+          };
+        }
+
+        if (scenario === "density") {
+          const volume = randomInt(3, 12 + Math.floor(scale));
+          const density = randomInt(2, 8 + Math.floor(scale / 2));
+          const mass = volume * density;
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `A sample has a mass of ${mass} g and a volume of ` +
+              `${volume} cm³. What is its density?`,
+            answer: density,
+            unit: "g/cm³",
+            options: uniqueOptions(
+              density,
+              [
+                mass + volume,
+                volume,
+                density + volume
+              ],
+              () => Math.max(1, density + randomInt(-6, 6))
+            ),
+            explanation:
+              `Density = mass ÷ volume = ${mass} ÷ ${volume} = ` +
+              `${density} g/cm³.`
+          };
+        }
+
+        if (scenario === "average") {
+          const average = randomInt(12, 45 + Math.floor(scale * 3));
+          const firstOffset = randomInt(2, 8);
+          const secondOffset = randomInt(1, firstOffset);
+          const readings = [
+            average - firstOffset,
+            average + secondOffset,
+            average + firstOffset - secondOffset
+          ];
+
+          return {
+            id,
+            type: "number",
+            prompt:
+              `Three measurements are ${readings[0]}, ${readings[1]}, ` +
+              `${readings[2]}. What is their mean?`,
+            answer: average,
+            unit: "",
+            options: uniqueOptions(
+              average,
+              [
+                average + firstOffset,
+                average - secondOffset,
+                readings[1]
+              ],
+              () => Math.max(1, average + randomInt(-12, 12))
+            ),
+            explanation:
+              `Mean = (${readings.join(" + ")}) ÷ 3 = ` +
+              `${average * 3} ÷ 3 = ${average}.`
+          };
+        }
+
+        const concentrations = [10, 20, 25, 40, 50];
+        const concentration =
+          concentrations[randomInt(0, concentrations.length - 1)];
+        const totalMass = 20 * randomInt(2, 8 + Math.floor(scale / 2));
+        const soluteMass = (totalMass * concentration) / 100;
+
+        return {
+          id,
+          type: "number",
+          prompt:
+            `A ${totalMass} g solution contains ${soluteMass} g of ` +
+            "solute. What percent of the solution is solute?",
+          answer: concentration,
+          unit: "%",
+          options: uniqueOptions(
+            concentration,
+            [
+              Math.max(1, concentration - 10),
+              Math.min(100, concentration + 10),
+              round2(totalMass / soluteMass)
+            ],
+            () => randomInt(5, 75)
+          ),
+          explanation:
+            `Concentration = solute ÷ total × 100 = ${soluteMass} ÷ ` +
+            `${totalMass} × 100 = ${concentration}%.`
+        };
+      }
+
       const isArea = Math.random() > 0.5;
 
       const maximumSide = Math.min(
-        9,
+        15,
         Math.floor(6 + scale)
       );
 
