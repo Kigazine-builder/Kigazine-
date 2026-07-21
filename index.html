@@ -1061,6 +1061,27 @@
 
     .mag-body { padding: 16px; }
     .mag-body h3 { margin: 0 0 8px; }
+
+    .magazine-photo {
+      display: block;
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      background: #0b1425;
+      border-top: 1px solid rgba(148,163,184,.16);
+      border-bottom: 1px solid rgba(148,163,184,.16);
+    }
+
+    .magazine-photo-preview {
+      display: block;
+      width: 100%;
+      max-height: 260px;
+      margin: 14px 0 0;
+      border-radius: 16px;
+      object-fit: contain;
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+    }
     .mag-meta {
       color: #bfd0f4;
       font-size: 13px;
@@ -1560,6 +1581,12 @@
                 <textarea id="contentInput" class="textarea" maxlength="5200" placeholder="Write your story here..."></textarea>
                 <p class="field-help" id="contentLengthHelp">0 of 5200 characters used.</p>
               </div>
+              <div>
+                <label class="label" for="magazinePhotoInput">Magazine photo <span class="muted">(optional)</span></label>
+                <input id="magazinePhotoInput" class="input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-describedby="magazinePhotoHelp" />
+                <p id="magazinePhotoHelp" class="field-help">Add one PNG, JPG, GIF, or WebP picture under 450 KB. It will be checked with your magazine before readers can see it.</p>
+                <button id="removeMagazinePhotoBtn" class="btn btn-secondary hidden" type="button" style="margin-top:10px;">Remove photo</button>
+              </div>
               <div id="draftSafetyHint" class="draft-safety-hint" role="status" aria-live="polite">Draft looks okay so far. Keep checking for private details before you submit.</div>
               <div class="safety-panel" style="border:1px solid rgba(34,197,94,.28); border-radius:18px; padding:14px;">
                 <h3 style="margin:0 0 8px; font-size:16px;">Safety check</h3>
@@ -1589,6 +1616,7 @@
             </div>
             <div id="previewDesc" style="font-weight:700; margin-bottom:10px;">Your description will show here.</div>
             <div id="previewContent" style="line-height:1.75; color:#334155; white-space:pre-wrap;">Start typing to preview your magazine.</div>
+            <img id="previewMagazinePhoto" class="magazine-photo-preview hidden" alt="Your selected magazine photo preview" />
             <div class="preview-stickers" aria-hidden="true">
               <span class="preview-sticker">Bright idea</span>
               <span class="preview-sticker">Kind words</span>
@@ -1826,6 +1854,7 @@
     let allUsers = [];
     let bannedEmails = [];
     let pendingProfilePhotoDataUrl = "";
+    let pendingMagazinePhotoDataUrl = "";
 
     const authScreen = document.getElementById("authScreen");
     const appShell = document.getElementById("appShell");
@@ -1894,6 +1923,9 @@
     const titleInput = document.getElementById("titleInput");
     const descInput = document.getElementById("descInput");
     const contentInput = document.getElementById("contentInput");
+    const magazinePhotoInput = document.getElementById("magazinePhotoInput");
+    const removeMagazinePhotoBtn = document.getElementById("removeMagazinePhotoBtn");
+    const previewMagazinePhoto = document.getElementById("previewMagazinePhoto");
     const previewTitle = document.getElementById("previewTitle");
     const previewDesc = document.getElementById("previewDesc");
     const previewContent = document.getElementById("previewContent");
@@ -2183,11 +2215,64 @@
       });
     }
 
+    function updateMagazinePhotoPreview() {
+      const photoUrl = sanitizePhotoDataUrl(pendingMagazinePhotoDataUrl);
+      previewMagazinePhoto.src = photoUrl;
+      previewMagazinePhoto.classList.toggle("hidden", !photoUrl);
+      removeMagazinePhotoBtn.classList.toggle("hidden", !photoUrl);
+    }
+
+    async function handleMagazinePhotoSelection() {
+      const file = magazinePhotoInput.files?.[0];
+      if (!file) {
+        pendingMagazinePhotoDataUrl = "";
+        updateMagazinePhotoPreview();
+        return;
+      }
+
+      if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
+        magazinePhotoInput.value = "";
+        pendingMagazinePhotoDataUrl = "";
+        updateMagazinePhotoPreview();
+        showPublishMessage("Please choose a PNG, JPG, GIF, or WebP image.", "error");
+        return;
+      }
+
+      if (file.size > 450 * 1024) {
+        magazinePhotoInput.value = "";
+        pendingMagazinePhotoDataUrl = "";
+        updateMagazinePhotoPreview();
+        showPublishMessage("Please choose a magazine photo under 450 KB.", "error");
+        return;
+      }
+
+      try {
+        const photoUrl = sanitizePhotoDataUrl(await readFileAsDataUrl(file));
+        if (!photoUrl || photoUrl.length > 650000) throw new Error("invalid-image");
+        pendingMagazinePhotoDataUrl = photoUrl;
+        updateMagazinePhotoPreview();
+        showPublishMessage("Photo added to your draft. It will be reviewed with your magazine.", "success");
+      } catch {
+        magazinePhotoInput.value = "";
+        pendingMagazinePhotoDataUrl = "";
+        updateMagazinePhotoPreview();
+        showPublishMessage("We could not use that picture. Try another PNG, JPG, GIF, or WebP image.", "error");
+      }
+    }
+
+    function removeMagazinePhoto() {
+      pendingMagazinePhotoDataUrl = "";
+      magazinePhotoInput.value = "";
+      updateMagazinePhotoPreview();
+      showPublishMessage("Photo removed from your draft.", "success");
+    }
+
     // Keep the live preview and safety hint in sync with the current draft.
     function updatePreview() {
       previewTitle.textContent = titleInput.value.trim() || "Your title here";
       previewDesc.textContent = descInput.value.trim() || "Your description will show here.";
       previewContent.textContent = contentInput.value.trim() || "Start typing to preview your magazine.";
+      updateMagazinePhotoPreview();
       updateDraftSafetyHint();
     }
 
@@ -2344,9 +2429,12 @@
           </div>
         `;
       } else {
-        magGrid.innerHTML = filtered.map(m => `
+        magGrid.innerHTML = filtered.map(m => {
+          const photoUrl = sanitizePhotoDataUrl(m.photoDataUrl || "");
+          return `
           <article class="mag-card">
             <div class="mag-cover">${escapeHtml((m.title || "M").charAt(0).toUpperCase())}</div>
+            ${photoUrl ? `<img class="magazine-photo" src="${escapeHtml(photoUrl)}" alt="Photo shared with ${escapeHtml(m.title || "this magazine")}" loading="lazy" />` : ""}
             <div class="mag-body">
               <h3>${escapeHtml(m.title || "Untitled magazine")}</h3>
               <div class="mag-meta">By ${escapeHtml(m.username || "Kigazine writer")}</div>
@@ -2359,7 +2447,8 @@
               ${isAdmin() ? `<button class="report-btn" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>` : ""}
             </div>
           </article>
-        `).join("");
+        `;
+        }).join("");
       }
 
       publicCount.textContent = magazines.length;
@@ -2962,6 +3051,7 @@
           title,
           description,
           content,
+          photoDataUrl: pendingMagazinePhotoDataUrl,
           isPublic: false,
           status: "pending_review",
           createdAt: serverTimestamp()
@@ -2970,6 +3060,8 @@
         titleInput.value = "";
         descInput.value = "";
         contentInput.value = "";
+        pendingMagazinePhotoDataUrl = "";
+        magazinePhotoInput.value = "";
         safePostInput.checked = false;
         updatePreview();
         showPublishMessage("Magazine submitted for review. It will not be public until a trusted reviewer approves it.", "success");
@@ -2990,6 +3082,8 @@
       titleInput.value = "";
       descInput.value = "";
       contentInput.value = "";
+      pendingMagazinePhotoDataUrl = "";
+      magazinePhotoInput.value = "";
       safePostInput.checked = false;
       publishMessage.classList.add("hidden");
       updatePreview();
@@ -3000,6 +3094,8 @@
     adminUserSearchBtn.addEventListener("click", () => renderAdminUserResults(adminUserSearchInput.value));
     adminUserSearchInput.addEventListener("input", e => renderAdminUserResults(e.target.value));
     profilePhotoInput.addEventListener("change", handleProfilePhotoSelection);
+    magazinePhotoInput.addEventListener("change", handleMagazinePhotoSelection);
+    removeMagazinePhotoBtn.addEventListener("click", removeMagazinePhoto);
     saveProfilePhotoBtn.addEventListener("click", saveProfilePhoto);
     removeProfilePhotoBtn.addEventListener("click", removeProfilePhoto);
     privateModeBtn.addEventListener("click", applyPrivateModeDraft);
@@ -3351,6 +3447,7 @@
               <p>By ${escapeHtml(m.username || "Kigazine writer")}</p>
               <p>${escapeHtml(m.description || "No description yet.")}</p>
               <p>${escapeHtml(m.content || "")}</p>
+              ${sanitizePhotoDataUrl(m.photoDataUrl || "") ? `<img class="magazine-photo" src="${escapeHtml(sanitizePhotoDataUrl(m.photoDataUrl || ""))}" alt="Photo submitted with ${escapeHtml(m.title || "this magazine")}" />` : ""}
               ${reviewWarning}
               <label class="check-row">
                 <input type="checkbox" data-review-check="${escapeHtml(m.id)}" />
@@ -3682,7 +3779,9 @@
         allUsers = [];
         bannedEmails = [];
         pendingProfilePhotoDataUrl = "";
+        pendingMagazinePhotoDataUrl = "";
         profilePhotoInput.value = "";
+        magazinePhotoInput.value = "";
         hideProfilePhotoMessage();
         updateAccountAvatarPreview();
         authScreen.classList.remove("hidden");
