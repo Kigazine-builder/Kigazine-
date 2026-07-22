@@ -1790,7 +1790,7 @@
     </div>
   </div>
 
-  <script type="module">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>\n  <script src="emailjs-welcome.js"></script>\n  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import {
       getAuth,
@@ -3001,6 +3001,17 @@
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
+
+          try {
+            await window.KigazineWelcomeEmail.send({
+              email: cred.user.email || email,
+              username
+            });
+          } catch (emailError) {
+            // The account is valid even if the optional welcome email cannot be delivered.
+            console.error("Account created, but welcome email failed:", emailError);
+          }
+
           showAuthMessage("Account created. Logging you in...", "success");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
