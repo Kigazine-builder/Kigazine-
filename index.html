@@ -37,7 +37,7 @@
       color: var(--text);
     }
     body { min-height: 100vh; }
-    button, input, textarea { font: inherit; }
+    button, input, textarea, select { font: inherit; }
     a { color: inherit; text-decoration: none; }
 
     .hidden { display: none !important; }
@@ -1497,6 +1497,7 @@
   <button class="nav-btn" data-section="viewSection">📚 View</button>
   <button class="nav-btn" data-section="membersSection">🧑 Members</button>
   <button class="nav-btn" data-section="createSection">✏️ Create</button>
+  <button class="nav-btn" data-section="suggestionSection">💡 Suggestions</button>
   <button class="nav-btn" data-section="accountSection">👤 Account</button>
   <button class="nav-btn" type="button" onclick="window.location.href='math-games.html'">🧠 Math Games</button>
   <button class="nav-btn" type="button" onclick="window.location.href='help.html'">🤖 Help</button>
@@ -1684,6 +1685,74 @@
             </div>
             <div class="preview-note">Your post goes to review before it can appear in the public feed. That helps keep Kigazine kind and kid-safe.</div>
           </div>
+        </div>
+      </section>
+
+      <section id="suggestionSection" class="section">
+        <div class="toolbar">
+          <div>
+            <div class="section-kicker">Help Kigazine Improve</div>
+            <h2 style="margin:0 0 6px;">Suggestion box 💡</h2>
+            <div class="muted">Share one clear idea with the Kigazine team</div>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="card">
+            <form id="suggestionForm" class="form-grid">
+              <div>
+                <label class="label" for="suggestionCategory">What is your idea about?</label>
+                <select id="suggestionCategory" class="input">
+                  <option value="feature">New feature</option>
+                  <option value="improvement">Website improvement</option>
+                  <option value="design">Design</option>
+                  <option value="bug">Something is not working</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="label" for="suggestionInput">Your suggestion</label>
+                <textarea
+                  id="suggestionInput"
+                  class="textarea"
+                  maxlength="120"
+                  aria-describedby="suggestionHelp suggestionLength"
+                  placeholder="Example: Add a way to save magazines as drafts."
+                  required
+                ></textarea>
+                <p id="suggestionHelp" class="field-help">Do not include your real name, email, school, address, passwords, or contact details.</p>
+                <p id="suggestionLength" class="field-help" aria-live="polite">0 of 120 characters used.</p>
+              </div>
+              <div class="row">
+                <button id="sendSuggestionBtn" class="btn btn-primary" type="submit">Send suggestion</button>
+                <button id="clearSuggestionBtn" class="btn btn-secondary" type="button">Clear</button>
+              </div>
+              <div id="suggestionMessage" class="notice hidden" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="card safety-panel">
+            <h3>A strong suggestion is:</h3>
+            <ul class="safety-list">
+              <li>About one feature or problem</li>
+              <li>Clear enough for the team to understand</li>
+              <li>Kind and safe for a kids' website</li>
+              <li>Free of private or contact information</li>
+            </ul>
+            <p class="muted" style="line-height:1.7; margin-bottom:0;">Suggestions are private. Kigazine admins can read them, but other users cannot.</p>
+          </div>
+        </div>
+
+        <div id="suggestionAdminPanel" class="card hidden" style="margin-top:20px;">
+          <div class="toolbar" style="margin-bottom:12px;">
+            <div>
+              <div class="section-kicker">Admin Only</div>
+              <h3 style="margin:0 0 6px;">Suggestion inbox</h3>
+              <div id="suggestionAdminStatus" class="muted">Loading suggestions...</div>
+            </div>
+            <button id="refreshSuggestionsBtn" class="btn btn-secondary" type="button">Refresh suggestions</button>
+          </div>
+          <div id="suggestionAdminList" class="admin-review-list"></div>
         </div>
       </section>
 
@@ -2005,6 +2074,17 @@
     const cancelReportBtn = document.getElementById("cancelReportBtn");
     const reportMessage = document.getElementById("reportMessage");
     const hideAfterReportInput = document.getElementById("hideAfterReportInput");
+    const suggestionForm = document.getElementById("suggestionForm");
+    const suggestionCategory = document.getElementById("suggestionCategory");
+    const suggestionInput = document.getElementById("suggestionInput");
+    const suggestionLength = document.getElementById("suggestionLength");
+    const sendSuggestionBtn = document.getElementById("sendSuggestionBtn");
+    const clearSuggestionBtn = document.getElementById("clearSuggestionBtn");
+    const suggestionMessage = document.getElementById("suggestionMessage");
+    const suggestionAdminPanel = document.getElementById("suggestionAdminPanel");
+    const suggestionAdminStatus = document.getElementById("suggestionAdminStatus");
+    const suggestionAdminList = document.getElementById("suggestionAdminList");
+    const refreshSuggestionsBtn = document.getElementById("refreshSuggestionsBtn");
     let activeReportPostId = "";
     let reportDialogReturnFocus = null;
     const HIDDEN_POSTS_KEY = "kigazine.hiddenPosts";
@@ -2040,6 +2120,17 @@
       viewMessage.textContent = message;
       viewMessage.className = `notice ${type}`.trim();
       viewMessage.classList.remove("hidden");
+    }
+
+    function showSuggestionMessage(message, type = "") {
+      suggestionMessage.textContent = message;
+      suggestionMessage.className = `notice ${type}`.trim();
+      suggestionMessage.classList.remove("hidden");
+    }
+
+    function hideSuggestionMessage() {
+      suggestionMessage.textContent = "";
+      suggestionMessage.className = "notice hidden";
     }
 
     function showBanMessage(message, type = "") {
@@ -2251,6 +2342,132 @@
         closeSidebar({ returnFocus: true });
       });
     });
+
+    const suggestionCategoryLabels = {
+      feature: "New feature",
+      improvement: "Website improvement",
+      design: "Design",
+      bug: "Something is not working",
+      other: "Other"
+    };
+
+    function updateSuggestionCounter() {
+      suggestionLength.textContent = `${suggestionInput.value.length} of 120 characters used.`;
+    }
+
+    function clearSuggestionForm() {
+      suggestionForm.reset();
+      updateSuggestionCounter();
+      hideSuggestionMessage();
+    }
+
+    async function loadSuggestions() {
+      const admin = isAdmin();
+      suggestionAdminPanel.classList.toggle("hidden", !admin);
+      if (!admin) {
+        suggestionAdminList.innerHTML = "";
+        return;
+      }
+
+      suggestionAdminStatus.textContent = "Loading suggestions...";
+      try {
+        const snap = await getDocs(collection(db, "reports"));
+        const suggestions = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(item => item.kind === "suggestion" || item.postId === "site-suggestion")
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+          .slice(0, 30);
+
+        suggestionAdminStatus.textContent = suggestions.length
+          ? `${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"} shown.`
+          : "No suggestions yet.";
+
+        suggestionAdminList.innerHTML = suggestions.length
+          ? suggestions.map(item => {
+              const createdDate = item.createdAt?.toDate?.();
+              const createdLabel = createdDate ? createdDate.toLocaleString() : "Recently";
+              const categoryLabel = suggestionCategoryLabels[item.category] || "Other";
+              return `
+                <div class="admin-review-item">
+                  <h4>${escapeHtml(categoryLabel)}</h4>
+                  <p>${escapeHtml(item.reason || "No suggestion text")}</p>
+                  <p class="muted">From ${escapeHtml(item.username || "Kigazine member")} • ${escapeHtml(createdLabel)}</p>
+                </div>
+              `;
+            }).join("")
+          : '<div class="admin-review-item"><p>No suggestions have been submitted.</p></div>';
+      } catch (err) {
+        suggestionAdminStatus.textContent = getFriendlyError(err);
+        suggestionAdminList.innerHTML = "";
+      }
+    }
+
+    suggestionInput.addEventListener("input", () => {
+      updateSuggestionCounter();
+      hideSuggestionMessage();
+    });
+
+    clearSuggestionBtn.addEventListener("click", clearSuggestionForm);
+    refreshSuggestionsBtn.addEventListener("click", loadSuggestions);
+
+    suggestionForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const reason = suggestionInput.value.trim();
+      const category = suggestionCategory.value;
+
+      if (!currentUser) {
+        showSuggestionMessage("Log in before sending a suggestion.", "error");
+        return;
+      }
+      if (reason.length < 5) {
+        showSuggestionMessage("Please write at least 5 characters so the team can understand your idea.", "error");
+        return;
+      }
+
+      const privateInfo = findPrivateInfo(reason);
+      if (privateInfo) {
+        showSuggestionMessage(`Please remove the ${privateInfo} before sending your suggestion.`, "error");
+        return;
+      }
+
+      const unsafeContactCue = findUnsafeContactCue(reason);
+      if (unsafeContactCue) {
+        showSuggestionMessage(`Please remove the ${unsafeContactCue}. Suggestions should not include ways to contact or meet someone.`, "error");
+        return;
+      }
+
+      if (unkindCommentPattern.test(reason)) {
+        showSuggestionMessage("Please rewrite the suggestion using kind, kid-safe language.", "error");
+        return;
+      }
+
+      sendSuggestionBtn.disabled = true;
+      sendSuggestionBtn.textContent = "Sending...";
+      try {
+        await addDoc(collection(db, "reports"), {
+          postId: "site-suggestion",
+          postTitle: "Kigazine suggestion box",
+          reason,
+          status: "new",
+          kind: "suggestion",
+          category,
+          uid: currentUser.uid,
+          username: currentProfile?.username || "Kigazine member",
+          createdAt: serverTimestamp()
+        });
+        suggestionInput.value = "";
+        updateSuggestionCounter();
+        showSuggestionMessage("Suggestion sent. Thank you for helping improve Kigazine!", "success");
+        await loadSuggestions();
+      } catch (err) {
+        showSuggestionMessage(getFriendlyError(err), "error");
+      } finally {
+        sendSuggestionBtn.disabled = false;
+        sendSuggestionBtn.textContent = "Send suggestion";
+      }
+    });
+
+    updateSuggestionCounter();
 
     function escapeHtml(text = "") {
       const div = document.createElement("div");
@@ -2945,6 +3162,7 @@
       adminPanel.classList.toggle("hidden", !isAdmin());
       adminPeoplePanel.classList.toggle("hidden", !isAdmin());
       banPanel.classList.toggle("hidden", !isAdmin());
+      suggestionAdminPanel.classList.toggle("hidden", !isAdmin());
       renderFriendList();
       renderMembers(memberSearchInput.value);
     }
@@ -3881,6 +4099,7 @@
         await loadPendingComments();
         await loadBannedEmails();
         updateAccountUI();
+        await loadSuggestions();
       } else {
         currentProfile = null;
         pendingMagazines = [];
