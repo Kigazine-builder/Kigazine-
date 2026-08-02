@@ -301,20 +301,81 @@
 
     .app {
       min-height: 100vh;
-      display: grid;
-      grid-template-columns: 260px 1fr;
+      display: block;
       background:
         radial-gradient(circle at right top, rgba(244,114,182,.08), transparent 24%),
         linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.98));
     }
 
+    body.sidebar-lock {
+      overflow: hidden;
+    }
+
+    .sidebar-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 40;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(96,165,250,.28);
+      border-radius: 15px;
+      background: rgba(8,13,23,.96);
+      color: white;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .sidebar-toggle:hover {
+      background: #152033;
+      transform: translateY(-1px);
+    }
+
     .sidebar {
-      background: rgba(8, 13, 23, .96);
-      border-right: 1px solid #26344d;
-      padding: 20px 16px;
-      position: sticky;
-      top: 0;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 30;
+      width: min(300px, 88vw);
       height: 100vh;
+      overflow-y: auto;
+      padding: 78px 16px 20px;
+      background: rgba(8, 13, 23, .98);
+      border-right: 1px solid #26344d;
+      box-shadow: 20px 0 45px rgba(0,0,0,.4);
+      transform: translateX(-105%);
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform .22s ease, visibility .22s ease;
+    }
+
+    .app.sidebar-open .sidebar {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      border: 0;
+      padding: 0;
+      background: rgba(2,6,23,.68);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      cursor: pointer;
+      transition: opacity .22s ease, visibility .22s ease;
+    }
+
+    .app.sidebar-open .sidebar-backdrop {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     .sidebar-brand {
@@ -370,6 +431,8 @@
     }
 
     .nav-btn:focus-visible,
+    .sidebar-toggle:focus-visible,
+    .sidebar-backdrop:focus-visible,
     .btn:focus-visible,
     .tab-btn:focus-visible,
     .report-btn:focus-visible,
@@ -392,7 +455,8 @@
     .side-card p { margin: 0; color: var(--soft); line-height: 1.55; font-size: 13px; }
 
     .main {
-      padding: 24px;
+      min-height: 100vh;
+      padding: 84px 24px 24px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.02), transparent 18%);
     }
@@ -1315,31 +1379,12 @@
     @media (max-width: 980px) {
       .auth-screen { grid-template-columns: 1fr; }
       .hero-copy h1 { font-size: 42px; }
-      .app { grid-template-columns: 1fr; }
-      .sidebar {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid #26344d;
-        padding-bottom: 12px;
-        backdrop-filter: blur(10px);
-      }
-      /* On smaller screens, the sidebar becomes a compact top nav to preserve space. */
-      .nav {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-      }
-      .nav-btn {
-        text-align: center;
-        padding: 12px 10px;
-        font-size: 14px;
-      }
       .grid, .split, .status-grid, .home-quickstrip { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
-      .auth-left, .auth-right, .main { padding: 18px; }
+      .auth-left, .auth-right { padding: 18px; }
+      .main { padding: 78px 18px 18px; }
       .hero, .card, .preview { padding: 18px; }
       .hero h2 { font-size: 32px; }
       .brand { font-size: 26px; }
@@ -1423,7 +1468,22 @@
   </section>
 
   <div id="appShell" class="app hidden">
-    <aside class="sidebar">
+    <button
+      id="sidebarToggle"
+      class="sidebar-toggle"
+      type="button"
+      aria-label="Open navigation menu"
+      aria-controls="appSidebar"
+      aria-expanded="false"
+    >☰</button>
+    <button
+      id="sidebarBackdrop"
+      class="sidebar-backdrop"
+      type="button"
+      aria-label="Close navigation menu"
+      tabindex="-1"
+    ></button>
+    <aside id="appSidebar" class="sidebar" aria-hidden="true" inert>
       <div class="sidebar-brand">
         <img class="brand-logo" src="logo.png" alt="Kigazine logo" />
         <div>
@@ -1858,6 +1918,9 @@
 
     const authScreen = document.getElementById("authScreen");
     const appShell = document.getElementById("appShell");
+    const appSidebar = document.getElementById("appSidebar");
+    const sidebarToggle = document.getElementById("sidebarToggle");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
     const loginTab = document.getElementById("loginTab");
     const signupTab = document.getElementById("signupTab");
     const authTitle = document.getElementById("authTitle");
@@ -2130,6 +2193,48 @@
     loginTab.addEventListener("click", () => setAuthMode("login"));
     signupTab.addEventListener("click", () => setAuthMode("signup"));
 
+    function setSidebarOpen(isOpen, { returnFocus = false } = {}) {
+      appShell.classList.toggle("sidebar-open", isOpen);
+      sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+      sidebarToggle.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+      sidebarToggle.textContent = isOpen ? "✕" : "☰";
+      appSidebar.setAttribute("aria-hidden", String(!isOpen));
+      appSidebar.toggleAttribute("inert", !isOpen);
+      document.body.classList.toggle("sidebar-lock", isOpen);
+
+      if (!isOpen && returnFocus) {
+        sidebarToggle.focus();
+      }
+    }
+
+    function closeSidebar(options) {
+      setSidebarOpen(false, options);
+    }
+
+    function openSidebar() {
+      setSidebarOpen(true);
+      appSidebar.querySelector(".nav-btn")?.focus();
+    }
+
+    sidebarToggle.addEventListener("click", () => {
+      const isOpen = appShell.classList.contains("sidebar-open");
+      if (isOpen) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+
+    sidebarBackdrop.addEventListener("click", () => {
+      closeSidebar({ returnFocus: true });
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && appShell.classList.contains("sidebar-open")) {
+        closeSidebar({ returnFocus: true });
+      }
+    });
+
     function showSection(sectionId) {
       sections.forEach(section => section.classList.remove("active"));
       navButtons.forEach(btn => btn.classList.remove("active"));
@@ -2139,8 +2244,12 @@
     window.showSection = showSection;
 
     navButtons.forEach(btn => {
-      if (!btn.dataset.section) return;
-      btn.addEventListener("click", () => showSection(btn.dataset.section));
+      btn.addEventListener("click", () => {
+        if (btn.dataset.section) {
+          showSection(btn.dataset.section);
+        }
+        closeSidebar({ returnFocus: true });
+      });
     });
 
     function escapeHtml(text = "") {
@@ -3758,6 +3867,7 @@
       if (user) {
         authScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
+        closeSidebar();
         if (await isEmailBanned(user.email)) {
           alert("This email has been banned from Kigazine.");
           await signOut(auth);
@@ -3784,6 +3894,7 @@
         magazinePhotoInput.value = "";
         hideProfilePhotoMessage();
         updateAccountAvatarPreview();
+        closeSidebar();
         authScreen.classList.remove("hidden");
         appShell.classList.add("hidden");
         setAuthMode("login");
