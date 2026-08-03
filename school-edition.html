@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Kigazine School Edition</title>
+  <link rel="icon" href="logo.png">
+  <style>
+    :root {
+      --navy: #071f43;
+      --blue: #1268df;
+      --blue-dark: #0b4dad;
+      --cyan: #27c7e6;
+      --ink: #10213a;
+      --muted: #637087;
+      --line: #dce5f2;
+      --surface: #ffffff;
+      --surface-soft: #f4f8fd;
+      --success: #087d52;
+      --success-soft: #e9f8f1;
+      --warning: #9a5b00;
+      --warning-soft: #fff5d9;
+      --danger: #b3261e;
+      --danger-soft: #fff0ef;
+      --shadow: 0 18px 50px rgba(7, 31, 67, 0.14);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(39, 199, 230, 0.18), transparent 28rem),
+        linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    button { cursor: pointer; }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    a { color: var(--blue-dark); }
+
+    .hidden { display: none !important; }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: -80px;
+      z-index: 100;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: white;
+      background: var(--navy);
+      transition: top 0.15s ease;
+    }
+
+    .skip-link:focus { top: 16px; }
+
+    .auth-layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+    }
+
+    .auth-story {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(42px, 8vw, 110px);
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(7, 31, 67, 0.98), rgba(18, 104, 223, 0.9)),
+        var(--navy);
+    }
+
+    .auth-story::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      bottom: -120px;
+      width: 360px;
+      height: 360px;
+      border: 70px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    .brand img {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      object-fit: contain;
+      background: white;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 1.25rem;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 2px;
+      color: #b9d9ff;
+      font-size: 0.92rem;
+    }
+
+    .auth-story h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2.4rem, 6vw, 5.25rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .auth-story > p {
+      position: relative;
+      z-index: 1;
+      max-width: 650px;
+      margin: 26px 0 0;
+      color: #d7e9ff;
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      line-height: 1.7;
+    }
+
+    .safety-points {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 760px;
+      margin-top: 38px;
+      margin-bottom: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .safety-point {
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 15px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .safety-point strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.94rem;
+    }
+
+    .safety-point span {
+      color: #cfe4ff;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .auth-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 34px;
+    }
+
+    .auth-card {
+      width: min(100%, 470px);
+      padding: clamp(28px, 5vw, 46px);
+      border: 1px solid rgba(220, 229, 242, 0.9);
+      border-radius: 26px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      margin: 0 0 9px;
+      color: var(--blue-dark);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .auth-card h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.45rem);
+      letter-spacing: -0.035em;
+    }
+
+    .auth-card > p {
+      margin: 12px 0 26px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 17px;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      font-weight: 750;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      border: 1px solid #cbd7e7;
+      border-radius: 12px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input, .select {
+      min-height: 46px;
+      padding: 10px 12px;
+    }
+
+    .textarea {
+      min-height: 120px;
+      padding: 12px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .textarea.large { min-height: 240px; }
+
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(18, 104, 223, 0.12);
+    }
+
+    .button {
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 12px;
+      font-weight: 800;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .button:not(:disabled):hover { transform: translateY(-1px); }
+
+    .button.primary {
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      box-shadow: 0 9px 22px rgba(18, 104, 223, 0.2);
+    }
+
+    .button.secondary {
+      color: var(--navy);
+      border: 1px solid #cbd7e7;
+      background: white;
+    }
+
+    .button.danger {
+      color: var(--danger);
+      border: 1px solid #f0c4c1;
+      background: var(--danger-soft);
+    }
+
+    .button.small {
+      min-height: 36px;
+      padding: 7px 11px;
+      font-size: 0.85rem;
+    }
+
+    .button.full { width: 100%; }
+
+    .button-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .message {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .message.info { color: var(--blue-dark); background: #eaf3ff; }
+    .message.success { color: var(--success); background: var(--success-soft); }
+    .message.warning { color: var(--warning); background: var(--warning-soft); }
+    .message.error { color: var(--danger); background: var(--danger-soft); }
+
+    .small-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .flush-top { margin-top: 0; }
+    .spaced-top { margin-top: 18px; }
+    .step-note { margin-top: 3px; }
+
+    .portal {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 40;
+      width: 270px;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 17px;
+      color: white;
+      background: var(--navy);
+      box-shadow: 14px 0 40px rgba(7,31,67,0.14);
+    }
+
+    .sidebar .brand { margin: 0 7px 28px; }
+
+    .sidebar-nav {
+      display: grid;
+      gap: 7px;
+    }
+
+    .nav-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 11px 13px;
+      border: 0;
+      border-radius: 12px;
+      color: #cfdef3;
+      background: transparent;
+      font-weight: 750;
+      text-align: left;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      color: white;
+      background: rgba(255,255,255,0.12);
+    }
+
+    .sidebar-safety {
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      color: #cfe2fa;
+      background: rgba(255,255,255,0.07);
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    .sidebar-safety strong {
+      display: block;
+      margin-bottom: 4px;
+      color: white;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      border: 0;
+      background: rgba(7,31,67,0.48);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .main-column {
+      grid-column: 2;
+      min-width: 0;
+    }
+
+    .portal-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 13px clamp(20px, 4vw, 52px);
+      border-bottom: 1px solid rgba(220,229,242,0.9);
+      background: rgba(248,251,255,0.88);
+      backdrop-filter: blur(16px);
+    }
+
+    .header-copy h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header-copy p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 31px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--blue-dark);
+      background: #e6f0ff;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .badge.success { color: var(--success); background: var(--success-soft); }
+    .badge.warning { color: var(--warning); background: var(--warning-soft); }
+
+    .sidebar-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      border: 1px solid #cbd7e7;
+      border-radius: 12px;
+      color: var(--navy);
+      background: white;
+      font-size: 1.25rem;
+    }
+
+    .content {
+      width: min(100%, 1320px);
+      margin: 0 auto;
+      padding: clamp(24px, 4vw, 52px);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.35rem);
+      letter-spacing: -0.04em;
+    }
+
+    .panel-heading p {
+      max-width: 700px;
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar .select { width: min(100%, 280px); }
+
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 10px 30px rgba(7,31,67,0.07);
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(27px, 5vw, 46px);
+      color: white;
+      border: 0;
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -75px;
+      top: -95px;
+      width: 250px;
+      height: 250px;
+      border: 48px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    .hero-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-card h2 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.7rem);
+      line-height: 1.03;
+      letter-spacing: -0.055em;
+    }
+
+    .hero-card p {
+      max-width: 720px;
+      margin: 18px 0 0;
+      color: #d7e9ff;
+      line-height: 1.7;
+    }
+
+    .hero-card .eyebrow { color: #9ed8ff; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+      margin-bottom: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stat-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .stat-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--blue);
+    }
+
+    .magazine-card h3,
+    .review-card h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: -0.025em;
+    }
+
+    .magazine-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 8px 0 14px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .magazine-description {
+      color: #33445e;
+      line-height: 1.6;
+    }
+
+    .magazine-content {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 13px;
+      color: #24334b;
+      background: var(--surface-soft);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+      margin-top: 17px;
+    }
+
+    .empty-state {
+      padding: 40px 24px;
+      border: 1px dashed #bdcce0;
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: rgba(255,255,255,0.58);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .review-warning {
+      margin: 15px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: var(--warning);
+      background: var(--warning-soft);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .setup-block + .setup-block { margin-top: 18px; }
+
+    .setup-summary {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .identity-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .identity-row {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .identity-row dt {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 750;
+    }
+
+    .identity-row dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .auth-layout { grid-template-columns: 1fr; }
+      .auth-story { min-height: 520px; }
+      .auth-panel { padding: 28px 18px 48px; }
+      .portal { grid-template-columns: 1fr; }
+      .main-column { grid-column: 1; }
+      .sidebar {
+        transform: translateX(-105%);
+        transition: transform 0.2s ease;
+      }
+      .portal.sidebar-open .sidebar { transform: translateX(0); }
+      .portal.sidebar-open .sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sidebar-toggle { display: inline-grid; place-items: center; }
+    }
+
+    @media (max-width: 760px) {
+      .safety-points,
+      .stats-grid,
+      .grid-two { grid-template-columns: 1fr; }
+      .auth-story { padding: 44px 24px; }
+      .panel-heading { display: grid; }
+      .portal-header { padding: 12px 16px; }
+      .header-meta .badge:first-child { display: none; }
+      .content { padding: 24px 16px 44px; }
+      .card { padding: 18px; }
+      .identity-row { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+
+  <section id="authView" class="auth-layout">
+    <div class="auth-story">
+      <div class="brand">
+        <img src="logo.png" alt="">
+        <div>
+          <strong>Kigazine School Edition</strong>
+          <span>Supervised student publishing</span>
+        </div>
+      </div>
+      <h1>Create boldly. Publish safely.</h1>
+      <p>
+        A private classroom workspace where students write magazines and an assigned
+        school adult reviews every submission before classmates can read it.
+      </p>
+      <ul class="safety-points">
+        <li class="safety-point">
+          <strong>Adult approval</strong>
+          <span>Submitted work stays hidden until a moderator reviews it.</span>
+        </li>
+        <li class="safety-point">
+          <strong>Nickname only</strong>
+          <span>School profiles do not contain public email addresses or photos.</span>
+        </li>
+        <li class="safety-point">
+          <strong>Class-only feed</strong>
+          <span>Approved pilot work remains inside the assigned class.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="auth-panel">
+      <form id="loginForm" class="auth-card" novalidate>
+        <p class="eyebrow">Assigned accounts only</p>
+        <h2>School sign in</h2>
+        <p>Use the account provided for your supervised Kigazine class.</p>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" class="input" type="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" class="input" type="password" autocomplete="current-password" required>
+        </div>
+        <button id="loginButton" class="button primary full" type="submit">Sign in</button>
+        <div id="loginMessage" class="message hidden" role="status" aria-live="polite"></div>
+        <p class="small-note">
+          There is no public school-account signup. A Kigazine administrator creates
+          pilot accounts after the school approves the class and assigns a moderator.
+        </p>
+        <a href="index.html">Return to regular Kigazine</a>
+      </form>
+    </div>
+  </section>
+
+  <section id="blockedView" class="auth-layout hidden">
+    <div class="auth-story">
+      <div class="brand">
+        <img src="logo.png" alt="">
+        <div>
+          <strong>Kigazine School Edition</strong>
+          <span>Protected workspace</span>
+        </div>
+      </div>
+      <h1>This account is not enrolled.</h1>
+      <p>School Edition opens only for active pilot participants and Kigazine administrators.</p>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <p class="eyebrow">Access stopped</p>
+        <h2>Ask your moderator</h2>
+        <p id="blockedMessage">This account does not have an active School Edition role.</p>
+        <button id="blockedLogout" class="button primary full" type="button">Sign out</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="portal" class="portal hidden">
+    <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
+    <aside id="sidebar" class="sidebar" aria-label="School Edition navigation">
+      <div class="brand">
+        <img src="logo.png" alt="">
+        <div>
+          <strong>Kigazine School</strong>
+          <span id="portalSubtitle">Supervised publishing</span>
+        </div>
+      </div>
+
+      <nav id="sidebarNav" class="sidebar-nav">
+        <button class="nav-button active" type="button" data-panel="homeSection">🏠 Overview</button>
+        <button class="nav-button" type="button" data-panel="feedSection">📚 Class feed</button>
+        <button class="nav-button" type="button" data-panel="workSection" data-role-scope="student">✏️ My work</button>
+        <button class="nav-button" type="button" data-panel="reviewSection" data-role-scope="moderator">✅ Review queue</button>
+        <button class="nav-button" type="button" data-panel="reportsSection">🚩 Reports</button>
+        <button class="nav-button" type="button" data-panel="setupSection" data-role-scope="setup">⚙️ Pilot setup</button>
+        <button class="nav-button" type="button" data-panel="accountSection">👤 Account</button>
+      </nav>
+
+      <div class="sidebar-safety">
+        <strong>Classroom safety</strong>
+        No private messages, profile photos, public comments, or public publication are available here.
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="portal-header">
+        <div class="toolbar">
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+          <div class="header-copy">
+            <h1 id="portalTitle">School Edition</h1>
+            <p id="activeClassLabel">Loading classroom…</p>
+          </div>
+        </div>
+        <div class="header-meta">
+          <span class="badge success">Supervised pilot</span>
+          <span id="headerRoleBadge" class="badge">Role</span>
+        </div>
+      </header>
+
+      <main id="mainContent" class="content">
+        <section id="homeSection" class="panel active">
+          <div class="hero-card card">
+            <p class="eyebrow">Kigazine School Edition</p>
+            <h2 id="welcomeHeading">Welcome to your classroom newsroom.</h2>
+            <p id="welcomeCopy">Loading your supervised workspace…</p>
+          </div>
+
+          <ul class="stats-grid">
+            <li class="card stat-card"><span>Classes</span><strong id="statClasses">0</strong></li>
+            <li class="card stat-card"><span>Approved</span><strong id="statApproved">0</strong></li>
+            <li class="card stat-card"><span>Awaiting review</span><strong id="statPending">0</strong></li>
+            <li class="card stat-card"><span>Open reports</span><strong id="statReports">0</strong></li>
+          </ul>
+
+          <div class="grid-two spaced-top">
+            <div class="card">
+              <h3 class="section-title">How publishing works</h3>
+              <div class="stack">
+                <div><strong>1. Write</strong><div class="small-note step-note">Create a draft without sharing private information.</div></div>
+                <div><strong>2. Submit</strong><div class="small-note step-note">Your work enters the assigned adult’s private queue.</div></div>
+                <div><strong>3. Review</strong><div class="small-note step-note">The moderator approves, rejects, or requests changes.</div></div>
+                <div><strong>4. Read</strong><div class="small-note step-note">Only approved work appears in the class feed.</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Never include</h3>
+              <div class="stack" id="homeSafetyList">
+                <div>🚫 Full names or personal email addresses</div>
+                <div>🚫 Phone numbers, home addresses, or passwords</div>
+                <div>🚫 Private photos, school badges, or schedules</div>
+                <div>🚫 Bullying, dangerous challenges, or contact invitations</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="feedSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Class feed</h2>
+              <p>Only adult-approved magazines from the selected class appear here.</p>
+            </div>
+            <div class="toolbar">
+              <select id="feedClassSelect" class="select" aria-label="Choose a class"></select>
+              <button id="feedRefresh" class="button secondary" type="button">Refresh</button>
+            </div>
+          </div>
+          <div id="feedStatus" class="message info hidden" role="status"></div>
+          <div id="feedList" class="stack"></div>
+        </section>
+
+        <section id="workSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>My work</h2>
+              <p>Save a private draft or submit it to your assigned adult moderator.</p>
+            </div>
+          </div>
+
+          <div id="workStudentOnly" class="grid-two">
+            <form id="magazineForm" class="card" novalidate>
+              <h3 id="magazineFormTitle" class="section-title">Create a school magazine</h3>
+              <input id="editingMagazineId" type="hidden">
+              <div class="field">
+                <label for="magazineClassSelect">Class</label>
+                <select id="magazineClassSelect" class="select" required></select>
+              </div>
+              <div class="field">
+                <label for="magazineTitle">Title</label>
+                <input id="magazineTitle" class="input" type="text" maxlength="120" required>
+              </div>
+              <div class="field">
+                <label for="magazineDescription">Short description</label>
+                <textarea id="magazineDescription" class="textarea" maxlength="500"></textarea>
+              </div>
+              <div class="field">
+                <label for="magazineContent">Magazine content</label>
+                <textarea id="magazineContent" class="textarea large" maxlength="20000" required></textarea>
+              </div>
+              <label class="check-row">
+                <input id="safetyConfirm" type="checkbox">
+                <span>I checked that this draft contains no private information and is appropriate for my class.</span>
+              </label>
+              <div class="card-actions">
+                <button id="saveDraftButton" class="button secondary" type="button">Save draft</button>
+                <button id="submitMagazineButton" class="button primary" type="submit">Submit for review</button>
+                <button id="cancelEditButton" class="button secondary hidden" type="button">Cancel edit</button>
+              </div>
+              <div id="magazineMessage" class="message hidden" role="status"></div>
+            </form>
+
+            <div>
+              <h3 class="section-title">Submission history</h3>
+              <div id="workStatus" class="message info hidden" role="status"></div>
+              <div id="myWorkList" class="stack"></div>
+            </div>
+          </div>
+
+          <div id="workUnavailable" class="empty-state hidden">
+            Magazine drafting is available to student accounts. Adults can review work from the Review queue.
+          </div>
+        </section>
+
+        <section id="reviewSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Review queue</h2>
+              <p>Read the full submission. Approval is restricted to assigned adults.</p>
+            </div>
+            <div class="toolbar">
+              <select id="reviewClassSelect" class="select" aria-label="Choose review class"></select>
+              <button id="reviewRefresh" class="button secondary" type="button">Refresh</button>
+            </div>
+          </div>
+          <div id="reviewStatus" class="message info hidden" role="status"></div>
+          <div id="reviewQueue" class="stack"></div>
+        </section>
+
+        <section id="reportsSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Safety reports</h2>
+              <p>Report a class magazine privately. Reports are visible only to authorized adults.</p>
+            </div>
+          </div>
+
+          <div class="grid-two">
+            <form id="reportForm" class="card" novalidate>
+              <h3 class="section-title">Create a private report</h3>
+              <input id="reportMagazineId" type="hidden">
+              <div id="reportTargetLabel" class="message info">Choose “Report” on a magazine in the class feed.</div>
+              <div class="field">
+                <label for="reportReason">What should the moderator check?</label>
+                <textarea id="reportReason" class="textarea" maxlength="500" required></textarea>
+              </div>
+              <button id="reportSubmit" class="button primary" type="submit">Send private report</button>
+              <div id="reportMessage" class="message hidden" role="status"></div>
+            </form>
+
+            <div id="reportQueueWrap" class="hidden">
+              <h3 class="section-title">Open reports for adults</h3>
+              <div id="reportQueueStatus" class="message info hidden" role="status"></div>
+              <div id="reportQueue" class="stack"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="setupSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Pilot setup</h2>
+              <p>Create the approved school workspace, provision nickname-only accounts, and assign a moderator before enrollment.</p>
+            </div>
+            <button id="setupRefresh" class="button secondary" type="button">Refresh setup data</button>
+          </div>
+
+          <div id="setupAdminOnly" class="stack">
+            <form id="schoolForm" class="card setup-block" novalidate>
+              <h3 class="section-title">1. Create a school workspace</h3>
+              <div class="grid-two">
+                <div class="field">
+                  <label for="schoolId">Workspace ID</label>
+                  <input id="schoolId" class="input" type="text" maxlength="100" placeholder="sas-pilot" required>
+                </div>
+                <div class="field">
+                  <label for="schoolName">School display name</label>
+                  <input id="schoolName" class="input" type="text" maxlength="100" required>
+                </div>
+              </div>
+              <button class="button primary" type="submit">Create workspace</button>
+              <div id="schoolMessage" class="message hidden" role="status"></div>
+            </form>
+
+            <form id="participantForm" class="card setup-block" novalidate>
+              <h3 class="section-title">2. Provision a school-only account</h3>
+              <div class="grid-two">
+                <div class="field">
+                  <label for="participantSchoolSelect">School</label>
+                  <select id="participantSchoolSelect" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label for="participantRole">Role</label>
+                  <select id="participantRole" class="select" required>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="school_admin">School administrator</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="participantNickname">Nickname</label>
+                  <input id="participantNickname" class="input" type="text" maxlength="30" required>
+                </div>
+                <div class="field">
+                  <label for="participantEmail">Private sign-in email</label>
+                  <input id="participantEmail" class="input" type="email" autocomplete="off" required>
+                </div>
+                <div class="field">
+                  <label for="participantPassword">Temporary password</label>
+                  <input id="participantPassword" class="input" type="password" minlength="12" autocomplete="new-password" required>
+                </div>
+              </div>
+              <p class="small-note">The email stays in Firebase Authentication. The School Edition profile stores only the UID, nickname, school, role, and active state.</p>
+              <button class="button primary" type="submit">Create school account</button>
+              <div id="participantMessage" class="message hidden" role="status"></div>
+            </form>
+          </div>
+
+          <div id="setupSchoolTools" class="stack spaced-top">
+            <div class="card">
+              <h3 class="section-title">Active setup school</h3>
+              <div class="field">
+                <label for="setupSchoolSelect">School workspace</label>
+                <select id="setupSchoolSelect" class="select"></select>
+              </div>
+              <div id="setupSummary" class="setup-summary"></div>
+            </div>
+
+            <div class="grid-two">
+              <form id="classForm" class="card" novalidate>
+                <h3 class="section-title">3. Create a moderated class</h3>
+                <div class="field">
+                  <label for="className">Class name</label>
+                  <input id="className" class="input" type="text" maxlength="80" required>
+                </div>
+                <div class="field">
+                  <label for="classModeratorSelect">Assigned adult moderator</label>
+                  <select id="classModeratorSelect" class="select" required></select>
+                </div>
+                <button class="button primary" type="submit">Create class</button>
+                <div id="classMessage" class="message hidden" role="status"></div>
+              </form>
+
+              <form id="enrollmentForm" class="card" novalidate>
+                <h3 class="section-title">4. Add a participant to a class</h3>
+                <div class="field">
+                  <label for="enrollmentClassSelect">Class</label>
+                  <select id="enrollmentClassSelect" class="select" required></select>
+                </div>
+                <div class="field">
+                  <label for="enrollmentParticipantSelect">Participant</label>
+                  <select id="enrollmentParticipantSelect" class="select" required></select>
+                </div>
+                <button class="button primary" type="submit">Add to class</button>
+                <div id="enrollmentMessage" class="message hidden" role="status"></div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section id="accountSection" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Account</h2>
+              <p>School profiles use nicknames and contain no public email or profile photo.</p>
+            </div>
+          </div>
+          <div class="grid-two">
+            <div class="card">
+              <dl class="identity-list">
+                <div class="identity-row"><dt>Nickname</dt><dd id="accountNickname">—</dd></div>
+                <div class="identity-row"><dt>Role</dt><dd id="accountRole">—</dd></div>
+                <div class="identity-row"><dt>School</dt><dd id="accountSchool">—</dd></div>
+                <div class="identity-row"><dt>Authentication UID</dt><dd id="accountUid">—</dd></div>
+              </dl>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Session controls</h3>
+              <p class="small-note flush-top">Sign out when using a shared school device.</p>
+              <div class="card-actions">
+                <button id="logoutButton" class="button danger" type="button">Sign out</button>
+                <a class="button secondary button-link" href="index.html">Regular Kigazine</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="school-edition.js"></script>
+</body>
+</html>
