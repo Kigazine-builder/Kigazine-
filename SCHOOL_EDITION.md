@@ -52,14 +52,33 @@ Students cannot set `approved`, `rejected`, `reviewedBy`, or publication
 timestamps. Moderators cannot silently alter student content while reviewing;
 their write is limited to review fields.
 
+## Pilot interface
+
+Open `school-edition.html` to use the role-aware pilot portal. The interface
+shows only the actions allowed for the signed-in role:
+
+- Students can save drafts, submit work, read approved class magazines, and
+  send private safety reports.
+- Assigned teachers can review their classes and resolve reports.
+- School administrators can manage all classes in their school.
+- Kigazine administrators can create a school, provision nickname-only
+  accounts, assign an adult moderator, and enroll participants.
+
+Active school participants who open regular Kigazine are redirected to this
+portal before the regular profile, publishing, comments, or messaging features
+load.
+
 ## Required provisioning order
 
-1. Create Firebase Authentication accounts for the approved adults and students.
-2. Create the `schools/{schoolId}` document.
-3. Create nickname-only `schoolParticipants/{uid}` documents.
-4. Create `schoolClasses/{classId}` with at least one assigned moderator UID.
-5. Create `schoolClassMembers/{classId_uid}` documents.
-6. Open the School Edition interface only after an adult moderator is assigned.
+1. Sign in to `school-edition.html` with an existing Kigazine administrator.
+2. Create the approved `schools/{schoolId}` workspace.
+3. Provision the approved adults and students. The portal creates each Firebase
+   Authentication account and its nickname-only `schoolParticipants/{uid}`
+   document together.
+4. Create `schoolClasses/{classId}` with at least one assigned adult moderator.
+5. Enroll participants, creating `schoolClassMembers/{classId_uid}` documents.
+6. Test student submission and adult approval with separate accounts before the
+   first supervised session.
 
 Do not create regular `users/{uid}` documents for school-only pilot accounts.
 This prevents their authentication email from entering Kigazine's member
@@ -70,4 +89,3 @@ directory.
 Merging this repository change does not deploy Firestore rules by itself. Deploy
 the reviewed rules to Firebase project `kigazine-302ac` before running the
 pilot, then test the student and moderator paths with separate accounts.
-
