@@ -1497,6 +1497,7 @@
   <button class="nav-btn" data-section="viewSection">📚 View</button>
   <button class="nav-btn" data-section="membersSection">🧑 Members</button>
   <button class="nav-btn" data-section="createSection">✏️ Create</button>
+  <button class="nav-btn" type="button" onclick="window.location.href='school-edition.html'">🏫 School Edition</button>
   <button class="nav-btn" data-section="suggestionSection">💡 Suggestions</button>
   <button class="nav-btn" data-section="accountSection">👤 Account</button>
   <button class="nav-btn" type="button" onclick="window.location.href='math-games.html'">🧠 Math Games</button>
@@ -4094,6 +4095,15 @@
     onAuthStateChanged(auth, async user => {
       currentUser = user;
       if (user) {
+        try {
+          const schoolParticipantSnapshot = await getDoc(doc(db, "schoolParticipants", user.uid));
+          if (schoolParticipantSnapshot.exists() && schoolParticipantSnapshot.data().active === true) {
+            window.location.replace("school-edition.html");
+            return;
+          }
+        } catch (err) {
+          console.warn("Could not check School Edition enrollment.", err);
+        }
         authScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
         closeSidebar();
