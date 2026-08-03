@@ -36,395 +36,7 @@ service cloud.firestore {
     }
 
     function validArcadeTiles(value) {
-      return value is string && value.size() == 240 && value.matches('^[0-6]+
-
-    function validKigaMathAvatar(avatar) {
-      return avatar is map
-        && avatar.keys().hasOnly(['shape', 'face', 'accessory', 'color'])
-        && avatar.shape in ['circle', 'square', 'blob']
-        && avatar.face in ['happy', 'cool', 'curious', 'excited']
-        && avatar.accessory in ['none', 'cap', 'crown', 'bow']
-        && avatar.color in [
-          '#62e9ff',
-          '#9c7cff',
-          '#ff7bd5',
-          '#ffd66b',
-          '#68f3b1',
-          '#ff8f72',
-          '#9ce0ff',
-          '#d8a8ff'
-        ];
-    }
-
-    function validKigaMathProfile(profile) {
-      return profile == null
-        || (
-          profile is map
-          && profile.keys().hasOnly(['realmKey', 'club', 'nickname', 'avatar'])
-          && profile.realmKey in [
-            'science',
-            'space',
-            'ocean',
-            'nature',
-            'academy',
-            'maker'
-          ]
-          && hasText(profile.club, 40)
-          && hasText(profile.nickname, 18)
-          && profile.nickname.size() >= 2
-          && validKigaMathAvatar(profile.avatar)
-        );
-    }
-
-    function validKigaMathProgress(uid) {
-      return request.resource.data.keys().hasOnly([
-          'ownerUid',
-          'version',
-          'stars',
-          'unlocked',
-          'tools',
-          'completed',
-          'badges',
-          'profile',
-          'updatedAt'
-        ])
-        && request.resource.data.ownerUid == uid
-        && request.resource.data.version == 1
-        && request.resource.data.stars is int
-        && request.resource.data.stars >= 0
-        && request.resource.data.stars <= 1000000
-        && request.resource.data.unlocked is list
-        && request.resource.data.unlocked.size() >= 1
-        && request.resource.data.unlocked.size() <= 4
-        && request.resource.data.unlocked.hasOnly([
-          'easy',
-          'medium',
-          'hard',
-          'expert'
-        ])
-        && request.resource.data.tools is map
-        && request.resource.data.tools.keys().hasOnly([
-          'double',
-          'hint',
-          'skip',
-          'time'
-        ])
-        && request.resource.data.tools.double is int
-        && request.resource.data.tools.double >= 0
-        && request.resource.data.tools.double <= 999
-        && request.resource.data.tools.hint is int
-        && request.resource.data.tools.hint >= 0
-        && request.resource.data.tools.hint <= 999
-        && request.resource.data.tools.skip is int
-        && request.resource.data.tools.skip >= 0
-        && request.resource.data.tools.skip <= 999
-        && request.resource.data.tools.time is int
-        && request.resource.data.tools.time >= 0
-        && request.resource.data.tools.time <= 999
-        && request.resource.data.completed is list
-        && request.resource.data.completed.size() <= 28
-        && request.resource.data.completed.hasOnly([
-          'addition-easy',
-          'addition-medium',
-          'addition-hard',
-          'addition-expert',
-          'subtraction-easy',
-          'subtraction-medium',
-          'subtraction-hard',
-          'subtraction-expert',
-          'multiplication-easy',
-          'multiplication-medium',
-          'multiplication-hard',
-          'multiplication-expert',
-          'fractions-easy',
-          'fractions-medium',
-          'fractions-hard',
-          'fractions-expert',
-          'area-perimeter-easy',
-          'area-perimeter-medium',
-          'area-perimeter-hard',
-          'area-perimeter-expert',
-          'physics-easy',
-          'physics-medium',
-          'physics-hard',
-          'physics-expert',
-          'science-easy',
-          'science-medium',
-          'science-hard',
-          'science-expert'
-        ])
-        && request.resource.data.badges is list
-        && request.resource.data.badges.size() <= 14
-        && request.resource.data.badges.hasOnly([
-          'Addition Perfect Page',
-          'Addition Bright Thinker',
-          'Subtraction Perfect Page',
-          'Subtraction Bright Thinker',
-          'Multiplication Perfect Page',
-          'Multiplication Bright Thinker',
-          'Fractions Perfect Page',
-          'Fractions Bright Thinker',
-          'Area & Perimeter Perfect Page',
-          'Area & Perimeter Bright Thinker',
-          'Physics Perfect Page',
-          'Physics Bright Thinker',
-          'Science Perfect Page',
-          'Science Bright Thinker'
-        ])
-        && validKigaMathProfile(request.resource.data.profile)
-        && request.resource.data.updatedAt == request.time;
-    }
-
-    function isGroupOwner(groupId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/blogGroups/$(groupId))
-        && get(/databases/$(database)/documents/blogGroups/$(groupId)).data.ownerUid == request.auth.uid;
-    }
-
-    function isGroupMember(groupId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/blogGroupMembers/$(groupId + '_' + request.auth.uid));
-    }
-
-    // Kigazine user profiles.
-    match /users/{uid} {
-      allow read: if signedIn();
-      allow create: if isOwner(uid)
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.username is string
-        && request.resource.data.username.size() > 0
-        && request.resource.data.username.size() <= 40
-        && (
-          request.resource.data.role == 'writer'
-          || (isBuiltInAdmin() && request.resource.data.role == 'admin')
-        );
-      allow update: if isAdmin()
-        || (
-          isOwner(uid)
-          && request.resource.data.email == resource.data.email
-          && (
-            request.resource.data.role == resource.data.role
-            || (isBuiltInAdmin() && request.resource.data.role == 'admin')
-          )
-        );
-      allow delete: if false;
-    }
-
-    // Public magazine posts.
-    match /magazines/{magazineId} {
-      allow read: if signedIn() || resource.data.isPublic == true;
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && hasText(request.resource.data.title, 120)
-        && hasText(request.resource.data.description, 500)
-        && hasText(request.resource.data.content, 20000)
-        && validMagazinePhoto(request.resource.data)
-        && request.resource.data.isPublic == false
-        && request.resource.data.status == 'pending_review';
-      allow update: if (isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review'))
-        && validMagazinePhoto(request.resource.data);
-      allow delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid);
-    }
-
-    // Top-level comments collection used by index.html.
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && hasText(request.resource.data.postId, 200)
-        && hasText(request.resource.data.content, 2000)
-        && request.resource.data.status == 'pending_review';
-      allow update, delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
-    }
-
-    // Reports from the public feed.
-    match /reports/{reportId} {
-      allow create: if signedIn()
-        && hasText(request.resource.data.postId, 200)
-        && hasText(request.resource.data.reason, 120)
-        && request.resource.data.status == 'new';
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Private messages from messages.js.
-    match /messages/{messageId} {
-      allow read: if signedIn()
-        && request.auth.uid in resource.data.participants;
-      allow create: if signedIn()
-        && request.resource.data.fromUid == request.auth.uid
-        && request.auth.uid in request.resource.data.participants
-        && request.resource.data.toUid in request.resource.data.participants
-        && request.resource.data.participants.size() == 2
-        && hasText(request.resource.data.text, 1000);
-      allow update, delete: if false;
-    }
-
-    // Banned email list.
-    match /bannedEmails/{emailId} {
-      allow get: if true;
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Group chat directory from blog.js.
-    match /blogGroups/{groupId} {
-      allow read: if signedIn();
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && hasText(request.resource.data.name, 40)
-        && request.resource.data.joinMode in ['open', 'approval'];
-      allow update: if isGroupOwner(groupId)
-        || (isGroupMember(groupId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']));
-      allow delete: if isGroupOwner(groupId);
-    }
-
-    // Group chat membership records from blog.js.
-    match /blogGroupMembers/{memberId} {
-      allow read: if signedIn();
-      allow create, update: if signedIn()
-        && request.resource.data.uid is string
-        && request.resource.data.groupId is string
-        && memberId == request.resource.data.groupId + '_' + request.resource.data.uid
-        && (
-          isGroupOwner(request.resource.data.groupId)
-          || (
-            request.resource.data.uid == request.auth.uid
-            && exists(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId))
-            && get(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId)).data.joinMode == 'open'
-          )
-        );
-      allow delete: if signedIn()
-        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
-    }
-
-    // Join requests for approval-only groups.
-    match /blogGroupJoinRequests/{requestId} {
-      allow read: if signedIn()
-        && (resource.data.uid == request.auth.uid || resource.data.ownerUid == request.auth.uid || isAdmin());
-      allow create, update: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.ownerUid is string
-        && request.resource.data.groupId is string
-        && requestId == request.resource.data.groupId + '_' + request.auth.uid
-        && request.resource.data.status == 'pending';
-      allow update: if signedIn()
-        && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
-        && request.resource.data.status in ['approved', 'denied'];
-      allow delete: if isAdmin();
-    }
-
-    // Group chat messages from blog.js.
-    match /blogGroupMessages/{messageId} {
-      allow read: if isGroupMember(resource.data.groupId) || isGroupOwner(resource.data.groupId);
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.groupId is string
-        && hasText(request.resource.data.text, 1000)
-        && (isGroupMember(request.resource.data.groupId) || isGroupOwner(request.resource.data.groupId));
-      allow update: if false;
-      allow delete: if signedIn()
-        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
-    }
-
-    match /groups/{groupId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-
-      match /messages/{messageId} {
-        allow read: if true;
-        allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-      }
-
-      match /members/{uid} {
-        allow read: if true;
-        allow create: if isOwner(uid);
-        allow update, delete: if isOwner(uid)
-          || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid);
-      }
-    }
-
-    match /hq/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /kigazineHQ/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /hqMessages/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    // Private KigaMath progress. Each account can access only its own document.
-    match /kigaMathProgress/{uid} {
-      allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid)
-        && validKigaMathProgress(uid);
-      allow delete: if isOwner(uid);
-    }
-
-    // Kigazine Blockcade arcade games.
-    match /arcadeGames/{gameId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
-        ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow update: if signedIn()
-        && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
-        ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-
-      match /scores/{scoreId} {
-        allow read: if true;
-        allow create: if signedIn()
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.keys().hasOnly([
-            'uid', 'displayName', 'seconds', 'coins', 'deaths', 'createdAt'
-          ])
-          && hasText(request.resource.data.displayName, 30)
-          && request.resource.data.seconds is number
-          && request.resource.data.seconds >= 0
-          && request.resource.data.seconds <= 3600
-          && request.resource.data.coins is int
-          && request.resource.data.coins >= 0
-          && request.resource.data.coins <= 240
-          && request.resource.data.deaths is int
-          && request.resource.data.deaths >= 0
-          && request.resource.data.deaths <= 999;
-        allow update, delete: if false;
-      }
-    }
-  }
-}
-);
+      return value is string && value.size() == 240 && value.matches('^[0-6]+$');
     }
 
     function validMagazinePhoto(data) {
@@ -433,394 +45,201 @@ service cloud.firestore {
         || (
           data.photoDataUrl is string
           && data.photoDataUrl.size() <= 650000
-          && data.photoDataUrl.matches('^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+
-
-    function validKigaMathAvatar(avatar) {
-      return avatar is map
-        && avatar.keys().hasOnly(['shape', 'face', 'accessory', 'color'])
-        && avatar.shape in ['circle', 'square', 'blob']
-        && avatar.face in ['happy', 'cool', 'curious', 'excited']
-        && avatar.accessory in ['none', 'cap', 'crown', 'bow']
-        && avatar.color in [
-          '#62e9ff',
-          '#9c7cff',
-          '#ff7bd5',
-          '#ffd66b',
-          '#68f3b1',
-          '#ff8f72',
-          '#9ce0ff',
-          '#d8a8ff'
-        ];
-    }
-
-    function validKigaMathProfile(profile) {
-      return profile == null
-        || (
-          profile is map
-          && profile.keys().hasOnly(['realmKey', 'club', 'nickname', 'avatar'])
-          && profile.realmKey in [
-            'science',
-            'space',
-            'ocean',
-            'nature',
-            'academy',
-            'maker'
-          ]
-          && hasText(profile.club, 40)
-          && hasText(profile.nickname, 18)
-          && profile.nickname.size() >= 2
-          && validKigaMathAvatar(profile.avatar)
+          && data.photoDataUrl.matches('^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$')
         );
     }
 
-    function validKigaMathProgress(uid) {
-      return request.resource.data.keys().hasOnly([
-          'ownerUid',
-          'version',
-          'stars',
-          'unlocked',
-          'tools',
-          'completed',
-          'badges',
-          'profile',
+    function hasSchoolParticipant(uid) {
+      return exists(/databases/$(database)/documents/schoolParticipants/$(uid));
+    }
+
+    function isActiveSchoolParticipant(uid) {
+      return hasSchoolParticipant(uid)
+        && get(/databases/$(database)/documents/schoolParticipants/$(uid)).data.active == true;
+    }
+
+    function isSchoolParticipant() {
+      return signedIn() && isActiveSchoolParticipant(request.auth.uid);
+    }
+
+    function isSchoolParticipantFor(schoolId) {
+      return isSchoolParticipant()
+        && get(/databases/$(database)/documents/schoolParticipants/$(request.auth.uid)).data.schoolId == schoolId;
+    }
+
+    function isSchoolAdultFor(schoolId) {
+      return isSchoolParticipantFor(schoolId)
+        && get(/databases/$(database)/documents/schoolParticipants/$(request.auth.uid)).data.role in ['teacher', 'school_admin'];
+    }
+
+    function isSchoolAdminFor(schoolId) {
+      return isAdmin()
+        || (
+          isSchoolParticipantFor(schoolId)
+          && get(/databases/$(database)/documents/schoolParticipants/$(request.auth.uid)).data.role == 'school_admin'
+        );
+    }
+
+    function isSchoolClassMember(classId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/schoolClassMembers/$(classId + '_' + request.auth.uid))
+        && get(/databases/$(database)/documents/schoolClassMembers/$(classId + '_' + request.auth.uid)).data.active == true;
+    }
+
+    function isSchoolClassModerator(classId) {
+      return isAdmin()
+        || (
+          signedIn()
+          && exists(/databases/$(database)/documents/schoolClasses/$(classId))
+          && get(/databases/$(database)/documents/schoolClasses/$(classId)).data.active == true
+          && isSchoolAdultFor(
+            get(/databases/$(database)/documents/schoolClasses/$(classId)).data.schoolId
+          )
+          && (
+            get(/databases/$(database)/documents/schoolParticipants/$(request.auth.uid)).data.role == 'school_admin'
+            || request.auth.uid in get(/databases/$(database)/documents/schoolClasses/$(classId)).data.moderatorUids
+          )
+        );
+    }
+
+    function validSchoolParticipant(uid, data) {
+      return data.keys().hasOnly([
+          'uid',
+          'schoolId',
+          'nickname',
+          'role',
+          'active',
+          'createdAt',
           'updatedAt'
         ])
-        && request.resource.data.ownerUid == uid
-        && request.resource.data.version == 1
-        && request.resource.data.stars is int
-        && request.resource.data.stars >= 0
-        && request.resource.data.stars <= 1000000
-        && request.resource.data.unlocked is list
-        && request.resource.data.unlocked.size() >= 1
-        && request.resource.data.unlocked.size() <= 4
-        && request.resource.data.unlocked.hasOnly([
-          'easy',
-          'medium',
-          'hard',
-          'expert'
-        ])
-        && request.resource.data.tools is map
-        && request.resource.data.tools.keys().hasOnly([
-          'double',
-          'hint',
-          'skip',
-          'time'
-        ])
-        && request.resource.data.tools.double is int
-        && request.resource.data.tools.double >= 0
-        && request.resource.data.tools.double <= 999
-        && request.resource.data.tools.hint is int
-        && request.resource.data.tools.hint >= 0
-        && request.resource.data.tools.hint <= 999
-        && request.resource.data.tools.skip is int
-        && request.resource.data.tools.skip >= 0
-        && request.resource.data.tools.skip <= 999
-        && request.resource.data.tools.time is int
-        && request.resource.data.tools.time >= 0
-        && request.resource.data.tools.time <= 999
-        && request.resource.data.completed is list
-        && request.resource.data.completed.size() <= 28
-        && request.resource.data.completed.hasOnly([
-          'addition-easy',
-          'addition-medium',
-          'addition-hard',
-          'addition-expert',
-          'subtraction-easy',
-          'subtraction-medium',
-          'subtraction-hard',
-          'subtraction-expert',
-          'multiplication-easy',
-          'multiplication-medium',
-          'multiplication-hard',
-          'multiplication-expert',
-          'fractions-easy',
-          'fractions-medium',
-          'fractions-hard',
-          'fractions-expert',
-          'area-perimeter-easy',
-          'area-perimeter-medium',
-          'area-perimeter-hard',
-          'area-perimeter-expert',
-          'physics-easy',
-          'physics-medium',
-          'physics-hard',
-          'physics-expert',
-          'science-easy',
-          'science-medium',
-          'science-hard',
-          'science-expert'
-        ])
-        && request.resource.data.badges is list
-        && request.resource.data.badges.size() <= 14
-        && request.resource.data.badges.hasOnly([
-          'Addition Perfect Page',
-          'Addition Bright Thinker',
-          'Subtraction Perfect Page',
-          'Subtraction Bright Thinker',
-          'Multiplication Perfect Page',
-          'Multiplication Bright Thinker',
-          'Fractions Perfect Page',
-          'Fractions Bright Thinker',
-          'Area & Perimeter Perfect Page',
-          'Area & Perimeter Bright Thinker',
-          'Physics Perfect Page',
-          'Physics Bright Thinker',
-          'Science Perfect Page',
-          'Science Bright Thinker'
-        ])
-        && validKigaMathProfile(request.resource.data.profile)
-        && request.resource.data.updatedAt == request.time;
+        && data.uid == uid
+        && hasText(data.schoolId, 100)
+        && hasText(data.nickname, 30)
+        && data.role in ['student', 'teacher', 'school_admin']
+        && data.active is bool;
     }
 
-    function isGroupOwner(groupId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/blogGroups/$(groupId))
-        && get(/databases/$(database)/documents/blogGroups/$(groupId)).data.ownerUid == request.auth.uid;
+    function validSchoolClass(data) {
+      return data.keys().hasOnly([
+          'schoolId',
+          'name',
+          'moderatorUids',
+          'active',
+          'createdAt',
+          'updatedAt'
+        ])
+        && hasText(data.schoolId, 100)
+        && hasText(data.name, 80)
+        && data.moderatorUids is list
+        && data.moderatorUids.size() >= 1
+        && data.moderatorUids.size() <= 20
+        && data.active is bool;
     }
 
-    function isGroupMember(groupId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/blogGroupMembers/$(groupId + '_' + request.auth.uid));
+    function validSchoolClassMember(memberId, data) {
+      return data.keys().hasOnly([
+          'uid',
+          'schoolId',
+          'classId',
+          'nickname',
+          'active',
+          'createdAt',
+          'updatedAt'
+        ])
+        && memberId == data.classId + '_' + data.uid
+        && hasText(data.uid, 128)
+        && hasText(data.schoolId, 100)
+        && hasText(data.classId, 100)
+        && hasText(data.nickname, 30)
+        && data.active is bool
+        && isActiveSchoolParticipant(data.uid)
+        && get(/databases/$(database)/documents/schoolParticipants/$(data.uid)).data.schoolId == data.schoolId;
     }
 
-    // Kigazine user profiles.
-    match /users/{uid} {
-      allow read: if signedIn();
-      allow create: if isOwner(uid)
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.username is string
-        && request.resource.data.username.size() > 0
-        && request.resource.data.username.size() <= 40
+    function validSchoolMagazine(data) {
+      return data.keys().hasOnly([
+          'schoolId',
+          'classId',
+          'authorUid',
+          'authorNickname',
+          'title',
+          'description',
+          'content',
+          'photoDataUrl',
+          'status',
+          'visibility',
+          'createdAt',
+          'updatedAt',
+          'submittedAt',
+          'reviewedBy',
+          'reviewedAt',
+          'reviewNote',
+          'publishedAt'
+        ])
+        && hasText(data.schoolId, 100)
+        && hasText(data.classId, 100)
+        && hasText(data.authorUid, 128)
+        && hasText(data.authorNickname, 30)
+        && hasText(data.title, 120)
+        && data.description is string
+        && data.description.size() <= 500
+        && hasText(data.content, 20000)
+        && data.status in ['draft', 'submitted', 'changes_requested', 'approved', 'rejected']
+        && data.visibility == 'class'
         && (
-          request.resource.data.role == 'writer'
-          || (isBuiltInAdmin() && request.resource.data.role == 'admin')
-        );
-      allow update: if isAdmin()
-        || (
-          isOwner(uid)
-          && request.resource.data.email == resource.data.email
-          && (
-            request.resource.data.role == resource.data.role
-            || (isBuiltInAdmin() && request.resource.data.role == 'admin')
-          )
-        );
-      allow delete: if false;
+          !data.keys().hasAny(['reviewNote'])
+          || (data.reviewNote is string && data.reviewNote.size() <= 1000)
+        )
+        && validMagazinePhoto(data);
     }
 
-    // Public magazine posts.
-    match /magazines/{magazineId} {
-      allow read: if signedIn() || resource.data.isPublic == true;
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && hasText(request.resource.data.title, 120)
-        && hasText(request.resource.data.description, 500)
-        && hasText(request.resource.data.content, 20000)
-        && request.resource.data.isPublic == false
-        && request.resource.data.status == 'pending_review';
-      allow update: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
-      allow delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid);
+    function isSchoolMagazineAuthorEdit() {
+      return signedIn()
+        && resource.data.authorUid == request.auth.uid
+        && isSchoolClassMember(resource.data.classId)
+        && resource.data.status in ['draft', 'changes_requested']
+        && request.resource.data.status in ['draft', 'submitted']
+        && request.resource.data.schoolId == resource.data.schoolId
+        && request.resource.data.classId == resource.data.classId
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.authorNickname == resource.data.authorNickname
+        && request.resource.data.visibility == 'class'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title',
+          'description',
+          'content',
+          'photoDataUrl',
+          'status',
+          'updatedAt',
+          'submittedAt'
+        ])
+        && validSchoolMagazine(request.resource.data);
     }
 
-    // Top-level comments collection used by index.html.
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && hasText(request.resource.data.postId, 200)
-        && hasText(request.resource.data.content, 2000)
-        && request.resource.data.status == 'pending_review';
-      allow update, delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
-    }
-
-    // Reports from the public feed.
-    match /reports/{reportId} {
-      allow create: if signedIn()
-        && hasText(request.resource.data.postId, 200)
-        && hasText(request.resource.data.reason, 120)
-        && request.resource.data.status == 'new';
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Private messages from messages.js.
-    match /messages/{messageId} {
-      allow read: if signedIn()
-        && request.auth.uid in resource.data.participants;
-      allow create: if signedIn()
-        && request.resource.data.fromUid == request.auth.uid
-        && request.auth.uid in request.resource.data.participants
-        && request.resource.data.toUid in request.resource.data.participants
-        && request.resource.data.participants.size() == 2
-        && hasText(request.resource.data.text, 1000);
-      allow update, delete: if false;
-    }
-
-    // Banned email list.
-    match /bannedEmails/{emailId} {
-      allow get: if true;
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Group chat directory from blog.js.
-    match /blogGroups/{groupId} {
-      allow read: if signedIn();
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && hasText(request.resource.data.name, 40)
-        && request.resource.data.joinMode in ['open', 'approval'];
-      allow update: if isGroupOwner(groupId)
-        || (isGroupMember(groupId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']));
-      allow delete: if isGroupOwner(groupId);
-    }
-
-    // Group chat membership records from blog.js.
-    match /blogGroupMembers/{memberId} {
-      allow read: if signedIn();
-      allow create, update: if signedIn()
-        && request.resource.data.uid is string
-        && request.resource.data.groupId is string
-        && memberId == request.resource.data.groupId + '_' + request.resource.data.uid
+    function isSchoolMagazineModeratorReview() {
+      return isSchoolClassModerator(resource.data.classId)
+        && resource.data.status == 'submitted'
+        && request.resource.data.schoolId == resource.data.schoolId
+        && request.resource.data.classId == resource.data.classId
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.authorNickname == resource.data.authorNickname
+        && request.resource.data.visibility == 'class'
+        && request.resource.data.status in ['changes_requested', 'approved', 'rejected']
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time
         && (
-          isGroupOwner(request.resource.data.groupId)
-          || (
-            request.resource.data.uid == request.auth.uid
-            && exists(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId))
-            && get(/databases/$(database)/documents/blogGroups/$(request.resource.data.groupId)).data.joinMode == 'open'
-          )
-        );
-      allow delete: if signedIn()
-        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
-    }
-
-    // Join requests for approval-only groups.
-    match /blogGroupJoinRequests/{requestId} {
-      allow read: if signedIn()
-        && (resource.data.uid == request.auth.uid || resource.data.ownerUid == request.auth.uid || isAdmin());
-      allow create, update: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.ownerUid is string
-        && request.resource.data.groupId is string
-        && requestId == request.resource.data.groupId + '_' + request.auth.uid
-        && request.resource.data.status == 'pending';
-      allow update: if signedIn()
-        && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
-        && request.resource.data.status in ['approved', 'denied'];
-      allow delete: if isAdmin();
-    }
-
-    // Group chat messages from blog.js.
-    match /blogGroupMessages/{messageId} {
-      allow read: if isGroupMember(resource.data.groupId) || isGroupOwner(resource.data.groupId);
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.groupId is string
-        && hasText(request.resource.data.text, 1000)
-        && (isGroupMember(request.resource.data.groupId) || isGroupOwner(request.resource.data.groupId));
-      allow update: if false;
-      allow delete: if signedIn()
-        && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
-    }
-
-    match /groups/{groupId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-
-      match /messages/{messageId} {
-        allow read: if true;
-        allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-      }
-
-      match /members/{uid} {
-        allow read: if true;
-        allow create: if isOwner(uid);
-        allow update, delete: if isOwner(uid)
-          || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid);
-      }
-    }
-
-    match /hq/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /kigazineHQ/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /hqMessages/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
-    }
-
-    // Private KigaMath progress. Each account can access only its own document.
-    match /kigaMathProgress/{uid} {
-      allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid)
-        && validKigaMathProgress(uid);
-      allow delete: if isOwner(uid);
-    }
-
-    // Kigazine Blockcade arcade games.
-    match /arcadeGames/{gameId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
+          request.resource.data.status != 'approved'
+          || request.resource.data.publishedAt == request.time
+        )
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'reviewedBy',
+          'reviewedAt',
+          'reviewNote',
+          'publishedAt',
+          'updatedAt'
         ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow update: if signedIn()
-        && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
-        ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-
-      match /scores/{scoreId} {
-        allow read: if true;
-        allow create: if signedIn()
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.keys().hasOnly([
-            'uid', 'displayName', 'seconds', 'coins', 'deaths', 'createdAt'
-          ])
-          && hasText(request.resource.data.displayName, 30)
-          && request.resource.data.seconds is number
-          && request.resource.data.seconds >= 0
-          && request.resource.data.seconds <= 3600
-          && request.resource.data.coins is int
-          && request.resource.data.coins >= 0
-          && request.resource.data.coins <= 240
-          && request.resource.data.deaths is int
-          && request.resource.data.deaths >= 0
-          && request.resource.data.deaths <= 999;
-        allow update, delete: if false;
-      }
-    }
-  }
-}
-)
-        );
+        && validSchoolMagazine(request.resource.data);
     }
 
     function validKigaMathAvatar(avatar) {
@@ -962,19 +381,23 @@ service cloud.firestore {
 
     function isGroupOwner(groupId) {
       return signedIn()
+        && !isSchoolParticipant()
         && exists(/databases/$(database)/documents/blogGroups/$(groupId))
         && get(/databases/$(database)/documents/blogGroups/$(groupId)).data.ownerUid == request.auth.uid;
     }
 
     function isGroupMember(groupId) {
       return signedIn()
+        && !isSchoolParticipant()
         && exists(/databases/$(database)/documents/blogGroupMembers/$(groupId + '_' + request.auth.uid));
     }
 
-    // Kigazine user profiles.
+    // Regular Kigazine profiles. School pilot accounts are intentionally
+    // kept out of this collection so their emails never become member data.
     match /users/{uid} {
       allow read: if signedIn();
       allow create: if isOwner(uid)
+        && !isSchoolParticipant()
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.username is string
         && request.resource.data.username.size() > 0
@@ -986,6 +409,7 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (
           isOwner(uid)
+          && !isSchoolParticipant()
           && request.resource.data.email == resource.data.email
           && (
             request.resource.data.role == resource.data.role
@@ -995,32 +419,173 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Public magazine posts.
-    match /magazines/{magazineId} {
-      allow read: if signedIn() || resource.data.isPublic == true;
+    // School workspaces. Pilot participants are provisioned by a Kigazine
+    // administrator and contain nicknames only—never email addresses.
+    match /schools/{schoolId} {
+      allow read: if isAdmin() || isSchoolParticipantFor(schoolId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /schoolParticipants/{uid} {
+      allow read: if isAdmin()
+        || isOwner(uid)
+        || (signedIn() && isSchoolAdultFor(resource.data.schoolId));
+      allow create: if isAdmin()
+        && !exists(/databases/$(database)/documents/users/$(uid))
+        && validSchoolParticipant(uid, request.resource.data);
+      allow update: if isAdmin()
+        && request.resource.data.schoolId == resource.data.schoolId
+        && validSchoolParticipant(uid, request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /schoolClasses/{classId} {
+      allow read: if isAdmin()
+        || isSchoolClassMember(classId)
+        || isSchoolAdultFor(resource.data.schoolId);
+      allow create: if isSchoolAdminFor(request.resource.data.schoolId)
+        && validSchoolClass(request.resource.data);
+      allow update: if isSchoolAdminFor(resource.data.schoolId)
+        && request.resource.data.schoolId == resource.data.schoolId
+        && validSchoolClass(request.resource.data);
+      allow delete: if isSchoolAdminFor(resource.data.schoolId);
+    }
+
+    match /schoolClassMembers/{memberId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid)
+        || isSchoolClassModerator(resource.data.classId);
+      allow create: if isSchoolClassModerator(request.resource.data.classId)
+        && exists(/databases/$(database)/documents/schoolClasses/$(request.resource.data.classId))
+        && request.resource.data.schoolId
+          == get(/databases/$(database)/documents/schoolClasses/$(request.resource.data.classId)).data.schoolId
+        && validSchoolClassMember(memberId, request.resource.data);
+      allow update: if isSchoolClassModerator(resource.data.classId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.classId == resource.data.classId
+        && request.resource.data.schoolId == resource.data.schoolId
+        && validSchoolClassMember(memberId, request.resource.data);
+      allow delete: if isSchoolClassModerator(resource.data.classId);
+    }
+
+    match /schoolMagazines/{magazineId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.authorUid == request.auth.uid)
+        || isSchoolClassModerator(resource.data.classId)
+        || (resource.data.status == 'approved' && isSchoolClassMember(resource.data.classId));
       allow create: if signedIn()
+        && isSchoolParticipant()
+        && isSchoolClassMember(request.resource.data.classId)
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status in ['draft', 'submitted']
+        && !request.resource.data.keys().hasAny([
+          'reviewedBy',
+          'reviewedAt',
+          'reviewNote',
+          'publishedAt'
+        ])
+        && exists(/databases/$(database)/documents/schoolClasses/$(request.resource.data.classId))
+        && request.resource.data.schoolId
+          == get(/databases/$(database)/documents/schoolClasses/$(request.resource.data.classId)).data.schoolId
+        && validSchoolMagazine(request.resource.data);
+      allow update: if isSchoolMagazineAuthorEdit()
+        || isSchoolMagazineModeratorReview();
+      allow delete: if isSchoolClassModerator(resource.data.classId)
+        || (
+          signedIn()
+          && resource.data.authorUid == request.auth.uid
+          && resource.data.status in ['draft', 'changes_requested']
+        );
+    }
+
+    match /schoolReports/{reportId} {
+      allow create: if signedIn()
+        && isSchoolClassMember(request.resource.data.classId)
+        && request.resource.data.reportedBy == request.auth.uid
+        && request.resource.data.status == 'new'
+        && hasText(request.resource.data.schoolId, 100)
+        && hasText(request.resource.data.classId, 100)
+        && hasText(request.resource.data.magazineId, 200)
+        && hasText(request.resource.data.reason, 500);
+      allow read, update: if isAdmin()
+        || isSchoolClassModerator(resource.data.classId);
+      allow delete: if isAdmin();
+    }
+
+    match /schoolAuditLogs/{eventId} {
+      allow create: if signedIn()
+        && request.resource.data.actorUid == request.auth.uid
+        && (isAdmin() || isSchoolAdultFor(request.resource.data.schoolId))
+        && hasText(request.resource.data.action, 100);
+      allow read: if isAdmin()
+        || isSchoolAdultFor(resource.data.schoolId);
+      allow update, delete: if false;
+    }
+
+    // Regular Kigazine magazine posts. School participants publish only
+    // through /schoolMagazines.
+    match /magazines/{magazineId} {
+      allow read: if isAdmin()
+        || (signedIn() && !isSchoolParticipant())
+        || (resource.data.isPublic == true && resource.data.status == 'approved');
+      allow create: if signedIn()
+        && !isSchoolParticipant()
         && request.resource.data.uid == request.auth.uid
         && hasText(request.resource.data.title, 120)
         && hasText(request.resource.data.description, 500)
         && hasText(request.resource.data.content, 20000)
+        && validMagazinePhoto(request.resource.data)
         && request.resource.data.isPublic == false
         && request.resource.data.status == 'pending_review';
-      allow update: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
+      allow update: if (
+          isAdmin()
+          || (
+            signedIn()
+            && !isSchoolParticipant()
+            && resource.data.uid == request.auth.uid
+            && resource.data.status == 'pending_review'
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.status == 'pending_review'
+            && request.resource.data.isPublic == false
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'title',
+              'description',
+              'content',
+              'photoDataUrl',
+              'updatedAt'
+            ])
+          )
+        )
+        && validMagazinePhoto(request.resource.data);
       allow delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid);
+        || (
+          signedIn()
+          && !isSchoolParticipant()
+          && resource.data.uid == request.auth.uid
+          && resource.data.status == 'pending_review'
+        );
     }
 
-    // Top-level comments collection used by index.html.
+    // Top-level comments used by regular Kigazine. Only moderators may
+    // approve or edit a pending comment.
     match /comments/{commentId} {
-      allow read: if true;
+      allow read: if isAdmin()
+        || (signedIn() && !isSchoolParticipant())
+        || resource.data.status == 'approved';
       allow create: if signedIn()
+        && !isSchoolParticipant()
         && request.resource.data.uid == request.auth.uid
         && hasText(request.resource.data.postId, 200)
         && hasText(request.resource.data.content, 2000)
         && request.resource.data.status == 'pending_review';
-      allow update, delete: if isAdmin()
-        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending_review');
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (
+          signedIn()
+          && !isSchoolParticipant()
+          && resource.data.uid == request.auth.uid
+          && resource.data.status == 'pending_review'
+        );
     }
 
     // Reports from the public feed.
@@ -1032,11 +597,15 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Private messages from messages.js.
+    // Private messaging is disabled for school pilot participants in both
+    // directions.
     match /messages/{messageId} {
       allow read: if signedIn()
+        && !isSchoolParticipant()
         && request.auth.uid in resource.data.participants;
       allow create: if signedIn()
+        && !isSchoolParticipant()
+        && !isActiveSchoolParticipant(request.resource.data.toUid)
         && request.resource.data.fromUid == request.auth.uid
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.toUid in request.resource.data.participants
@@ -1054,8 +623,9 @@ service cloud.firestore {
 
     // Group chat directory from blog.js.
     match /blogGroups/{groupId} {
-      allow read: if signedIn();
+      allow read: if signedIn() && !isSchoolParticipant();
       allow create: if signedIn()
+        && !isSchoolParticipant()
         && request.resource.data.ownerUid == request.auth.uid
         && hasText(request.resource.data.name, 40)
         && request.resource.data.joinMode in ['open', 'approval'];
@@ -1067,8 +637,9 @@ service cloud.firestore {
 
     // Group chat membership records from blog.js.
     match /blogGroupMembers/{memberId} {
-      allow read: if signedIn();
+      allow read: if signedIn() && !isSchoolParticipant();
       allow create, update: if signedIn()
+        && !isSchoolParticipant()
         && request.resource.data.uid is string
         && request.resource.data.groupId is string
         && memberId == request.resource.data.groupId + '_' + request.resource.data.uid
@@ -1081,20 +652,24 @@ service cloud.firestore {
           )
         );
       allow delete: if signedIn()
+        && !isSchoolParticipant()
         && (resource.data.uid == request.auth.uid || isGroupOwner(resource.data.groupId));
     }
 
     // Join requests for approval-only groups.
     match /blogGroupJoinRequests/{requestId} {
       allow read: if signedIn()
+        && !isSchoolParticipant()
         && (resource.data.uid == request.auth.uid || resource.data.ownerUid == request.auth.uid || isAdmin());
       allow create, update: if signedIn()
+        && !isSchoolParticipant()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.ownerUid is string
         && request.resource.data.groupId is string
         && requestId == request.resource.data.groupId + '_' + request.auth.uid
         && request.resource.data.status == 'pending';
       allow update: if signedIn()
+        && !isSchoolParticipant()
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
         && request.resource.data.status in ['approved', 'denied'];
@@ -1116,39 +691,42 @@ service cloud.firestore {
 
     match /groups/{groupId} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.ownerUid == request.auth.uid;
 
       match /messages/{messageId} {
-        allow read: if true;
-        allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+        allow read: if !isSchoolParticipant();
+        allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
       }
 
       match /members/{uid} {
         allow read: if true;
-        allow create: if isOwner(uid);
-        allow update, delete: if isOwner(uid)
-          || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid);
+        allow create: if isOwner(uid) && !isSchoolParticipant();
+        allow update, delete: if !isSchoolParticipant()
+          && (
+            isOwner(uid)
+            || (signedIn() && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerUid == request.auth.uid)
+          );
       }
     }
 
     match /hq/{docId} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
     }
 
     match /kigazineHQ/{docId} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
     }
 
     match /hqMessages/{docId} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
     }
 
     // Private KigaMath progress. Each account can access only its own document.
