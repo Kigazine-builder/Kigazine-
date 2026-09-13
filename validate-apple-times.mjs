@@ -8,7 +8,7 @@ const rules = readFileSync("./firestore.rules", "utf8");
 const functions = readFileSync("./functions/apple-times.js", "utf8");
 
 assert.match(html, /<title>Apple Times · Kigazine<\/title>/);
-assert.match(index, /href="apple-times\.html"/);
+assert.match(index, /href="https:\/\/appletimes\.kigazine\.com"/);
 assert.match(html, /appleTimesSections/);
 assert.match(html, /appleTimesWriters/);
 assert.match(html, /appleTimesIssues/);
