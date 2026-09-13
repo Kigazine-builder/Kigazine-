@@ -216,3 +216,5 @@ exports.moderateComment = onDocumentCreated(
     await updateCommentAfterModeration(snap.ref, decision);
   }
 );
+
+Object.assign(exports, require("./apple-times"));

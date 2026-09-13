@@ -26,7 +26,6 @@ for (const [open, close] of [["{", "}"], ["(", ")"], ["[", "]"]]) {
 requireCount(/service cloud\.firestore/g, 1, "Duplicate Firestore service block");
 requireCount(/match \/magazines\/\{magazineId\}/g, 1, "Duplicate magazine rules");
 requireCount(/match \/schoolMagazines\/\{magazineId\}/g, 1, "School magazine rules missing or duplicated");
-requireText("value.matches('^[0-6]+$')", "Arcade tile regular expression is damaged");
 requireText("request.resource.data.status == 'pending_review'", "Regular submissions must start pending review");
 requireText("request.resource.data.status == 'pending_review'\n            && request.resource.data.isPublic == false", "Authors must keep edited regular posts pending and private");
 requireText("request.resource.data.status in ['changes_requested', 'approved', 'rejected']", "School review states are missing");

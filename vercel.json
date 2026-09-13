@@ -3,5 +3,17 @@
     "api/chat.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "appletimes.kigazine.com"
+        }
+      ],
+      "destination": "/apple-times.html"
+    }
+  ]
 }
