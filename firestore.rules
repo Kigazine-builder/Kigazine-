@@ -35,10 +35,6 @@ service cloud.firestore {
       return value is string && value.size() > 0 && value.size() <= maxSize;
     }
 
-    function validArcadeTiles(value) {
-      return value is string && value.size() == 240 && value.matches('^[0-6]+$');
-    }
-
     function validMagazinePhoto(data) {
       return !data.keys().hasAny(['photoDataUrl'])
         || data.photoDataUrl == ''
@@ -614,6 +610,193 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function isAppleTimesWriter(uid) {
+      return exists(/databases/$(database)/documents/appleTimesWriters/$(uid))
+        && get(/databases/$(database)/documents/appleTimesWriters/$(uid)).data.status == 'approved';
+    }
+
+    function validAppleTimesConfig(data) {
+      return data.keys().hasOnly([
+          'firstCollection',
+          'firstPublication',
+          'deadlineTime',
+          'timeZone',
+          'extensionThreshold',
+          'enabled',
+          'updatedAt'
+        ])
+        && hasText(data.firstCollection, 10)
+        && hasText(data.firstPublication, 10)
+        && data.deadlineTime is string
+        && data.deadlineTime.matches('^([01]\\d|2[0-3]):[0-5]\\d$')
+        && hasText(data.timeZone, 80)
+        && data.extensionThreshold is int
+        && data.extensionThreshold >= 2
+        && data.extensionThreshold <= 100
+        && data.enabled is bool
+        && data.updatedAt == request.time;
+    }
+
+    function validAppleTimesWriter(uid, data) {
+      return data.keys().hasOnly([
+          'uid',
+          'username',
+          'subjects',
+          'customSubject',
+          'status',
+          'reason',
+          'createdAt',
+          'updatedAt',
+          'approvedAt'
+        ])
+        && data.uid == uid
+        && hasText(data.username, 40)
+        && data.subjects is list
+        && data.subjects.size() <= 8
+        && data.subjects.hasOnly([
+          'Science', 'Math', 'Technology', 'Robotics', 'Nature',
+          'Stories', 'Art', 'World & culture'
+        ])
+        && data.customSubject is string
+        && data.customSubject.size() <= 60
+        && data.status in ['pending', 'approved', 'rejected']
+        && (!data.keys().hasAny(['reason']) || data.reason is string)
+        && (!data.keys().hasAny(['approvedAt']) || data.approvedAt == null || data.approvedAt is timestamp);
+    }
+
+    function validAppleTimesSection(data) {
+      return data.keys().hasOnly([
+          'writerUid',
+          'writerDisplayName',
+          'title',
+          'subject',
+          'subjectKey',
+          'content',
+          'completedContent',
+          'aiCompletion',
+          'aiCompleted',
+          'aiError',
+          'collectionNote',
+          'targetWords',
+          'cycleDate',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'submittedAt',
+          'collectedAt',
+          'collectedCycle',
+          'progressAtCollection'
+        ])
+        && hasText(data.writerUid, 128)
+        && hasText(data.writerDisplayName, 40)
+        && hasText(data.title, 100)
+        && hasText(data.subject, 60)
+        && hasText(data.subjectKey, 70)
+        && hasText(data.content, 12000)
+        && data.targetWords is int
+        && data.targetWords >= 200
+        && data.targetWords <= 1200
+        && data.cycleDate.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.status in ['draft', 'submitted', 'collected', 'approved', 'rejected']
+        && data.updatedAt == request.time
+        && (!data.keys().hasAny(['completedContent']) || data.completedContent is string)
+        && (!data.keys().hasAny(['aiCompletion']) || data.aiCompletion is string)
+        && (!data.keys().hasAny(['aiCompleted']) || data.aiCompleted is bool)
+        && (!data.keys().hasAny(['aiError']) || data.aiError is string)
+        && (!data.keys().hasAny(['collectionNote']) || data.collectionNote is string)
+        && (!data.keys().hasAny(['progressAtCollection']) || (data.progressAtCollection is int && data.progressAtCollection >= 0 && data.progressAtCollection <= 100));
+    }
+
+    function validAppleTimesIssue(data) {
+      return data.keys().hasOnly([
+          'issueNumber',
+          'title',
+          'publicationDate',
+          'status',
+          'sectionSnapshots',
+          'extensionSubjects',
+          'generatedBy',
+          'createdAt',
+          'updatedAt',
+          'publishedAt'
+        ])
+        && data.issueNumber is int
+        && data.issueNumber >= 1
+        && data.issueNumber <= 100
+        && hasText(data.title, 120)
+        && data.publicationDate.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.status in ['draft', 'published']
+        && data.sectionSnapshots is list
+        && data.sectionSnapshots.size() <= 100
+        && data.extensionSubjects is list
+        && data.extensionSubjects.size() <= 20
+        && hasText(data.generatedBy, 80)
+        && data.updatedAt == request.time;
+    }
+
+    // Apple Times configuration is controlled by the editor.
+    match /appleTimesConfig/{configId} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() && configId == 'global' && validAppleTimesConfig(request.resource.data);
+      allow delete: if false;
+    }
+
+    // Existing Kigazine users apply for Apple Times writer access.
+    match /appleTimesWriters/{uid} {
+      allow read: if isAdmin() || isOwner(uid) || resource.data.status == 'approved';
+      allow create: if isOwner(uid)
+        && !isSchoolParticipant()
+        && request.resource.data.status == 'pending'
+        && validAppleTimesWriter(uid, request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin() && validAppleTimesWriter(uid, request.resource.data)
+        || (
+          isOwner(uid)
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subjects', 'customSubject', 'updatedAt'])
+          && validAppleTimesWriter(uid, request.resource.data)
+          && request.resource.data.updatedAt == request.time
+        );
+      allow delete: if false;
+    }
+
+    // Writer-owned Apple Times sections and editor-controlled collection fields.
+    match /appleTimesSections/{sectionId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.writerUid == request.auth.uid);
+      allow create: if signedIn()
+        && !isSchoolParticipant()
+        && isAppleTimesWriter(request.auth.uid)
+        && request.resource.data.writerUid == request.auth.uid
+        && request.resource.data.status in ['draft', 'submitted']
+        && validAppleTimesSection(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin() && validAppleTimesSection(request.resource.data)
+        || (
+          signedIn()
+          && !isSchoolParticipant()
+          && isAppleTimesWriter(request.auth.uid)
+          && resource.data.writerUid == request.auth.uid
+          && request.resource.data.writerUid == resource.data.writerUid
+          && request.resource.data.status in ['draft', 'submitted']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'writerDisplayName', 'title', 'subject', 'subjectKey', 'content', 'targetWords',
+            'cycleDate', 'status', 'updatedAt', 'submittedAt'
+          ])
+          && validAppleTimesSection(request.resource.data)
+        );
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
+    }
+
+    // Published issue snapshots are readable by all signed-in Kigazine users.
+    match /appleTimesIssues/{issueId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
+      allow create, update: if isAdmin() && validAppleTimesIssue(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
     // Banned email list.
     match /bannedEmails/{emailId} {
       allow get: if true;
@@ -711,24 +894,6 @@ service cloud.firestore {
       }
     }
 
-    match /hq/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /kigazineHQ/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
-    }
-
-    match /hqMessages/{docId} {
-      allow read: if true;
-      allow create: if signedIn() && !isSchoolParticipant() && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if signedIn() && !isSchoolParticipant() && resource.data.authorUid == request.auth.uid;
-    }
-
     // Private KigaMath progress. Each account can access only its own document.
     match /kigaMathProgress/{uid} {
       allow read: if isOwner(uid);
@@ -737,51 +902,5 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // Kigazine Blockcade arcade games.
-    match /arcadeGames/{gameId} {
-      allow read: if true;
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
-        ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow update: if signedIn()
-        && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'title', 'authorName', 'ownerUid', 'width', 'height', 'tiles', 'createdAt', 'updatedAt'
-        ])
-        && hasText(request.resource.data.title, 60)
-        && hasText(request.resource.data.authorName, 30)
-        && request.resource.data.width == 20
-        && request.resource.data.height == 12
-        && validArcadeTiles(request.resource.data.tiles);
-      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-
-      match /scores/{scoreId} {
-        allow read: if true;
-        allow create: if signedIn()
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.keys().hasOnly([
-            'uid', 'displayName', 'seconds', 'coins', 'deaths', 'createdAt'
-          ])
-          && hasText(request.resource.data.displayName, 30)
-          && request.resource.data.seconds is number
-          && request.resource.data.seconds >= 0
-          && request.resource.data.seconds <= 3600
-          && request.resource.data.coins is int
-          && request.resource.data.coins >= 0
-          && request.resource.data.coins <= 240
-          && request.resource.data.deaths is int
-          && request.resource.data.deaths >= 0
-          && request.resource.data.deaths <= 999;
-        allow update, delete: if false;
-      }
-    }
   }
 }
