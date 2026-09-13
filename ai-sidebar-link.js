@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   aiLink.href = "https://kigazine-kn7i.vercel.app/ai.html";
   aiLink.target = "_blank";
   aiLink.rel = "noopener noreferrer";
-  aiLink.textContent = "🤖 Go to the AI!";
+  aiLink.textContent = "🤖 Kigazine AI";
 
   nav.appendChild(aiLink);
 });
