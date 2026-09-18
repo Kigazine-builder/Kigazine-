@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // Keep the Apple Times subdomain on its dedicated editorial workspace.
+  if (window.location.hostname === "appletimes.kigazine.com" && window.location.pathname !== "/apple-times.html") {
+    window.location.replace("/apple-times.html");
+  }
+</script>
  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XLQRB5MFW6"></script>
 <script>
