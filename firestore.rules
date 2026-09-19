@@ -31,6 +31,12 @@ service cloud.firestore {
         );
     }
 
+    // Apple Times has one editor. Kigazine admins are editors/moderators,
+    // not Apple Times writers.
+    function isAppleTimesEditor() {
+      return isBuiltInAdmin();
+    }
+
     function hasText(value, maxSize) {
       return value is string && value.size() > 0 && value.size() <= maxSize;
     }
@@ -737,22 +743,26 @@ service cloud.firestore {
     // Apple Times configuration is controlled by the editor.
     match /appleTimesConfig/{configId} {
       allow read: if signedIn();
-      allow create, update: if isAdmin() && configId == 'global' && validAppleTimesConfig(request.resource.data);
+      allow create, update: if isAppleTimesEditor() && configId == 'global' && validAppleTimesConfig(request.resource.data);
       allow delete: if false;
     }
 
     // Existing Kigazine users apply for Apple Times writer access.
     match /appleTimesWriters/{uid} {
-      allow read: if isAdmin() || isOwner(uid) || resource.data.status == 'approved';
+      allow read: if isAppleTimesEditor() || isOwner(uid) || resource.data.status == 'approved';
       allow create: if isOwner(uid)
+        && !isAdmin()
         && !isSchoolParticipant()
         && request.resource.data.status == 'pending'
         && validAppleTimesWriter(uid, request.resource.data)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
-      allow update: if isAdmin() && validAppleTimesWriter(uid, request.resource.data)
+      allow update: if isAppleTimesEditor()
+        && uid != request.auth.uid
+        && validAppleTimesWriter(uid, request.resource.data)
         || (
           isOwner(uid)
+          && !isAdmin()
           && resource.data.status == 'pending'
           && request.resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subjects', 'customSubject', 'updatedAt'])
@@ -764,17 +774,22 @@ service cloud.firestore {
 
     // Writer-owned Apple Times sections and editor-controlled collection fields.
     match /appleTimesSections/{sectionId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.writerUid == request.auth.uid);
+      allow read: if isAppleTimesEditor() || (signedIn() && resource.data.writerUid == request.auth.uid);
       allow create: if signedIn()
+        && !isAdmin()
         && !isSchoolParticipant()
         && isAppleTimesWriter(request.auth.uid)
         && request.resource.data.writerUid == request.auth.uid
         && request.resource.data.status in ['draft', 'submitted']
         && validAppleTimesSection(request.resource.data)
         && request.resource.data.createdAt == request.time;
-      allow update: if isAdmin() && validAppleTimesSection(request.resource.data)
+      allow update: if isAppleTimesEditor()
+        && resource.data.writerUid != request.auth.uid
+        && request.resource.data.writerUid == resource.data.writerUid
+        && validAppleTimesSection(request.resource.data)
         || (
           signedIn()
+          && !isAdmin()
           && !isSchoolParticipant()
           && isAppleTimesWriter(request.auth.uid)
           && resource.data.writerUid == request.auth.uid
@@ -786,15 +801,15 @@ service cloud.firestore {
           ])
           && validAppleTimesSection(request.resource.data)
         );
-      allow delete: if isAdmin()
-        || (signedIn() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
+      allow delete: if (isAppleTimesEditor() && resource.data.writerUid != request.auth.uid)
+        || (signedIn() && !isAdmin() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
     }
 
     // Published issue snapshots are readable by all signed-in Kigazine users.
     match /appleTimesIssues/{issueId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
-      allow create, update: if isAdmin() && validAppleTimesIssue(request.resource.data);
-      allow delete: if isAdmin();
+      allow read: if isAppleTimesEditor() || (signedIn() && resource.data.status == 'published');
+      allow create, update: if isAppleTimesEditor() && validAppleTimesIssue(request.resource.data);
+      allow delete: if isAppleTimesEditor();
     }
 
     // Banned email list.
