@@ -751,7 +751,6 @@ service cloud.firestore {
     match /appleTimesWriters/{uid} {
       allow read: if isAppleTimesEditor() || isOwner(uid) || resource.data.status == 'approved';
       allow create: if isOwner(uid)
-        && !isAdmin()
         && !isSchoolParticipant()
         && request.resource.data.status == 'pending'
         && validAppleTimesWriter(uid, request.resource.data)
@@ -762,7 +761,6 @@ service cloud.firestore {
         && validAppleTimesWriter(uid, request.resource.data)
         || (
           isOwner(uid)
-          && !isAdmin()
           && resource.data.status == 'pending'
           && request.resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subjects', 'customSubject', 'updatedAt'])
@@ -779,7 +777,7 @@ service cloud.firestore {
         && !isSchoolParticipant()
         && request.resource.data.writerUid == request.auth.uid
         && request.resource.data.status in ['draft', 'submitted']
-        && (isAppleTimesEditor() || (!isAdmin() && isAppleTimesWriter(request.auth.uid)))
+        && (isAppleTimesEditor() || isAppleTimesWriter(request.auth.uid))
         && validAppleTimesSection(request.resource.data)
         && request.resource.data.createdAt == request.time;
       allow update: if isAppleTimesEditor()
@@ -787,7 +785,6 @@ service cloud.firestore {
         && validAppleTimesSection(request.resource.data)
         || (
           signedIn()
-          && !isAdmin()
           && !isSchoolParticipant()
           && isAppleTimesWriter(request.auth.uid)
           && resource.data.writerUid == request.auth.uid
@@ -800,7 +797,7 @@ service cloud.firestore {
           && validAppleTimesSection(request.resource.data)
         );
       allow delete: if isAppleTimesEditor()
-        || (signedIn() && !isAdmin() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
+        || (signedIn() && isAppleTimesWriter(request.auth.uid) && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
     }
 
     // Published issue snapshots are readable by all signed-in Kigazine users.
