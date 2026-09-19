@@ -629,6 +629,7 @@ service cloud.firestore {
           'timeZone',
           'extensionThreshold',
           'enabled',
+          'subjectMerges',
           'updatedAt'
         ])
         && hasText(data.firstCollection, 10)
@@ -640,6 +641,7 @@ service cloud.firestore {
         && data.extensionThreshold >= 2
         && data.extensionThreshold <= 100
         && data.enabled is bool
+        && (!data.keys().hasAny(['subjectMerges']) || (data.subjectMerges is map && data.subjectMerges.size() <= 50))
         && data.updatedAt == request.time;
     }
 
