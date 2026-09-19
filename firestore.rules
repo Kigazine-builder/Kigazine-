@@ -31,8 +31,8 @@ service cloud.firestore {
         );
     }
 
-    // Apple Times has one editor. Kigazine admins are editors/moderators,
-    // not Apple Times writers.
+    // Apple Times has one editor. That editor may also write; other
+    // Kigazine admins are moderators, not Apple Times writers.
     function isAppleTimesEditor() {
       return isBuiltInAdmin();
     }
@@ -776,15 +776,13 @@ service cloud.firestore {
     match /appleTimesSections/{sectionId} {
       allow read: if isAppleTimesEditor() || (signedIn() && resource.data.writerUid == request.auth.uid);
       allow create: if signedIn()
-        && !isAdmin()
         && !isSchoolParticipant()
-        && isAppleTimesWriter(request.auth.uid)
         && request.resource.data.writerUid == request.auth.uid
         && request.resource.data.status in ['draft', 'submitted']
+        && (isAppleTimesEditor() || (!isAdmin() && isAppleTimesWriter(request.auth.uid)))
         && validAppleTimesSection(request.resource.data)
         && request.resource.data.createdAt == request.time;
       allow update: if isAppleTimesEditor()
-        && resource.data.writerUid != request.auth.uid
         && request.resource.data.writerUid == resource.data.writerUid
         && validAppleTimesSection(request.resource.data)
         || (
@@ -801,7 +799,7 @@ service cloud.firestore {
           ])
           && validAppleTimesSection(request.resource.data)
         );
-      allow delete: if (isAppleTimesEditor() && resource.data.writerUid != request.auth.uid)
+      allow delete: if isAppleTimesEditor()
         || (signedIn() && !isAdmin() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
     }
 
