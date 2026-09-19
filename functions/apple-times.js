@@ -18,6 +18,11 @@ function requireAdmin(request) {
   const email = request.auth?.token?.email?.toLowerCase();
   if (email !== ADMIN_EMAIL) throw new HttpsError("permission-denied", "Only the Apple Times editor can do that.");
 }
+function mergedCustomSubject(subject, config) {
+  const merged = config.subjectMerges?.[subjectKey(subject)];
+  return typeof merged === "string" && merged.trim() ? merged.trim() : subject;
+}
+
 function issueNumberAt(config, now) {
   const first = publicationSlot(config, 1);
   if (now < first.at) return null;
@@ -115,7 +120,16 @@ async function prepareIssueDraft() {
   const sections = sectionSnap.docs.map(dataOf).filter(section => section.status === "collected" && section.collectedAt?.toMillis?.() <= publication.at).sort((a, b) => String(a.cycleDate).localeCompare(String(b.cycleDate)) || String(a.subject).localeCompare(String(b.subject)));
   const writerSnap = await db.collection("appleTimesWriters").where("status", "==", "approved").get();
   const counts = new Map();
-  writerSnap.docs.forEach(docSnap => { const writer = docSnap.data(); [...(writer.subjects || []), ...(writer.customSubject ? [writer.customSubject] : [])].forEach(subject => counts.set(subjectKey(subject), { subject, count: (counts.get(subjectKey(subject))?.count || 0) + 1 })); });
+  const addInterest = subject => {
+    const key = subjectKey(subject);
+    const current = counts.get(key);
+    counts.set(key, { subject, count: (current?.count || 0) + 1 });
+  };
+  writerSnap.docs.forEach(docSnap => {
+    const writer = docSnap.data();
+    (writer.subjects || []).forEach(addInterest);
+    if (writer.customSubject) addInterest(mergedCustomSubject(writer.customSubject, config));
+  });
   const extensionSubjects = [...counts.values()].filter(item => item.count >= Number(config.extensionThreshold || 5)).map(item => item.subject);
   await issueRef.create({ issueNumber, title: `Apple Times Issue ${issueNumber}`, publicationDate: publication.date, status: "draft", sectionSnapshots: sections.map(snapshotSection), extensionSubjects, generatedBy: "Apple Times scheduler", createdAt: stamp(), updatedAt: stamp() });
   return { prepared: true, issueNumber, sections: sections.length };
