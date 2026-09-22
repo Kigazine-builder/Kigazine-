@@ -3077,7 +3077,14 @@
       renderMagazines(searchInput.value);
     }
 
+    let authRequestInProgress = false;
+
     authSubmitBtn.addEventListener("click", async () => {
+      if (authRequestInProgress) return;
+      authRequestInProgress = true;
+      authSubmitBtn.disabled = true;
+      const originalAuthButtonText = authSubmitBtn.textContent;
+      authSubmitBtn.textContent = authMode === "signup" ? "Creating account..." : "Logging in...";
       const email = normalizeEmail(emailInput.value);
       const password = passwordInput.value.trim();
       const username = usernameInput.value.trim();
@@ -3139,7 +3146,20 @@
           showAuthMessage("Logged in.", "success");
         }
       } catch (err) {
-        showAuthMessage(getFriendlyError(err), "error");
+        if (authMode === "signup" && err?.code === "auth/email-already-in-use") {
+          try {
+            await signInWithEmailAndPassword(auth, email, password);
+            showAuthMessage("That account already exists, so Kigazine kept the original account and logged you in.", "success");
+          } catch (signInError) {
+            showAuthMessage("An account with this email already exists. Log in instead of signing up again.", "error");
+          }
+        } else {
+          showAuthMessage(getFriendlyError(err), "error");
+        }
+      } finally {
+        authRequestInProgress = false;
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.textContent = originalAuthButtonText;
       }
     });
 
