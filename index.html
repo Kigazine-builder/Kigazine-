@@ -1510,7 +1510,6 @@
   <button class="nav-btn" data-section="membersSection">🧑 Members</button>
   <button class="nav-btn" data-section="createSection">✏️ Create</button>
   <a class="nav-btn" href="https://appletimes.kigazine.com">🍎 Apple Times</a>
-  <button class="nav-btn" type="button" onclick="window.location.href='school-edition.html'">🏫 School Edition</button>
   <button class="nav-btn" data-section="accountSection">👤 Account</button>
   <button class="nav-btn" type="button" onclick="window.location.href='math-games.html'">🧠 Math Games</button>
   <button class="nav-btn" type="button" onclick="window.location.href='help.html'">🤖 Kigazine AI</button>
@@ -3889,15 +3888,6 @@
     onAuthStateChanged(auth, async user => {
       currentUser = user;
       if (user) {
-        try {
-          const schoolParticipantSnapshot = await getDoc(doc(db, "schoolParticipants", user.uid));
-          if (schoolParticipantSnapshot.exists() && schoolParticipantSnapshot.data().active === true) {
-            window.location.replace("school-edition.html");
-            return;
-          }
-        } catch (err) {
-          console.warn("Could not check School Edition enrollment.", err);
-        }
         authScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
         closeSidebar();
