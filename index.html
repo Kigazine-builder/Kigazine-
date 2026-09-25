@@ -1702,7 +1702,7 @@
               <div>
                 <label class="label" for="magazinePhotoInput">Cover image <span class="muted">(optional)</span></label>
                 <input id="magazinePhotoInput" class="input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-describedby="magazinePhotoHelp" />
-                <p id="magazinePhotoHelp" class="field-help">Add one PNG, JPG, GIF, or WebP picture under 450 KB. Avoid faces, school logos, locations, and private details. Your image is reviewed before anyone can see it.</p>
+                <p id="magazinePhotoHelp" class="field-help">Add one PNG, JPG, GIF, or WebP picture under 1000 KB. Avoid faces, school logos, locations, and private details. Your image is reviewed before anyone can see it.</p>
                 <button id="removeMagazinePhotoBtn" class="btn btn-secondary hidden" type="button" style="margin-top:10px;">Remove photo</button>
               </div>
               <div>
@@ -2485,11 +2485,11 @@
         return;
       }
 
-      if (file.size > 450 * 1024) {
+      if (file.size > 1000 * 1024) {
         magazinePhotoInput.value = "";
         pendingMagazinePhotoDataUrl = "";
         updateMagazinePhotoPreview();
-        showPublishMessage("Please choose a magazine photo under 450 KB.", "error");
+        showPublishMessage("Please choose a magazine photo under 1000 KB.", "error");
         return;
       }
 
