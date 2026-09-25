@@ -2810,22 +2810,7 @@
       `;
     }
 
-    // Give the writer immediate feedback if the draft looks like it may reveal private info.
-    function updateDraftSafetyHint() {
-      const draftText = `${titleInput.value}\n${descInput.value}\n${contentInput.value}`;
-      const contentLengthHelp = document.getElementById("contentLengthHelp");
-      const draftSafetyHint = document.getElementById("draftSafetyHint");
-      const safetyHit = findPrivateInfo(draftText);
-      const contactHit = findUnsafeContactCue(draftText);
-      contentLengthHelp.textContent = `${contentInput.value.length} of ${contentInput.maxLength} characters used.`;
-      draftSafetyHint.classList.toggle("warning", Boolean(safetyHit || contactHit));
-      draftSafetyHint.textContent = safetyHit
-        ? `Check your draft: it may include a ${safetyHit}. Remove private details before submitting.`
-        : contactHit
-          ? "Check your draft: it asks readers to contact or meet outside Kigazine. Remove that part before submitting."
-          : "Draft looks okay so far. Keep checking for private details before you submit.";
-      updateSubmitReadiness();
-    }
+    
 
     function updateSubmitReadiness() {
       if (!submitReadiness) return;
