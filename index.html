@@ -7,15 +7,7 @@
     window.location.replace("/apple-times.html");
   }
 </script>
- <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XLQRB5MFW6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XLQRB5MFW6');
-</script>
+<!-- Do not run third-party analytics on the kid-directed main page. -->
   <style>
     :root {
       --bg: #0f172a;
@@ -1109,6 +1101,50 @@
       gap: 16px;
     }
 
+    .mag-grid.browse-detail { grid-template-columns: 1fr; }
+    .series-card .mag-body { display: grid; gap: 8px; }
+    .series-card .mag-body p { margin: 0; }
+    .series-intro { margin-bottom: 18px; }
+    .issue-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .issue-cover {
+      position: relative;
+      isolation: isolate;
+      min-height: 260px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 32px;
+      overflow: hidden;
+      color: #fff;
+      background: linear-gradient(135deg, #163783, #396ce4);
+    }
+    .issue-cover::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(7,16,38,.26), rgba(7,16,38,.9)); }
+    .issue-cover img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+    .issue-cover .issue-masthead { font-size: clamp(19px, 2vw, 28px); font-weight: 900; line-height: 1.15; overflow-wrap: anywhere; }
+    .issue-cover .issue-heading { font-size: clamp(24px, 3vw, 38px); font-weight: 900; line-height: 1.15; overflow-wrap: anywhere; }
+    .issue-cover .issue-coverline { margin: 10px 0 0; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
+    .issue-cover .issue-kicker { letter-spacing: .12em; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .issue-cover.coral { background: linear-gradient(135deg, #e6465c, #ff9459); }
+    .issue-cover.teal { background: linear-gradient(135deg, #0b7c79, #20c6ae); }
+    .issue-cover.purple { background: linear-gradient(135deg, #6e3eaf, #d05bbd); }
+    .issue-cover.gold { background: linear-gradient(135deg, #a45d14, #e2a53d); }
+    .issue-card .issue-cover { min-height: 210px; }
+    .issue-reader { max-width: 750px; margin: 0 auto; }
+    .issue-reader .issue-cover { min-height: 470px; border-radius: 16px 16px 0 0; }
+    .issue-reader .issue-pages { background: #fffdf7; color: #17253f; padding: clamp(22px,5vw,48px); line-height: 1.85; }
+    .issue-reader .issue-pages h2 { font-size: clamp(27px,4vw,40px); line-height: 1.15; }
+    .issue-reader .issue-pages .muted { color: #52647f; }
+    .issue-reader .issue-pages .mag-meta,
+    .issue-reader .issue-pages .comments-title,
+    .issue-reader .issue-pages .comment-empty,
+    .issue-reader .issue-pages .comment-guidance { color: #334969; }
+    .issue-reader .issue-pages .comment-draft-hint { color: #176647; }
+    .issue-reader .issue-pages .report-btn { color: #783800; }
+    .issue-reader .comments-panel { border-top: 1px solid #ccd6e6; }
+    .legal-links { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; font-size: 13px; }
+    .legal-links a { color: #bed8ff; }
+
     .mag-card {
       background: linear-gradient(180deg, rgba(30,41,59,.96), rgba(15,23,42,.96));
       border: 1px solid #2b3b56;
@@ -1287,7 +1323,7 @@
       background: linear-gradient(135deg, var(--blue), var(--blue-3));
       color: white;
       border-radius: 18px;
-      padding: 18px;
+      overflow: hidden;
       margin-bottom: 14px;
     }
 
@@ -1432,7 +1468,7 @@
           <div class="floating-decor decor-star" aria-hidden="true">⭐</div>
           <div class="floating-decor decor-spark" aria-hidden="true">✨</div>
           <h1>Read, write, and share magazines.</h1>
-          <p>A safer Kigazine where kids can write creative magazines, learn good sharing habits, and send posts for review before they appear publicly.</p>
+          <p>Read right after you join. When you're ready to create, name your magazine series and make illustrated issues for editor review.</p>
           <div class="hero-pills">
             <span class="pill">Review before public</span>
             <span class="pill">No personal info</span>
@@ -1472,6 +1508,7 @@
           <input id="permissionInput" type="checkbox" />
           <span>I have permission from a parent or guardian to use Kigazine.</span>
         </label>
+        <p class="field-help">Please read our <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> with a parent or guardian. Checking a box does not verify parental consent.</p>
 
         <button id="authSubmitBtn" class="btn btn-primary" style="width:100%;">Log in</button>
         <div id="authMessage" class="notice hidden" role="status" aria-live="polite"></div>
@@ -1593,12 +1630,12 @@
       <section id="viewSection" class="section">
         <div class="toolbar">
           <div>
-            <div class="section-kicker">Approved Feed</div>
-            <h2 style="margin:0 0 6px;">Public magazines</h2>
-            <div class="muted">Approved posts that are okay for kids to read</div>
+            <div class="section-kicker">Browse magazine series</div>
+            <h2 style="margin:0 0 6px;">Explore magazine series</h2>
+            <div class="muted">Open a series, choose an issue, and turn to its cover and pages. Every public issue has been reviewed.</div>
           </div>
           <label class="label hidden" for="searchInput">Search magazines</label>
-          <input id="searchInput" class="search" placeholder="Search magazines..." aria-label="Search magazines" />
+          <input id="searchInput" class="search" placeholder="Search series or issues..." aria-label="Search series or issues" />
         </div>
         <div class="card" style="margin-bottom:16px;">
           <div class="row" style="justify-content:space-between; gap:12px; align-items:flex-start;">
@@ -1630,34 +1667,47 @@
       <section id="createSection" class="section">
         <div class="toolbar">
           <div>
-            <div class="section-kicker">Make A Magazine</div>
-            <h2 style="margin:0 0 6px;">Create a magazine</h2>
-            <div class="muted">Write it, preview it, then send it for review</div>
+            <div class="section-kicker">Your magazine series</div>
+            <h2 style="margin:0 0 6px;">Create a new issue</h2>
+            <div class="muted">Name your series once, then design a cover and send each issue for review.</div>
           </div>
         </div>
+        <div id="seriesSetup" class="card" style="margin-bottom:16px;">
+          <h3>Your series name</h3>
+          <p class="muted">You can read magazines without naming a series. To start publishing, choose a safe series name that does not reveal your real name, school, or contact information.</p>
+          <label class="label" for="seriesNameInput">Magazine series name</label>
+          <input id="seriesNameInput" class="input" maxlength="50" placeholder="For example: The Amazing Science Club" />
+          <button id="saveSeriesNameBtn" type="button" class="btn btn-primary" style="margin-top:12px;">Save series name</button>
+          <div id="seriesNameMessage" class="notice hidden" role="status" aria-live="polite"></div>
+        </div>
+        <div id="seriesReady" class="notice hidden" style="margin-bottom:16px;">Your series: <strong id="currentSeriesName"></strong>. Each new issue belongs to this series.</div>
 
-        <div class="split">
+        <div id="issueComposer" class="split hidden">
           <div class="card">
             <div class="form-grid">
               <div>
-                <label class="label" for="titleInput">Title</label>
-                <input id="titleInput" class="input" maxlength="80" placeholder="My awesome magazine" />
+                <label class="label" for="titleInput">Issue headline</label>
+                <input id="titleInput" class="input" maxlength="80" placeholder="The amazing world of space" />
                 <p class="field-help">Keep titles short and do not include private details.</p>
               </div>
               <div>
-                <label class="label" for="descInput">Description</label>
+                <label class="label" for="descInput">Cover line</label>
                 <input id="descInput" class="input" maxlength="180" placeholder="What is your magazine about?" />
               </div>
               <div>
-                <label class="label" for="contentInput">Content</label>
+                <label class="label" for="contentInput">Inside pages</label>
                 <textarea id="contentInput" class="textarea" maxlength="5200" placeholder="Write your story here..."></textarea>
                 <p class="field-help" id="contentLengthHelp">0 of 5200 characters used.</p>
               </div>
               <div>
-                <label class="label" for="magazinePhotoInput">Magazine photo <span class="muted">(optional)</span></label>
+                <label class="label" for="magazinePhotoInput">Cover image <span class="muted">(optional)</span></label>
                 <input id="magazinePhotoInput" class="input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-describedby="magazinePhotoHelp" />
-                <p id="magazinePhotoHelp" class="field-help">Add one PNG, JPG, GIF, or WebP picture under 450 KB. It will be checked with your magazine before readers can see it.</p>
+                <p id="magazinePhotoHelp" class="field-help">Add one PNG, JPG, GIF, or WebP picture under 450 KB. Avoid faces, school logos, locations, and private details. Your image is reviewed before anyone can see it.</p>
                 <button id="removeMagazinePhotoBtn" class="btn btn-secondary hidden" type="button" style="margin-top:10px;">Remove photo</button>
+              </div>
+              <div>
+                <label class="label" for="coverThemeInput">Cover color</label>
+                <select id="coverThemeInput" class="input"><option value="navy">Ocean blue</option><option value="coral">Sunset coral</option><option value="teal">Tropical teal</option><option value="purple">Cosmic purple</option><option value="gold">Golden hour</option></select>
               </div>
               <div id="draftSafetyHint" class="draft-safety-hint" role="status" aria-live="polite">Draft looks okay so far. Keep checking for private details before you submit.</div>
               <div class="safety-panel" style="border:1px solid rgba(34,197,94,.28); border-radius:18px; padding:14px;">
@@ -1682,19 +1732,18 @@
           </div>
 
           <div class="preview">
-            <div class="preview-cover">
-              <small>KIGAZINE PREVIEW</small>
-              <div id="previewTitle" style="font-size:28px; font-weight:900; margin-top:6px;">Your title here</div>
+            <div id="previewCover" class="preview-cover issue-cover navy">
+              <img id="previewMagazinePhoto" class="hidden" alt="Your selected issue cover preview" />
+              <div class="issue-masthead" id="previewSeriesName">Your series name</div>
+              <div><small class="issue-kicker">KIGAZINE · ISSUE PREVIEW</small><div id="previewTitle" class="issue-heading">Your title here</div><p id="previewDesc" class="issue-coverline">Your cover line will show here.</p></div>
             </div>
-            <div id="previewDesc" style="font-weight:700; margin-bottom:10px;">Your description will show here.</div>
             <div id="previewContent" style="line-height:1.75; color:#334155; white-space:pre-wrap;">Start typing to preview your magazine.</div>
-            <img id="previewMagazinePhoto" class="magazine-photo-preview hidden" alt="Your selected magazine photo preview" />
             <div class="preview-stickers" aria-hidden="true">
               <span class="preview-sticker">Bright idea</span>
               <span class="preview-sticker">Kind words</span>
               <span class="preview-sticker">Ready for review</span>
             </div>
-            <div class="preview-note">Your post goes to review before it can appear in the public feed. That helps keep Kigazine kind and kid-safe.</div>
+            <div class="preview-note">Your issue and its cover go to review before readers can see them.</div>
           </div>
         </div>
       </section>
@@ -1828,6 +1877,7 @@
       </section>
     </main>
   </div>
+  <footer class="legal-links"><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a></footer>
 
   <div id="reportModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle" aria-describedby="reportTarget reportHelp reportSupport">
     <div class="report-dialog">
@@ -1927,6 +1977,9 @@
     let bannedEmails = [];
     let pendingProfilePhotoDataUrl = "";
     let pendingMagazinePhotoDataUrl = "";
+    let activeSeriesUid = "";
+    let activeIssueId = "";
+    const COVER_THEMES = ["navy", "coral", "teal", "purple", "gold"];
 
     const authScreen = document.getElementById("authScreen");
     const appShell = document.getElementById("appShell");
@@ -1955,6 +2008,16 @@
     const memberSearchInput = document.getElementById("memberSearchInput");
     const memberList = document.getElementById("memberList");
     const magGrid = document.getElementById("magGrid");
+    const seriesSetup = document.getElementById("seriesSetup");
+    const seriesReady = document.getElementById("seriesReady");
+    const issueComposer = document.getElementById("issueComposer");
+    const seriesNameInput = document.getElementById("seriesNameInput");
+    const saveSeriesNameBtn = document.getElementById("saveSeriesNameBtn");
+    const seriesNameMessage = document.getElementById("seriesNameMessage");
+    const currentSeriesName = document.getElementById("currentSeriesName");
+    const previewSeriesName = document.getElementById("previewSeriesName");
+    const previewCover = document.getElementById("previewCover");
+    const coverThemeInput = document.getElementById("coverThemeInput");
     const publicCount = document.getElementById("publicCount");
     const homeUserStat = document.getElementById("homeUserStat");
     const accountStatus = document.getElementById("accountStatus");
@@ -2280,6 +2343,68 @@
       return user?.username || user?.displayName || user?.email?.split("@")[0] || "Kigazine member";
     }
 
+    function seriesNameFor(magazine) {
+      const creator = findUserByUid(magazine.uid);
+      return creator?.magazineSeriesName || magazine.seriesName || `${safeMagazineAuthor(magazine)}'s magazine`;
+    }
+
+    function safeMagazineAuthor(magazine) {
+      const name = magazine.username || "";
+      return name.includes("@") ? "Kigazine writer" : name || "Kigazine writer";
+    }
+
+    function coverMarkup(magazine, label = "Issue") {
+      const theme = COVER_THEMES.includes(magazine.coverTheme) ? magazine.coverTheme : "navy";
+      const image = sanitizePhotoDataUrl(magazine.photoDataUrl || "");
+      const title = magazine.title || "Untitled issue";
+      return `<div class="issue-cover ${theme}">
+        ${image ? `<img src="${escapeHtml(image)}" alt="Cover art for ${escapeHtml(title)}" loading="lazy">` : ""}
+        <div class="issue-masthead">${escapeHtml(seriesNameFor(magazine))}</div>
+        <div><div class="issue-kicker">Kigazine · ${escapeHtml(label)}</div><div class="issue-heading">${escapeHtml(title)}</div><p class="issue-coverline">${escapeHtml(magazine.description || "")}</p></div>
+      </div>`;
+    }
+
+    function updateSeriesSetup() {
+      const name = currentProfile?.magazineSeriesName?.trim() || "";
+      seriesSetup.classList.toggle("hidden", Boolean(name));
+      seriesReady.classList.toggle("hidden", !name);
+      issueComposer.classList.toggle("hidden", !name);
+      currentSeriesName.textContent = name;
+      previewSeriesName.textContent = name || "Your series name";
+    }
+
+    async function saveMagazineSeriesName() {
+      if (!currentUser || currentProfile?.magazineSeriesName) return;
+      const name = seriesNameInput.value.trim().replace(/\s+/g, " ");
+      const safetyHit = findPrivateInfo(name);
+      if (name.length < 3 || name.length > 50 || safetyHit || findUnsafeContactCue(name)) {
+        seriesNameMessage.textContent = safetyHit
+          ? `Choose a different series name; this one might include a ${safetyHit}.`
+          : "Use 3–50 characters without private details or contact requests.";
+        seriesNameMessage.className = "notice error";
+        return;
+      }
+      saveSeriesNameBtn.disabled = true;
+      try {
+        const profileRef = doc(db, "users", currentUser.uid);
+        if (!(await getDoc(profileRef)).exists()) {
+          await setDoc(profileRef, { ...currentProfile, magazineSeriesName: "", createdAt: serverTimestamp() });
+        }
+        await setDoc(profileRef, { magazineSeriesName: name }, { merge: true });
+        currentProfile = { ...currentProfile, magazineSeriesName: name };
+        updateSeriesSetup();
+        updatePreview();
+        renderMagazines(searchInput.value);
+      } catch (err) {
+        seriesNameMessage.textContent = getFriendlyError(err);
+        seriesNameMessage.className = "notice error";
+      } finally {
+        saveSeriesNameBtn.disabled = false;
+      }
+    }
+
+    saveSeriesNameBtn.addEventListener("click", saveMagazineSeriesName);
+
     function getAvatarInitial(user = {}) {
       const name = getDisplayName(user).trim();
       return (name.charAt(0) || "K").toUpperCase();
@@ -2338,7 +2463,8 @@
 
     function updateMagazinePhotoPreview() {
       const photoUrl = sanitizePhotoDataUrl(pendingMagazinePhotoDataUrl);
-      previewMagazinePhoto.src = photoUrl;
+      if (photoUrl) previewMagazinePhoto.src = photoUrl;
+      else previewMagazinePhoto.removeAttribute("src");
       previewMagazinePhoto.classList.toggle("hidden", !photoUrl);
       removeMagazinePhotoBtn.classList.toggle("hidden", !photoUrl);
     }
@@ -2372,7 +2498,7 @@
         if (!photoUrl || photoUrl.length > 650000) throw new Error("invalid-image");
         pendingMagazinePhotoDataUrl = photoUrl;
         updateMagazinePhotoPreview();
-        showPublishMessage("Photo added to your draft. It will be reviewed with your magazine.", "success");
+        showPublishMessage("Cover image added. It will be reviewed with your issue.", "success");
       } catch {
         magazinePhotoInput.value = "";
         pendingMagazinePhotoDataUrl = "";
@@ -2390,14 +2516,18 @@
 
     // Keep the live preview and safety hint in sync with the current draft.
     function updatePreview() {
+      const theme = COVER_THEMES.includes(coverThemeInput.value) ? coverThemeInput.value : "navy";
+      previewCover.className = `preview-cover issue-cover ${theme}`;
+      previewSeriesName.textContent = currentProfile?.magazineSeriesName || "Your series name";
       previewTitle.textContent = titleInput.value.trim() || "Your title here";
-      previewDesc.textContent = descInput.value.trim() || "Your description will show here.";
+      previewDesc.textContent = descInput.value.trim() || "Your cover line will show here.";
       previewContent.textContent = contentInput.value.trim() || "Start typing to preview your magazine.";
       updateMagazinePhotoPreview();
       updateDraftSafetyHint();
     }
 
     [titleInput, descInput, contentInput].forEach(el => el.addEventListener("input", updatePreview));
+    coverThemeInput.addEventListener("change", updatePreview);
 
     function getApprovedCommentsForPost(postId) {
       return approvedComments.filter(comment => comment.postId === postId);
@@ -2525,50 +2655,78 @@
     function renderMagazines(filter = "") {
       const q = filter.trim().toLowerCase();
       const hiddenPostIds = new Set(getHiddenPostIds());
-      const filtered = magazines.filter(m => {
-        return (
-          !hiddenPostIds.has(m.id) &&
-          (
-            (m.title || "").toLowerCase().includes(q) ||
-            (m.description || "").toLowerCase().includes(q) ||
-            (m.username || "").toLowerCase().includes(q)
-          )
-        );
+      const visible = magazines.filter(m => !hiddenPostIds.has(m.id));
+      const filtered = visible.filter(m => !q || [m.title, m.description, safeMagazineAuthor(m), seriesNameFor(m)]
+        .some(value => String(value || "").toLowerCase().includes(q)));
+      const bySeries = new Map();
+      filtered.forEach(issue => {
+        const uid = issue.uid || issue.id;
+        if (!bySeries.has(uid)) bySeries.set(uid, []);
+        bySeries.get(uid).push(issue);
       });
+      magGrid.classList.toggle("browse-detail", Boolean(activeSeriesUid));
 
       if (!filtered.length) {
+        activeSeriesUid = "";
+        activeIssueId = "";
+        magGrid.classList.remove("browse-detail");
         const hasHiddenPosts = hiddenPostIds.size > 0;
         const emptyMessage = q
           ? "Try a different search or reset hidden posts."
           : hasHiddenPosts
             ? "Everything visible has been hidden on this device. Reset hidden posts to bring them back."
-            : "When someone publishes, it will show up here.";
+            : "Once an editor approves an issue, its magazine series will appear here.";
         magGrid.innerHTML = `
           <div class="card" style="grid-column: 1 / -1;">
-            <h3 style="margin-top:0;">No magazines yet</h3>
+            <h3 style="margin-top:0;">No magazine series yet</h3>
             <p class="muted" style="margin-bottom:0; line-height:1.7;">${emptyMessage}</p>
           </div>
         `;
-      } else {
-        magGrid.innerHTML = filtered.map(m => {
-          const photoUrl = sanitizePhotoDataUrl(m.photoDataUrl || "");
-          return `
-          <article class="mag-card">
-            <div class="mag-cover">${escapeHtml((m.title || "M").charAt(0).toUpperCase())}</div>
-            ${photoUrl ? `<img class="magazine-photo" src="${escapeHtml(photoUrl)}" alt="Photo shared with ${escapeHtml(m.title || "this magazine")}" loading="lazy" />` : ""}
-            <div class="mag-body">
-              <h3>${escapeHtml(m.title || "Untitled magazine")}</h3>
-              <div class="mag-meta">By ${escapeHtml(m.username || "Kigazine writer")}</div>
-              <div class="mag-meta">${escapeHtml(m.description || "No description yet.")}</div>
-              <div><span class="tag">Approved</span></div>
-              <div class="muted" style="line-height:1.7; white-space:pre-wrap;">${escapeHtml(m.content || "")}</div>
-              ${renderCommentPanel(m)}
-              <button class="report-btn" type="button" data-hide-id="${escapeHtml(m.id)}">Hide from my view</button>
-              <button class="report-btn" type="button" data-report-id="${escapeHtml(m.id)}">Report concern</button>
-              ${isAdmin() ? `<button class="report-btn" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>` : ""}
+      } else if (activeSeriesUid && bySeries.has(activeSeriesUid)) {
+        const issues = bySeries.get(activeSeriesUid);
+        const issue = issues.find(item => item.id === activeIssueId);
+        if (issue) {
+          magGrid.innerHTML = `<article class="issue-reader">
+            <button type="button" class="btn btn-secondary" data-back-issues style="margin-bottom:16px;">← All issues</button>
+            <div class="mag-card">${coverMarkup(issue)}
+              <div class="issue-pages"><div class="mag-meta">By ${escapeHtml(safeMagazineAuthor(issue))}</div>
+                <h2>${escapeHtml(issue.title || "Untitled issue")}</h2>
+                <p>${escapeHtml(issue.description || "")}</p>
+                <div style="white-space:pre-wrap; overflow-wrap:anywhere;">${escapeHtml(issue.content || "")}</div>
+                ${renderCommentPanel(issue)}
+                <button class="report-btn" type="button" data-hide-id="${escapeHtml(issue.id)}">Hide this issue</button>
+                <button class="report-btn" type="button" data-report-id="${escapeHtml(issue.id)}">Report concern</button>
+                ${isAdmin() ? `<button class="report-btn" type="button" data-delete-id="${escapeHtml(issue.id)}">Delete issue</button>` : ""}
+              </div>
             </div>
-          </article>
-        `;
+          </article>`;
+        } else {
+          activeIssueId = "";
+          magGrid.innerHTML = `<div class="series-intro">
+            <button type="button" class="btn btn-secondary" data-back-series style="margin-bottom:16px;">← All series</button>
+            <h2>${escapeHtml(seriesNameFor(issues[0]))}</h2><p class="muted">By ${escapeHtml(safeMagazineAuthor(issues[0]))} · ${issues.length} approved issue${issues.length === 1 ? "" : "s"}</p>
+            <div class="issue-list">${issues.map(item => `<article class="mag-card issue-card">
+              ${coverMarkup(item)}
+              <div class="mag-body"><h3>${escapeHtml(item.title || "Untitled issue")}</h3>
+                <p class="mag-meta">${escapeHtml(item.description || "")}</p>
+                <button type="button" class="btn btn-primary" data-open-issue="${escapeHtml(item.id)}">Read issue</button>
+              </div>
+            </article>`).join("")}</div>
+          </div>`;
+        }
+      } else {
+        activeSeriesUid = "";
+        magGrid.classList.remove("browse-detail");
+        magGrid.innerHTML = [...bySeries.entries()].map(([uid, issues]) => {
+          const newest = issues[0];
+          return `<article class="mag-card series-card">
+            ${coverMarkup(newest, "Latest issue")}
+            <div class="mag-body"><h3>${escapeHtml(seriesNameFor(newest))}</h3>
+              <p class="mag-meta">By ${escapeHtml(safeMagazineAuthor(newest))} · ${issues.length} issue${issues.length === 1 ? "" : "s"}</p>
+              <p>Latest: ${escapeHtml(newest.title || "Untitled issue")}</p>
+              <button class="btn btn-primary" type="button" data-open-series="${escapeHtml(uid)}">Open series</button>
+            </div>
+          </article>`;
         }).join("");
       }
 
@@ -2671,6 +2829,10 @@
 
     function updateSubmitReadiness() {
       if (!submitReadiness) return;
+      if (!currentProfile?.magazineSeriesName) {
+        submitReadiness.textContent = "Name your magazine series before submitting your first issue.";
+        return;
+      }
       const title = titleInput.value.trim();
       const description = descInput.value.trim();
       const content = contentInput.value.trim();
@@ -2737,7 +2899,11 @@
       lengthHelp.textContent = `${rawValue.length} of ${input.maxLength} characters used. Comments are checked before they appear.`;
     }
 
-    searchInput.addEventListener("input", e => renderMagazines(e.target.value));
+    searchInput.addEventListener("input", e => {
+      activeSeriesUid = "";
+      activeIssueId = "";
+      renderMagazines(e.target.value);
+    });
     resetHiddenPostsBtn.addEventListener("click", resetHiddenPosts);
     memberSearchInput.addEventListener("input", e => renderMembers(e.target.value));
     discoverableInput.addEventListener("input", updateSafetySummary);
@@ -2750,6 +2916,32 @@
     });
 
     magGrid.addEventListener("click", async e => {
+      const openSeries = e.target.closest("[data-open-series]");
+      if (openSeries) {
+        activeSeriesUid = openSeries.dataset.openSeries;
+        activeIssueId = "";
+        renderMagazines(searchInput.value);
+        magGrid.scrollIntoView({ block: "start" });
+        return;
+      }
+      const openIssue = e.target.closest("[data-open-issue]");
+      if (openIssue) {
+        activeIssueId = openIssue.dataset.openIssue;
+        renderMagazines(searchInput.value);
+        magGrid.scrollIntoView({ block: "start" });
+        return;
+      }
+      if (e.target.closest("[data-back-series]")) {
+        activeSeriesUid = "";
+        activeIssueId = "";
+        renderMagazines(searchInput.value);
+        return;
+      }
+      if (e.target.closest("[data-back-issues]")) {
+        activeIssueId = "";
+        renderMagazines(searchInput.value);
+        return;
+      }
       const deleteButton = e.target.closest("[data-delete-id]");
       if (deleteButton && isAdmin()) {
         await deletePost(deleteButton.dataset.deleteId, "public");
@@ -2918,7 +3110,7 @@
           postId,
           postTitle: magazines.find(m => m.id === postId)?.title || "Untitled magazine",
           uid: currentUser.uid,
-          username: currentProfile?.username || currentUser.email,
+          username: currentProfile?.username || "Kigazine reader",
           content,
           status: "pending_review",
           createdAt: serverTimestamp()
@@ -2948,8 +3140,9 @@
       const commentLabel = currentProfile?.commentsFriendsOnly !== false ? "Comments from friends only" : "Comments from all logged-in readers";
       homeUserStat.textContent = username;
       accountStatus.textContent = currentUser
-        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel} • ${friendCount} friend${friendCount === 1 ? "" : "s"} • ${discoverableLabel} • ${commentLabel}`
+        ? `Logged in as ${currentProfile?.username || "(no username)"} • ${currentUser.email} • ${roleLabel} • ${friendCount} friend${friendCount === 1 ? "" : "s"} • ${discoverableLabel} • ${commentLabel} • Series: ${currentProfile?.magazineSeriesName || "not named yet"}`
         : "Not logged in.";
+      updateSeriesSetup();
       discoverableInput.checked = Boolean(currentProfile?.discoverableProfile);
       friendsOnlyCommentsInput.checked = currentProfile?.commentsFriendsOnly !== false;
       updateAccountAvatarPreview();
@@ -2968,20 +3161,27 @@
         currentProfile = snap.data();
       } else {
         currentProfile = {
-          username: currentUser?.email?.split("@")[0] || "Kigazine admin",
+          username: "Kigazine reader",
           email: currentUser?.email || "",
           role: isAdminEmail(currentUser?.email) ? "admin" : "writer",
           friendUids: [],
           discoverableProfile: false,
           commentsFriendsOnly: true,
+          magazineSeriesName: "",
           photoDataUrl: ""
         };
+        // Sign-up creates its own profile with the chosen nickname. Avoid
+        // racing that write when Firebase announces the new auth session.
+        if (!authRequestInProgress || authMode !== "signup") {
+          await setDoc(profileRef, { ...currentProfile, createdAt: serverTimestamp() });
+        }
       }
       currentProfile = {
         ...currentProfile,
         friendUids: Array.isArray(currentProfile?.friendUids) ? currentProfile.friendUids : [],
         discoverableProfile: Boolean(currentProfile?.discoverableProfile),
         commentsFriendsOnly: currentProfile?.commentsFriendsOnly !== false,
+        magazineSeriesName: typeof currentProfile?.magazineSeriesName === "string" ? currentProfile.magazineSeriesName : "",
         photoDataUrl: getProfilePhotoUrl(currentProfile)
       };
       if (isAdminEmail(currentUser?.email) && currentProfile?.role !== "admin") {
@@ -3022,6 +3222,7 @@
         const q = query(
           collection(db, "magazines"),
           where("isPublic", "==", true),
+          where("status", "==", "approved"),
           orderBy("createdAt", "desc")
         );
         const snap = await getDocs(q);
@@ -3029,8 +3230,12 @@
           .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
           .filter(m => m.status === "approved");
       } catch (err) {
-        // fallback in case compound query/index/order issue happens
-        const snap = await getDocs(collection(db, "magazines"));
+        // A status-filtered fallback still respects review-first Firestore rules.
+        const snap = await getDocs(query(
+          collection(db, "magazines"),
+          where("isPublic", "==", true),
+          where("status", "==", "approved")
+        ));
         magazines = snap.docs
           .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
           .filter(m => m.isPublic && m.status === "approved")
@@ -3045,7 +3250,7 @@
 
     async function loadComments() {
       try {
-        const snap = await getDocs(collection(db, "comments"));
+        const snap = await getDocs(query(collection(db, "comments"), where("status", "==", "approved")));
         approvedComments = snap.docs
           .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
           .filter(comment => comment.status === "approved")
@@ -3081,10 +3286,6 @@
 
     authSubmitBtn.addEventListener("click", async () => {
       if (authRequestInProgress) return;
-      authRequestInProgress = true;
-      authSubmitBtn.disabled = true;
-      const originalAuthButtonText = authSubmitBtn.textContent;
-      authSubmitBtn.textContent = authMode === "signup" ? "Creating account..." : "Logging in...";
       const email = normalizeEmail(emailInput.value);
       const password = passwordInput.value.trim();
       const username = usernameInput.value.trim();
@@ -3110,6 +3311,11 @@
         return;
       }
 
+      authRequestInProgress = true;
+      authSubmitBtn.disabled = true;
+      const originalAuthButtonText = authSubmitBtn.textContent;
+      authSubmitBtn.textContent = authMode === "signup" ? "Creating account..." : "Logging in...";
+
       try {
         if (await isEmailBanned(email)) {
           showAuthMessage("This email has been banned from Kigazine.", "error");
@@ -3125,10 +3331,18 @@
             friendUids: [],
             discoverableProfile: false,
             commentsFriendsOnly: true,
+            magazineSeriesName: "",
             photoDataUrl: "",
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
+
+          currentProfile = {
+            username, email, role: isAdminEmail(email) ? "admin" : "writer",
+            friendUids: [], discoverableProfile: false,
+            commentsFriendsOnly: true, magazineSeriesName: "", photoDataUrl: ""
+          };
+          updateAccountUI();
 
           try {
             await window.KigazineWelcomeEmail.send({
@@ -3173,6 +3387,12 @@
         return;
       }
 
+      if (!currentProfile?.magazineSeriesName?.trim()) {
+        showPublishMessage("Choose your magazine series name before submitting an issue.", "error");
+        seriesNameInput.focus();
+        return;
+      }
+
       if (!title || !description || !content) {
         showPublishMessage("Please fill in title, description, and content.", "error");
         return;
@@ -3183,13 +3403,13 @@
         return;
       }
 
-      const safetyHit = findPrivateInfo(`${title}\n${description}\n${content}`);
+      const safetyHit = findPrivateInfo(`${currentProfile.magazineSeriesName}\n${title}\n${description}\n${content}`);
       if (safetyHit) {
         showPublishMessage(`This looks like it may include a ${safetyHit}. Please remove private information before submitting.`, "error");
         return;
       }
 
-      if (findUnsafeContactCue(`${title}\n${description}\n${content}`)) {
+      if (findUnsafeContactCue(`${currentProfile.magazineSeriesName}\n${title}\n${description}\n${content}`)) {
         showPublishMessage("Please remove invitations to message, text, call, meet in person, or move the chat somewhere else before submitting.", "error");
         return;
       }
@@ -3199,10 +3419,12 @@
       try {
         await addDoc(collection(db, "magazines"), {
           uid: currentUser.uid,
-          username: currentProfile?.username || currentUser.email,
+          username: currentProfile?.username || "Kigazine writer",
+          seriesName: currentProfile.magazineSeriesName.trim(),
           title,
           description,
           content,
+          coverTheme: COVER_THEMES.includes(coverThemeInput.value) ? coverThemeInput.value : "navy",
           photoDataUrl: pendingMagazinePhotoDataUrl,
           isPublic: false,
           status: "pending_review",
@@ -3214,6 +3436,7 @@
         contentInput.value = "";
         pendingMagazinePhotoDataUrl = "";
         magazinePhotoInput.value = "";
+        coverThemeInput.value = "navy";
         safePostInput.checked = false;
         updatePreview();
         showPublishMessage("Magazine submitted for review. It will not be public until a trusted reviewer approves it.", "success");
@@ -3236,6 +3459,7 @@
       contentInput.value = "";
       pendingMagazinePhotoDataUrl = "";
       magazinePhotoInput.value = "";
+      coverThemeInput.value = "navy";
       safePostInput.checked = false;
       publishMessage.classList.add("hidden");
       updatePreview();
@@ -3589,12 +3813,16 @@
         }
 
         adminReviewList.innerHTML = pendingMagazines.map(m => {
-          const safetyHit = findPrivateInfo(`${m.title || ""}\n${m.description || ""}\n${m.content || ""}`);
+          const safetyHit = findPrivateInfo(`${m.seriesName || ""}\n${m.title || ""}\n${m.description || ""}\n${m.content || ""}`);
+          const contactHit = findUnsafeContactCue(`${m.seriesName || ""}\n${m.title || ""}\n${m.description || ""}\n${m.content || ""}`);
           const reviewWarning = safetyHit
             ? `<div class="review-warning">Needs close review: possible ${escapeHtml(safetyHit)}.</div>`
+            : contactHit
+              ? `<div class="review-warning">Needs close review: possible contact request.</div>`
             : `<div class="review-warning">No obvious private-info pattern found. Still read the full post before approving.</div>`;
           return `
             <div class="admin-review-item">
+              <p>Series: ${escapeHtml(m.seriesName || "Earlier magazine without a series name")}</p>
               <h4>${escapeHtml(m.title || "Untitled magazine")}</h4>
               <p>By ${escapeHtml(m.username || "Kigazine writer")}</p>
               <p>${escapeHtml(m.description || "No description yet.")}</p>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Privacy Policy | Kigazine</title><link rel="stylesheet" href="legal.css"></head>
+<body>
+  <header><a href="https://kigazine.com/">← Kigazine</a></header>
+  <main>
+    <div class="draft-warning"><strong>Draft for operator review — not a final privacy notice</strong>The operator contact and verified parental-consent process are missing. Profile email addresses remain readable to other signed-in users through the current Firestore rules. Address these issues before publishing this as a complete child-privacy policy.</div>
+    <article class="policy-card">
+      <h1>Privacy Policy</h1>
+      <p>Draft prepared September 25, 2026. Proposed effective date: [ADD AFTER REVIEW]. This draft describes kigazine.com, appletimes.kigazine.com, and the connected Kigazine features. Operator: [OPERATOR LEGAL NAME]. Address: [PUBLIC POSTAL ADDRESS]. Phone: [PUBLIC PHONE]. Email for parents and privacy requests: [PUBLIC PRIVACY EMAIL].</p>
+
+      <h2>What Kigazine collects</h2>
+      <ul>
+        <li>At signup: an email address, nickname, password handled by Firebase Authentication, and the result of the parent/guardian-permission checkbox. The checkbox is not verified parental consent. Firebase Auth uses account identifiers and session storage to keep you signed in.</li>
+        <li>When you use the community: a magazine series name, issue headlines, text, descriptions, optional cover images, optional profile pictures, comments, friend connections, messages, reports, safety settings, and publication/review status. An uploaded image may include identifying content or metadata, so do not upload images that reveal private details.</li>
+        <li>When using Apple Times: writer applications, subjects, draft sections, collection progress and issue contributions. If configured, unfinished sections can be sent to an AI provider for a proposed continuation that requires editor review.</li>
+        <li>When using Kigazine AI: the text you send and a limited recent conversation may be sent to an AI provider. The website may also store identifiers needed for a session or security. Hosting and service providers may process request logs and device/IP information.</li>
+        <li>On your device: Kigazine stores which approved posts you chose to hide; this is saved in your browser's local storage. Your browser and Firebase may store authentication identifiers.</li>
+      </ul>
+
+      <h2>Why it is used</h2>
+      <p>Account information is used to sign you in, send a welcome email, show your nickname and series, let you read and submit issues, apply moderation and safety rules, respond to reports, and keep the site operating. Magazines and comments are reviewed before appearing in the approved feed. The main Kigazine page in this proposed release does not load the previous Google Analytics script; the operator should audit every other page and service before claiming tracking has ended across the entire site.</p>
+
+      <h2>What others can see</h2>
+      <p>Approved issues, covers, series names, displayed nicknames and approved comments can be seen by visitors. Other members may see nicknames, role tags and profile pictures as the site currently displays them. Drafts and pending issues are restricted to their author and editors in the proposed Firestore rules. <strong>Important current limitation:</strong> Firestore profile documents include email addresses and the current rules permit signed-in users to read those documents, even though the normal page does not display profile emails. This needs a privacy fix before the operator can promise that account emails are private from other members.</p>
+
+      <h2>Service providers</h2>
+      <p>Kigazine code uses Google Firebase for sign-in and data storage; Vercel and/or configured hosting to serve the site; EmailJS to send a welcome email using the signup email and nickname; and OpenAI for Kigazine AI and, if enabled, Apple Times draft completion. Browser code may download libraries from Google or a CDN. Providers may process data in different countries. The operator must review provider settings, access, retention and any additional integrations before finalizing this notice. Kigazine should not add third-party advertising or tracking involving children without a separate legal review.</p>
+
+      <h2>Children and parents</h2>
+      <p>Kigazine is intended for young readers. A checkbox asking about permission is not a method of verifying parental consent. The operator has not yet documented a verified notice/consent flow or a minimum account age in this draft. Where required, the operator must provide direct notice, obtain appropriate consent before collecting children's personal information, and give parents a way to review, delete and stop further collection. Please do not include children's real names or contact details in issues, cover images, messages or reports.</p>
+
+      <h2>Retention, safety and requests</h2>
+      <p>Current site code does not establish a complete retention schedule or self-service account-deletion process. The operator must set and follow a retention/deletion schedule and document how parents can request access, correction, deletion or a stop to further collection. Parents and guardians should contact [PUBLIC PRIVACY EMAIL] to request review or deletion; the operator must verify the requester appropriately and respond as applicable. Reports can also be sent through the site's report tool, but that is not a substitute for a privacy contact. No website can guarantee perfect security.</p>
+
+      <h2>Changes</h2>
+      <p>The finalized policy should show its effective date here. Material changes to collection, sharing or children's rights must be handled through the required notice and consent process before they take effect.</p>
+    </article>
+    <footer><a href="terms.html">Terms of Service</a> · <a href="https://kigazine.com/">Return to Kigazine</a></footer>
+  </main>
+</body>
+</html>

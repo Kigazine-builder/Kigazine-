@@ -404,6 +404,8 @@ service cloud.firestore {
         && request.resource.data.username is string
         && request.resource.data.username.size() > 0
         && request.resource.data.username.size() <= 40
+        && (!request.resource.data.keys().hasAny(['magazineSeriesName'])
+          || request.resource.data.magazineSeriesName == '')
         && (
           request.resource.data.role == 'writer'
           || (isBuiltInAdmin() && request.resource.data.role == 'admin')
@@ -417,6 +419,12 @@ service cloud.firestore {
             request.resource.data.role == resource.data.role
             || (isBuiltInAdmin() && request.resource.data.role == 'admin')
           )
+          && (!request.resource.data.keys().hasAny(['magazineSeriesName'])
+            || request.resource.data.magazineSeriesName == ''
+            || hasText(request.resource.data.magazineSeriesName, 50))
+          && (!resource.data.keys().hasAny(['magazineSeriesName'])
+            || resource.data.magazineSeriesName == ''
+            || request.resource.data.magazineSeriesName == resource.data.magazineSeriesName)
         );
       allow delete: if false;
     }
@@ -528,11 +536,15 @@ service cloud.firestore {
     // through /schoolMagazines.
     match /magazines/{magazineId} {
       allow read: if isAdmin()
-        || (signedIn() && !isSchoolParticipant())
+        || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
         || (resource.data.isPublic == true && resource.data.status == 'approved');
       allow create: if signedIn()
         && !isSchoolParticipant()
         && request.resource.data.uid == request.auth.uid
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && hasText(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName, 50)
+        && request.resource.data.seriesName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName
+        && request.resource.data.coverTheme in ['navy', 'coral', 'teal', 'purple', 'gold']
         && hasText(request.resource.data.title, 120)
         && hasText(request.resource.data.description, 500)
         && hasText(request.resource.data.content, 20000)
@@ -572,7 +584,7 @@ service cloud.firestore {
     // approve or edit a pending comment.
     match /comments/{commentId} {
       allow read: if isAdmin()
-        || (signedIn() && !isSchoolParticipant())
+        || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
         || resource.data.status == 'approved';
       allow create: if signedIn()
         && !isSchoolParticipant()
