@@ -1952,6 +1952,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const EMAIL_VERIFIER_URL = "https://kigazine-kn7i.vercel.app/api/verify-email";
     
     window.collection = collection;
   window.addDoc = addDoc;
@@ -3283,6 +3284,32 @@
 
     let authRequestInProgress = false;
 
+    async function verifySignupEmail(email) {
+      let response;
+      try {
+        response = await fetch(EMAIL_VERIFIER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+          cache: "no-store"
+        });
+      } catch {
+        throw new Error("Email verification is temporarily unavailable. Please try again later.");
+      }
+
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        throw new Error("Too many email checks. Please wait 15 minutes before trying again.");
+      }
+      if (!response.ok) {
+        throw new Error("Email verification is temporarily unavailable. Please try again later.");
+      }
+      if (result.allowed !== true) {
+        const score = Number.isInteger(result.score) ? result.score : "unknown";
+        throw new Error(`This email scored ${score} with Hunter. Kigazine signups require a score above 60.`);
+      }
+    }
+
     authSubmitBtn.addEventListener("click", async () => {
       if (authRequestInProgress) return;
       const email = normalizeEmail(emailInput.value);
@@ -3322,6 +3349,9 @@
         }
 
         if (authMode === "signup") {
+          authSubmitBtn.textContent = "Checking email...";
+          await verifySignupEmail(email);
+          authSubmitBtn.textContent = "Creating account...";
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await setDoc(doc(db, "users", cred.user.uid), {
             username,
