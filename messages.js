@@ -323,14 +323,10 @@
   }
 
   async function findUserByUsername(username) {
-    const db = getDb();
-    if (!db) throw new Error("Firestore is not ready yet.");
-    const { collection, getDocs, query, where } = getMessagingHelpers();
-    const q = query(collection(db, "users"), where("username", "==", username));
-    const snap = await getDocs(q);
-    if (snap.empty) return null;
-    const docSnap = snap.docs[0];
-    return { id: docSnap.id, ...docSnap.data() };
+    if (typeof window.kigazineLookupMember !== "function") {
+      throw new Error("Member lookup is not ready yet. Refresh and try again.");
+    }
+    return window.kigazineLookupMember(username);
   }
 
   async function sendMessage(event) {
