@@ -405,8 +405,6 @@ service cloud.firestore {
         && request.resource.data.username is string
         && request.resource.data.username.size() > 0
         && request.resource.data.username.size() <= 40
-        && (!request.resource.data.keys().hasAny(['magazineSeriesName'])
-          || request.resource.data.magazineSeriesName == '')
         && (
           request.resource.data.role == 'writer'
           || (isBuiltInAdmin() && request.resource.data.role == 'admin')
@@ -423,12 +421,6 @@ service cloud.firestore {
             request.resource.data.role == resource.data.role
             || (isBuiltInAdmin() && request.resource.data.role == 'admin')
           )
-          && (!request.resource.data.keys().hasAny(['magazineSeriesName'])
-            || request.resource.data.magazineSeriesName == ''
-            || hasText(request.resource.data.magazineSeriesName, 50))
-          && (!resource.data.keys().hasAny(['magazineSeriesName'])
-            || resource.data.magazineSeriesName == ''
-            || request.resource.data.magazineSeriesName == resource.data.magazineSeriesName)
         );
       allow delete: if false;
     }
@@ -540,7 +532,7 @@ service cloud.firestore {
     // through /schoolMagazines.
     match /magazines/{magazineId} {
       allow read: if isAdmin()
-        || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
+        || (signedIn() && !isSchoolParticipant())
         || (resource.data.isPublic == true && resource.data.status == 'approved');
       allow create: if signedIn()
         && !isSchoolParticipant()
@@ -552,8 +544,6 @@ service cloud.firestore {
         ])
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
-        && hasText(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName, 50)
-        && request.resource.data.seriesName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName
         && request.resource.data.coverTheme in ['navy', 'coral', 'teal', 'purple', 'gold']
         && hasText(request.resource.data.title, 120)
         && hasText(request.resource.data.description, 500)
@@ -619,7 +609,7 @@ service cloud.firestore {
 
     match /comments/{commentId} {
       allow read: if isAdmin()
-        || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
+        || (signedIn() && !isSchoolParticipant())
         || resource.data.status == 'approved';
       allow create: if signedIn()
         && !isSchoolParticipant()
@@ -699,7 +689,6 @@ service cloud.firestore {
           'timeZone',
           'extensionThreshold',
           'enabled',
-          'subjectMerges',
           'updatedAt'
         ])
         && hasText(data.firstCollection, 10)
@@ -711,7 +700,6 @@ service cloud.firestore {
         && data.extensionThreshold >= 2
         && data.extensionThreshold <= 100
         && data.enabled is bool
-        && (!data.keys().hasAny(['subjectMerges']) || (data.subjectMerges is map && data.subjectMerges.size() <= 50))
         && data.updatedAt == request.time;
     }
 
@@ -823,6 +811,7 @@ service cloud.firestore {
     match /appleTimesWriters/{uid} {
       allow read: if isAppleTimesEditor() || isOwner(uid) || resource.data.status == 'approved';
       allow create: if isOwner(uid)
+        && !isAdmin()
         && !isSchoolParticipant()
         && request.resource.data.status == 'pending'
         && validAppleTimesWriter(uid, request.resource.data)
@@ -833,6 +822,7 @@ service cloud.firestore {
         && validAppleTimesWriter(uid, request.resource.data)
         || (
           isOwner(uid)
+          && !isAdmin()
           && resource.data.status == 'pending'
           && request.resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subjects', 'customSubject', 'updatedAt'])
@@ -849,7 +839,7 @@ service cloud.firestore {
         && !isSchoolParticipant()
         && request.resource.data.writerUid == request.auth.uid
         && request.resource.data.status in ['draft', 'submitted']
-        && (isAppleTimesEditor() || isAppleTimesWriter(request.auth.uid))
+        && (isAppleTimesEditor() || (!isAdmin() && isAppleTimesWriter(request.auth.uid)))
         && validAppleTimesSection(request.resource.data)
         && request.resource.data.createdAt == request.time;
       allow update: if isAppleTimesEditor()
@@ -857,6 +847,7 @@ service cloud.firestore {
         && validAppleTimesSection(request.resource.data)
         || (
           signedIn()
+          && !isAdmin()
           && !isSchoolParticipant()
           && isAppleTimesWriter(request.auth.uid)
           && resource.data.writerUid == request.auth.uid
@@ -869,7 +860,7 @@ service cloud.firestore {
           && validAppleTimesSection(request.resource.data)
         );
       allow delete: if isAppleTimesEditor()
-        || (signedIn() && isAppleTimesWriter(request.auth.uid) && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
+        || (signedIn() && !isAdmin() && resource.data.writerUid == request.auth.uid && resource.data.status == 'draft');
     }
 
     // Published issue snapshots are readable by all signed-in Kigazine users.
