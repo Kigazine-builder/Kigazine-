@@ -26,8 +26,12 @@ for (const [open, close] of [["{", "}"], ["(", ")"], ["[", "]"]]) {
 requireCount(/service cloud\.firestore/g, 1, "Duplicate Firestore service block");
 requireCount(/match \/magazines\/\{magazineId\}/g, 1, "Duplicate magazine rules");
 requireCount(/match \/schoolMagazines\/\{magazineId\}/g, 1, "School magazine rules missing or duplicated");
-requireText("request.resource.data.status == 'pending_review'", "Regular submissions must start pending review");
-requireText("request.resource.data.status == 'pending_review'\n            && request.resource.data.isPublic == false", "Authors must keep edited regular posts pending and private");
+requireText("allow read: if isOwner(uid) || isAdmin();", "Private profiles must be visible only to their owner or moderators");
+requireText("!request.resource.data.diff(resource.data).affectedKeys().hasAny(['friendUids'])", "Browser writes must not forge friend relationships");
+const magazines = rules.split("match /magazines/{magazineId}")[1]?.split("match /comments/{commentId}")[0] || "";
+const comments = rules.split("match /comments/{commentId}")[1]?.split("match /submissionThrottle/{recordId}")[0] || "";
+if (!magazines.includes("allow create: if false;")) throw new Error("Browser magazine submissions must be denied");
+if (!comments.includes("allow create: if false;")) throw new Error("Browser comment submissions must be denied");
 requireText("request.resource.data.status in ['changes_requested', 'approved', 'rejected']", "School review states are missing");
 requireText("request.resource.data.reviewedBy == request.auth.uid", "School reviews must identify the adult reviewer");
 requireText("!isActiveSchoolParticipant(request.resource.data.toUid)", "School participants are not protected from private messages");
