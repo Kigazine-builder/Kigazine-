@@ -397,9 +397,7 @@ service cloud.firestore {
     // Regular Kigazine profiles. School pilot accounts are intentionally
     // kept out of this collection so their emails never become member data.
     match /users/{uid} {
-      // Profiles contain email addresses and friend lists. Directory queries
-      // go through an authenticated Cloud Function that returns safe fields.
-      allow read: if isOwner(uid) || isAdmin();
+      allow read: if signedIn();
       allow create: if isOwner(uid)
         && !isSchoolParticipant()
         && request.resource.data.email == request.auth.token.email
@@ -418,7 +416,9 @@ service cloud.firestore {
           isOwner(uid)
           && !isSchoolParticipant()
           && request.resource.data.email == resource.data.email
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['friendUids'])
+          && request.resource.data.friendUids is list
+          && request.resource.data.friendUids.size() <= 100
+          && !(request.auth.uid in request.resource.data.friendUids)
           && (
             request.resource.data.role == resource.data.role
             || (isBuiltInAdmin() && request.resource.data.role == 'admin')
@@ -542,10 +542,46 @@ service cloud.firestore {
       allow read: if isAdmin()
         || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
         || (resource.data.isPublic == true && resource.data.status == 'approved');
-      // The backend owns submissions so uid, review status and rate limits
-      // cannot be forged from browser code. The moderation trigger uses Admin SDK.
-      allow create: if false;
-      allow update: if isAdmin() && validMagazinePhoto(request.resource.data);
+      allow create: if signedIn()
+        && !isSchoolParticipant()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'uid', 'username', 'seriesName', 'title', 'description',
+          'content', 'coverTheme', 'photoDataUrl', 'isPublic',
+          'status', 'createdAt'
+        ])
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+        && hasText(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName, 50)
+        && request.resource.data.seriesName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.magazineSeriesName
+        && request.resource.data.coverTheme in ['navy', 'coral', 'teal', 'purple', 'gold']
+        && hasText(request.resource.data.title, 120)
+        && hasText(request.resource.data.description, 500)
+        && hasText(request.resource.data.content, 20000)
+        && validMagazinePhoto(request.resource.data)
+        && request.resource.data.isPublic == false
+        && request.resource.data.status == 'pending_review'
+        && request.resource.data.createdAt == request.time;
+      allow update: if (
+          isAdmin()
+          || (
+            signedIn()
+            && !isSchoolParticipant()
+            && resource.data.uid == request.auth.uid
+            && resource.data.status == 'pending_review'
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.status == 'pending_review'
+            && request.resource.data.isPublic == false
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'title',
+              'description',
+              'content',
+              'photoDataUrl',
+              'updatedAt'
+            ])
+          )
+        )
+        && validMagazinePhoto(request.resource.data);
       allow delete: if isAdmin()
         || (
           signedIn()
@@ -557,11 +593,47 @@ service cloud.firestore {
 
     // Top-level comments used by regular Kigazine. Only moderators may
     // approve or edit a pending comment.
+    function postAuthorUid(postId) {
+      return get(/databases/$(database)/documents/magazines/$(postId)).data.uid;
+    }
+
+    function canCommentOnPost(postId) {
+      return exists(/databases/$(database)/documents/magazines/$(postId))
+        && get(/databases/$(database)/documents/magazines/$(postId)).data.status == 'approved'
+        && get(/databases/$(database)/documents/magazines/$(postId)).data.isPublic == true
+        && (
+          postAuthorUid(postId) == request.auth.uid
+          || (
+            exists(/databases/$(database)/documents/users/$(postAuthorUid(postId)))
+            && (
+              get(/databases/$(database)/documents/users/$(postAuthorUid(postId))).data.commentsFriendsOnly == false
+              || (
+                hasUserProfile(request.auth.uid)
+                && request.auth.uid in get(/databases/$(database)/documents/users/$(postAuthorUid(postId))).data.friendUids
+                && postAuthorUid(postId) in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friendUids
+              )
+            )
+          )
+        );
+    }
+
     match /comments/{commentId} {
       allow read: if isAdmin()
         || (signedIn() && !isSchoolParticipant() && resource.data.uid == request.auth.uid)
         || resource.data.status == 'approved';
-      allow create: if false;
+      allow create: if signedIn()
+        && !isSchoolParticipant()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'postId', 'postTitle', 'uid', 'username', 'content',
+          'status', 'createdAt'
+        ])
+        && hasText(request.resource.data.postId, 200)
+        && hasText(request.resource.data.content, 2000)
+        && canCommentOnPost(request.resource.data.postId)
+        && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+        && request.resource.data.status == 'pending_review'
+        && request.resource.data.createdAt == request.time;
       allow update: if isAdmin();
       allow delete: if isAdmin()
         || (
@@ -570,11 +642,6 @@ service cloud.firestore {
           && resource.data.uid == request.auth.uid
           && resource.data.status == 'pending_review'
         );
-    }
-
-    // Only Cloud Functions can access per-account submission cooldowns.
-    match /submissionThrottle/{recordId} {
-      allow read, write: if false;
     }
 
     // Reports from the public feed.

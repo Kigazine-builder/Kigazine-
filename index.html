@@ -1936,7 +1936,6 @@
       updateDoc,
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
     // ======================================
     // PASTE YOUR  HERE
@@ -1953,13 +1952,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const cloud = getFunctions(app, "us-central1");
-    const getMemberDirectory = httpsCallable(cloud, "getMemberDirectory");
-    const lookupMember = httpsCallable(cloud, "lookupMember");
-    const changeFriend = httpsCallable(cloud, "changeFriend");
-    const submitMagazineToServer = httpsCallable(cloud, "submitMagazine");
-    const submitCommentToServer = httpsCallable(cloud, "submitComment");
-    window.kigazineLookupMember = async username => (await lookupMember({ username })).data.member;
     
     window.collection = collection;
   window.addDoc = addDoc;
@@ -1982,7 +1974,6 @@
     let approvedComments = [];
     let pendingComments = [];
     let allUsers = [];
-    let commentPermissions = new Map();
     let bannedEmails = [];
     let pendingProfilePhotoDataUrl = "";
     let pendingMagazinePhotoDataUrl = "";
@@ -2571,10 +2562,23 @@
       return Boolean(user?.discoverableProfile);
     }
 
+    function areUsersFriends(firstUid, secondUid) {
+      if (!firstUid || !secondUid) return false;
+      if (firstUid === secondUid) return true;
+      const firstUser = firstUid === currentUser?.uid ? currentProfile : findUserByUid(firstUid);
+      const secondUser = secondUid === currentUser?.uid ? currentProfile : findUserByUid(secondUid);
+      const firstFriends = Array.isArray(firstUser?.friendUids) ? firstUser.friendUids : [];
+      const secondFriends = Array.isArray(secondUser?.friendUids) ? secondUser.friendUids : [];
+      return firstFriends.includes(secondUid) && secondFriends.includes(firstUid);
+    }
+
     function canCommentOnMagazine(magazine) {
       if (!magazine?.uid || !currentUser) return false;
       if (magazine.uid === currentUser.uid) return true;
-      return commentPermissions.get(magazine.uid) === true;
+      const author = findUserByUid(magazine.uid);
+      const commentsFriendsOnly = author?.commentsFriendsOnly !== false;
+      if (!commentsFriendsOnly) return true;
+      return areUsersFriends(currentUser.uid, magazine.uid);
     }
 
     function getHiddenPostIds() {
@@ -3087,7 +3091,15 @@
       }
 
       try {
-        await submitCommentToServer({ postId, content });
+        await addDoc(collection(db, "comments"), {
+          postId,
+          postTitle: magazines.find(m => m.id === postId)?.title || "Untitled magazine",
+          uid: currentUser.uid,
+          username: currentProfile?.username || "Kigazine reader",
+          content,
+          status: "pending_review",
+          createdAt: serverTimestamp()
+        });
         if (input) input.value = "";
         showInlineNotice(status, "Comment sent for review. It will appear after approval.", "success");
         await loadComments();
@@ -3240,23 +3252,13 @@
 
     async function loadUsers() {
       try {
-        const members = [];
-        const permissions = Object.create(null);
-        let cursor = null;
-        do {
-          const result = (await getMemberDirectory({ cursor })).data;
-          members.push(...result.members);
-          Object.assign(permissions, result.commentPermissions);
-          cursor = result.nextCursor;
-        } while (cursor);
-        allUsers = members
+        const snap = await getDocs(collection(db, "users"));
+        allUsers = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
           .filter(user => user.username)
           .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
-        commentPermissions = new Map(Object.entries(permissions));
       } catch (err) {
         allUsers = [];
-        commentPermissions = new Map();
-        console.error("Could not load member directory:", err);
       }
       renderFriendList();
       renderFriendSearchResults(friendSearchInput.value);
@@ -3319,7 +3321,6 @@
             guardianPermissionConfirmed: true,
             createdAt: serverTimestamp()
           });
-          await loadUsers();
 
           currentProfile = {
             username, email, role: isAdminEmail(email) ? "admin" : "writer",
@@ -3401,12 +3402,18 @@
       publishBtn.disabled = true;
       publishBtn.textContent = "Submitting...";
       try {
-        await submitMagazineToServer({
+        await addDoc(collection(db, "magazines"), {
+          uid: currentUser.uid,
+          username: currentProfile?.username || "Kigazine writer",
+          seriesName: currentProfile.magazineSeriesName.trim(),
           title,
           description,
           content,
           coverTheme: COVER_THEMES.includes(coverThemeInput.value) ? coverThemeInput.value : "navy",
-          photoDataUrl: pendingMagazinePhotoDataUrl
+          photoDataUrl: pendingMagazinePhotoDataUrl,
+          isPublic: false,
+          status: "pending_review",
+          createdAt: serverTimestamp()
         });
 
         titleInput.value = "";
@@ -3831,14 +3838,17 @@
         return;
       }
 
+      const nextFriendIds = [...friendIds, friendUid];
       try {
-        const result = await changeFriend({ targetUid: friendUid, action: "add" });
-        currentProfile = { ...currentProfile, friendUids: result.data.friendUids };
+        await setDoc(doc(db, "users", currentUser.uid), {
+          friendUids: nextFriendIds
+        }, { merge: true });
+        currentProfile = { ...currentProfile, friendUids: nextFriendIds };
         await loadUsers();
         renderFriendList();
         renderFriendSearchResults(friendSearchInput.value);
         updateAccountUI();
-        showPeopleMessage("Friend added.", "success");
+        showPeopleMessage("Added to your friends list. Friendship is mutual when they add you too.", "success");
       } catch (err) {
         showPeopleMessage(getFriendlyError(err), "error");
       }
@@ -3883,9 +3893,12 @@
 
     async function removeFriend(friendUid) {
       if (!currentUser || !friendUid) return;
+      const nextFriendIds = getCurrentFriendIds().filter(uid => uid !== friendUid);
       try {
-        const result = await changeFriend({ targetUid: friendUid, action: "remove" });
-        currentProfile = { ...currentProfile, friendUids: result.data.friendUids };
+        await setDoc(doc(db, "users", currentUser.uid), {
+          friendUids: nextFriendIds
+        }, { merge: true });
+        currentProfile = { ...currentProfile, friendUids: nextFriendIds };
         await loadUsers();
         renderFriendList();
         renderFriendSearchResults(friendSearchInput.value);
@@ -4116,7 +4129,6 @@
         approvedComments = [];
         pendingComments = [];
         allUsers = [];
-        commentPermissions = new Map();
         bannedEmails = [];
         pendingProfilePhotoDataUrl = "";
         pendingMagazinePhotoDataUrl = "";
