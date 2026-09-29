@@ -37,6 +37,19 @@ service cloud.firestore {
       return isBuiltInAdmin();
     }
 
+    // Analytics is written by Cloud Functions and returned only to the owner.
+    match /analyticsDaily/{day} {
+      allow read, write: if false;
+    }
+
+    match /analyticsReceipts/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /analyticsSignIns/{uid} {
+      allow read, write: if false;
+    }
+
     function hasText(value, maxSize) {
       return value is string && value.size() > 0 && value.size() <= maxSize;
     }

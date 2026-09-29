@@ -37,5 +37,9 @@ requireText("request.resource.data.createdAt == request.time", "Server timestamp
 requireText("request.resource.data.status in ['changes_requested', 'approved', 'rejected']", "School review states are missing");
 requireText("request.resource.data.reviewedBy == request.auth.uid", "School reviews must identify the adult reviewer");
 requireText("!isActiveSchoolParticipant(request.resource.data.toUid)", "School participants are not protected from private messages");
+for (const path of ["analyticsDaily/{day}", "analyticsReceipts/{eventId}", "analyticsSignIns/{uid}"]) {
+  const block = rules.split(`match /${path}`)[1]?.split("}")[0] || "";
+  if (!block.includes("allow read, write: if false;")) throw new Error(`Client access must be denied for ${path}`);
+}
 
 console.log("Firestore rules structural and moderation checks passed.");

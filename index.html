@@ -1851,6 +1851,7 @@
             <p id="adminStatus" class="muted" style="line-height:1.7; margin-bottom:12px;">Loading pending magazines...</p>
             <div class="row">
               <button id="refreshAdminBtn" class="btn btn-secondary">Refresh queue</button>
+              <a id="analyticsLink" class="btn btn-secondary hidden" href="analytics.html">Analytics</a>
             </div>
             <div class="admin-subsection">
               <h4 style="margin:0 0 10px;">Pending magazines</h4>
@@ -1966,6 +1967,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const submitMagazineCall = httpsCallable(getFunctions(app, "us-central1"), "submitMagazine");
+    const recordSignInCall = httpsCallable(getFunctions(app, "us-central1"), "recordSignIn");
     const EMAIL_VERIFIER_URL = "https://kigazine-kn7i.vercel.app/api/verify-email";
     
     window.collection = collection;
@@ -3295,6 +3297,7 @@
       updateAccountAvatarPreview();
       updateSafetySummary();
       adminPanel.classList.toggle("hidden", !isAdmin());
+      document.getElementById("analyticsLink").classList.toggle("hidden", !isSuperAdminEmail(currentUser?.email || ""));
       adminPeoplePanel.classList.toggle("hidden", !isAdmin());
       banPanel.classList.toggle("hidden", !isAdmin());
       renderFriendList();
@@ -3519,6 +3522,7 @@
             commentsFriendsOnly: true, magazineSeriesName: "", photoDataUrl: ""
           };
           updateAccountUI();
+          recordSignInCall().catch(error => console.warn("Sign-in analytics unavailable:", error));
 
           try {
             await window.KigazineWelcomeEmail.send({
@@ -3533,12 +3537,14 @@
           showAuthMessage("Account created. Logging you in...", "success");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
+          recordSignInCall().catch(error => console.warn("Sign-in analytics unavailable:", error));
           showAuthMessage("Logged in.", "success");
         }
       } catch (err) {
         if (authMode === "signup" && err?.code === "auth/email-already-in-use") {
           try {
             await signInWithEmailAndPassword(auth, email, password);
+            recordSignInCall().catch(error => console.warn("Sign-in analytics unavailable:", error));
             showAuthMessage("That account already exists, so Kigazine kept the original account and logged you in.", "success");
           } catch (signInError) {
             showAuthMessage("An account with this email already exists. Log in instead of signing up again.", "error");

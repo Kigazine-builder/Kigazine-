@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Analytics | Kigazine</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17232a; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #116a65; }
+    button { font: inherit; cursor: pointer; }
+    header { border-bottom: 1px solid #d7e2dc; background: white; }
+    .header-inner, main { width: min(1100px, calc(100% - 36px)); margin: auto; }
+    .header-inner { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { font-weight: 800; font-size: 18px; color: #174f4a; text-decoration: none; }
+    nav { display: flex; gap: 18px; white-space: nowrap; }
+    main { padding: 38px 0 64px; }
+    h1 { font-size: clamp(27px, 3vw, 36px); margin: 0 0 6px; }
+    h2 { font-size: 19px; margin: 0 0 16px; }
+    p { margin: 0; line-height: 1.5; }
+    .muted { color: #597069; }
+    .notice { padding: 18px 0; }
+    .error { color: #a53226; }
+    [hidden] { display: none !important; }
+    .totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 30px 0; background: white; border: 1px solid #d7e2dc; border-radius: 8px; }
+    .total { padding: 20px; border-right: 1px solid #d7e2dc; }
+    .total:last-child { border-right: 0; }
+    .total strong { display: block; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .total span { display: block; color: #597069; margin-top: 8px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+    .section-head h2 { margin: 0; }
+    .periods { display: flex; border: 1px solid #b7ccc3; border-radius: 6px; overflow: hidden; }
+    .periods button { padding: 8px 13px; border: 0; border-right: 1px solid #b7ccc3; background: white; color: #174f4a; }
+    .periods button:last-child { border-right: 0; }
+    .periods button[aria-pressed="true"] { color: white; background: #176b63; }
+    .periods button:focus-visible, a:focus-visible { outline: 2px solid #176b63; outline-offset: 3px; }
+    .periods button:disabled { cursor: wait; }
+    .period-totals { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-block: 1px solid #d7e2dc; margin-bottom: 22px; }
+    .period-total { padding: 18px 12px 18px 0; }
+    .period-total strong { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
+    .period-total span { font-size: 13px; color: #597069; }
+    .table-wrap { overflow-x: auto; background: white; border: 1px solid #d7e2dc; border-radius: 8px; }
+    table { width: 100%; min-width: 740px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: 12px 14px; border-bottom: 1px solid #e8eeea; }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: #edf4f0; font-size: 13px; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f7faf8; }
+    .footnote { margin-top: 14px; font-size: 13px; }
+    @media (max-width: 800px) { .totals { grid-template-columns: repeat(2, 1fr); } .total:nth-child(2) { border-right: 0; } .total:nth-child(-n+2) { border-bottom: 1px solid #d7e2dc; } .period-totals { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 480px) { .header-inner { align-items: flex-start; flex-direction: column; justify-content: center; padding: 13px 0; gap: 6px; } main { padding-top: 26px; } .total { padding: 15px; } .total strong { font-size: 25px; } .period-totals { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="index.html">Kigazine</a>
+      <nav aria-label="Navigation"><a href="index.html">Home</a><a href="hq.html">HQ</a></nav>
+    </div>
+  </header>
+  <main>
+    <h1>Analytics</h1>
+    <p class="muted">Private, aggregate Kigazine activity.</p>
+    <p id="status" class="notice" role="status">Checking access...</p>
+
+    <div id="dashboard" hidden>
+      <section class="totals" aria-label="Current totals">
+        <div class="total"><strong id="accounts">0</strong><span>Accounts</span></div>
+        <div class="total"><strong id="magazines">0</strong><span>Magazines submitted</span></div>
+        <div class="total"><strong id="approvedMagazines">0</strong><span>Approved magazines</span></div>
+        <div class="total"><strong id="comments">0</strong><span>Comments submitted</span></div>
+      </section>
+
+      <section aria-labelledby="daily-title">
+        <div class="section-head">
+          <h2 id="daily-title">Daily activity</h2>
+          <div class="periods" aria-label="Date range">
+            <button type="button" data-days="7" aria-pressed="false">7 days</button>
+            <button type="button" data-days="30" aria-pressed="true">30 days</button>
+            <button type="button" data-days="90" aria-pressed="false">90 days</button>
+          </div>
+        </div>
+        <div class="period-totals" id="periodTotals" aria-label="Period totals"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Date (UTC)</th><th scope="col">Sign-ins</th><th scope="col">New accounts</th><th scope="col">Magazines sent</th><th scope="col">Magazines approved</th><th scope="col">Comments sent</th><th scope="col">Comments approved</th></tr></thead>
+            <tbody id="dailyRows"></tbody>
+          </table>
+        </div>
+        <p id="trackingNote" class="muted footnote"></p>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
+      authDomain: "kigazine-302ac.firebaseapp.com",
+      projectId: "kigazine-302ac",
+      storageBucket: "kigazine-302ac.firebasestorage.app",
+      messagingSenderId: "821833747017",
+      appId: "1:821833747017:web:dc20a182d1935408c34d98"
+    });
+    const getAnalytics = httpsCallable(getFunctions(app, "us-central1"), "getAnalytics");
+    const ownerEmail = "ethan02px2035@saschina.org";
+    const status = document.getElementById("status");
+    const dashboard = document.getElementById("dashboard");
+    const number = new Intl.NumberFormat();
+    const metrics = [
+      ["signIns", "Sign-ins"], ["accountsCreated", "New accounts"],
+      ["magazinesSubmitted", "Magazines sent"], ["magazinesApproved", "Magazines approved"],
+      ["commentsSubmitted", "Comments sent"], ["commentsApproved", "Comments approved"]
+    ];
+    let hasAccess = false;
+
+    async function load(days) {
+      status.textContent = "Loading analytics...";
+      status.classList.remove("error");
+      document.querySelectorAll("[data-days]").forEach(button => button.disabled = true);
+      try {
+        const { data } = await getAnalytics({ days });
+        for (const [key, value] of Object.entries(data.totals)) {
+          document.getElementById(key).textContent = number.format(value);
+        }
+        document.getElementById("periodTotals").replaceChildren(...metrics.map(([key, label]) => {
+          const element = document.createElement("div");
+          element.className = "period-total";
+          const total = data.rows.reduce((sum, row) => sum + row[key], 0);
+          const count = document.createElement("strong");
+          count.textContent = number.format(total);
+          const name = document.createElement("span");
+          name.textContent = label;
+          element.append(count, name);
+          return element;
+        }));
+        document.getElementById("dailyRows").replaceChildren(...data.rows.slice().reverse().map(row => {
+          const tr = document.createElement("tr");
+          for (const value of [row.date, ...metrics.map(([key]) => number.format(row[key]))]) {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            tr.append(cell);
+          }
+          return tr;
+        }));
+        document.getElementById("trackingNote").textContent = data.trackingSince
+          ? `Daily events have been recorded since ${data.trackingSince} (UTC). Current totals include earlier Firestore records.`
+          : "Daily events begin when the analytics Functions are deployed. Current totals include earlier Firestore records.";
+        document.querySelectorAll("[data-days]").forEach(button => {
+          button.setAttribute("aria-pressed", String(Number(button.dataset.days) === days));
+        });
+        dashboard.hidden = false;
+        status.textContent = "";
+      } catch (error) {
+        status.classList.add("error");
+        status.textContent = error.code === "functions/permission-denied"
+          ? "This account does not have access to analytics."
+          : "Analytics could not load. Check that the analytics Functions are deployed, then try again.";
+      } finally {
+        document.querySelectorAll("[data-days]").forEach(button => button.disabled = false);
+      }
+    }
+
+    document.querySelectorAll("[data-days]").forEach(button => button.addEventListener("click", () => {
+      if (hasAccess && button.getAttribute("aria-pressed") !== "true") load(Number(button.dataset.days));
+    }));
+    onAuthStateChanged(getAuth(app), user => {
+      hasAccess = Boolean(user && user.email?.trim().toLowerCase() === ownerEmail);
+      dashboard.hidden = true;
+      if (hasAccess) load(30);
+      else {
+        status.classList.add("error");
+        status.textContent = user ? "This account does not have access to analytics." : "Sign in to your Kigazine account to view analytics.";
+      }
+    });
+  </script>
+</body>
+</html>
