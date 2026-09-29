@@ -532,26 +532,10 @@ service cloud.firestore {
     // through /schoolMagazines.
     match /magazines/{magazineId} {
       allow read: if isAdmin()
-        || (signedIn() && !isSchoolParticipant())
+        || (signedIn() && resource.data.uid == request.auth.uid)
         || (resource.data.isPublic == true && resource.data.status == 'approved');
-      allow create: if signedIn()
-        && !isSchoolParticipant()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'uid', 'username', 'seriesName', 'title', 'description',
-          'content', 'coverTheme', 'photoDataUrl', 'isPublic',
-          'status', 'createdAt'
-        ])
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && request.resource.data.username == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
-        && request.resource.data.coverTheme in ['navy', 'coral', 'teal', 'purple', 'gold']
-        && hasText(request.resource.data.title, 120)
-        && hasText(request.resource.data.description, 500)
-        && hasText(request.resource.data.content, 20000)
-        && validMagazinePhoto(request.resource.data)
-        && request.resource.data.isPublic == false
-        && request.resource.data.status == 'pending_review'
-        && request.resource.data.createdAt == request.time;
+      // Issue numbers and submission throttles are assigned by submitMagazine.
+      allow create: if false;
       allow update: if (
           isAdmin()
           || (

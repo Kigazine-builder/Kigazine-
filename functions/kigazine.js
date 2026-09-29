@@ -134,13 +134,22 @@ exports.submitMagazine = onCall(OPTIONS, async request => {
   try { content = magazineInput(request.data, user.profile); }
   catch (error) { clientError(error); }
   const rateRef = db.collection("submissionThrottle").doc(`${user.uid}_magazine`);
+  const counterRef = db.collection("seriesCounters").doc(user.uid);
   const postRef = db.collection("magazines").doc();
   await db.runTransaction(async transaction => {
-    const last = await transaction.get(rateRef);
+    const [last, counter, earlier] = await Promise.all([
+      transaction.get(rateRef), transaction.get(counterRef),
+      transaction.get(db.collection("magazines").where("uid", "==", user.uid))
+    ]);
     checkInterval(last, 30000);
+    const previous = counter.exists ? counter.data().lastIssueNumber || 0 :
+      Math.max(earlier.size, ...earlier.docs.map(doc => doc.data().issueNumber || 0));
+    const issueNumber = previous + 1;
+    transaction.set(counterRef, { lastIssueNumber: issueNumber });
     transaction.set(rateRef, { lastAt: admin.firestore.Timestamp.now() });
     transaction.create(postRef, {
       ...content,
+      issueNumber,
       uid: user.uid,
       isPublic: false,
       status: "pending_review",

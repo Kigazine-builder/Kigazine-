@@ -31,7 +31,7 @@ requireText("request.resource.data.friendUids == []", "New users must begin with
 requireText("!(request.auth.uid in request.resource.data.friendUids)", "A user cannot add themself as a friend");
 const magazines = rules.split("match /magazines/{magazineId}")[1]?.split("match /comments/{commentId}")[0] || "";
 const comments = rules.split("match /comments/{commentId}")[1]?.split("match /reports/{reportId}")[0] || "";
-if (!magazines.includes("request.resource.data.uid == request.auth.uid") || !magazines.includes("request.resource.data.status == 'pending_review'")) throw new Error("Client magazines must be owned by their author and queued for review");
+if (!magazines.includes("allow create: if false;") || !magazines.includes("resource.data.uid == request.auth.uid")) throw new Error("Magazine creation must use the callable submission path, with private owner reads");
 if (!comments.includes("canCommentOnPost(request.resource.data.postId)") || !comments.includes("request.resource.data.status == 'pending_review'")) throw new Error("Client comments must respect post permissions and moderation");
 requireText("request.resource.data.createdAt == request.time", "Server timestamps must be used for submissions");
 requireText("request.resource.data.status in ['changes_requested', 'approved', 'rejected']", "School review states are missing");
