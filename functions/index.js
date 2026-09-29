@@ -109,13 +109,11 @@ async function moderateText(text) {
 async function updateMagazineAfterModeration(ref, decision) {
   if (decision.decision === "approved") {
     await ref.update({
-      isPublic: true,
-      status: "approved",
-      moderationStatus: "ai_approved",
+      isPublic: false,
+      status: "needs_review",
+      moderationStatus: "ai_cleared",
       moderationReason: decision.reason,
       moderationCategories: decision.categories,
-      approvedBy: "Kigazine AI",
-      approvedAt: admin.firestore.FieldValue.serverTimestamp(),
       moderatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
     return;
@@ -190,11 +188,17 @@ exports.moderateMagazine = onDocumentCreated(
     const data = snap.data() || {};
     if (!["pending_review", "pending_ai_review"].includes(data.status)) return;
 
-    const text = [data.title, data.description, data.content]
+    const text = [data.seriesName, data.title, data.description,
+      ...(Array.isArray(data.pages) ? data.pages.map(page => page.text) : [data.content])]
       .filter(Boolean)
       .join("\n\n");
 
     const decision = await moderateText(text);
+    // Text moderation does not inspect images. Hold illustrated issues for a person.
+    if (decision.decision === "approved" &&
+        (data.photoDataUrl || data.pages?.some(page => page.imageDataUrl))) {
+      decision.reason = "AI text check passed; illustrations need a Kigazine reviewer";
+    }
     await updateMagazineAfterModeration(snap.ref, decision);
   }
 );

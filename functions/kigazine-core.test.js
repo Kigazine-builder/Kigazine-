@@ -8,19 +8,31 @@ const profile = { username: "Reader", magazineSeriesName: "Science Weekly" };
 
 test("magazine submissions use a strict server-side field allowlist", () => {
   const result = magazineInput({
-    title: "Issue 1", description: "The stars", content: "A story about planets.",
+    title: "Issue 1", description: "The stars", pages: [{ text: "A story about planets." }],
     coverTheme: "navy", uid: "someone-else", status: "approved", isPublic: true
   }, profile);
   assert.deepEqual(Object.keys(result).sort(),
-    ["title", "description", "content", "seriesName", "username", "coverTheme", "photoDataUrl"].sort());
+    ["title", "description", "content", "pages", "seriesName", "username", "coverTheme", "photoDataUrl"].sort());
   assert.equal(result.username, "Reader");
   assert.equal(result.seriesName, "Science Weekly");
 });
 
 test("private information and invalid media are rejected on the server", () => {
-  assert.throws(() => magazineInput({ title: "Issue", description: "Email me at a@b.com", content: "Safe", coverTheme: "navy" }, profile), /private information/);
-  assert.throws(() => magazineInput({ title: "Issue", description: "Safe", content: "Safe", coverTheme: "navy", photoDataUrl: "data:image/svg+xml;base64,PHN2Zz4=" }, profile), /supported image/);
+  assert.throws(() => magazineInput({ title: "Issue", description: "Email me at a@b.com", pages: [{ text: "Safe" }], coverTheme: "navy" }, profile), /private information/);
+  assert.throws(() => magazineInput({ title: "Issue", description: "Safe", pages: [{ text: "Safe" }], coverTheme: "navy", photoDataUrl: "data:image/svg+xml;base64,PHN2Zz4=" }, profile), /supported image/);
+  assert.throws(() => magazineInput({ title: "Issue", description: "Safe", pages: [{ text: "Safe" }, { text: "Email me at a@b.com" }], coverTheme: "navy" }, profile), /private information/);
+  assert.throws(() => magazineInput({ title: "Issue", description: "Safe", pages: [{ text: "Safe", imageDataUrl: "data:image/svg+xml;base64,PHN2Zz4=" }], coverTheme: "navy" }, profile), /supported image/);
   assert.throws(() => commentInput({ postId: "post1", content: "Meet me on Discord" }), /contact requests/);
+});
+
+test("page content is preserved in order and oversized issues are rejected", () => {
+  const input = { title: "Planets", description: "A space issue", coverTheme: "teal",
+    pages: [{ text: "Mercury" }, { text: "Venus" }] };
+  const result = magazineInput(input, profile);
+  assert.deepEqual(result.pages, [{ text: "Mercury", imageDataUrl: "" }, { text: "Venus", imageDataUrl: "" }]);
+  assert.equal(result.content, "Mercury\n\nVenus");
+  assert.throws(() => magazineInput({ ...input, pages: Array(7).fill({ text: "Page" }) }, profile), /1–6/);
+  assert.throws(() => magazineInput({ ...input, pages: [{ text: "x".repeat(5201) }] }, profile), /5200/);
 });
 
 test("friends-only comments require a reciprocal relationship", () => {

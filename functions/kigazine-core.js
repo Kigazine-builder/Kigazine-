@@ -29,7 +29,23 @@ function magazineInput(input, profile) {
   }
   const title = requiredText(input.title, 120, "Title");
   const description = requiredText(input.description, 500, "Description");
-  const content = requiredText(input.content, 20000, "Content");
+  if (!Array.isArray(input.pages) || input.pages.length < 1 || input.pages.length > 6) {
+    throw new TypeError("Use 1–6 issue pages.");
+  }
+  const pages = input.pages.map((page, index) => {
+    if (!page || typeof page !== "object") throw new TypeError(`Page ${index + 1} is invalid.`);
+    const text = requiredText(page.text, 5200, `Page ${index + 1}`);
+    const imageDataUrl = page.imageDataUrl ?? "";
+    if (typeof imageDataUrl !== "string" || imageDataUrl.length > 110000 ||
+        (imageDataUrl && !/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl))) {
+      throw new TypeError(`Page ${index + 1} image must be a supported image under 80 KB.`);
+    }
+    return { text, imageDataUrl };
+  });
+  const content = pages.map(page => page.text).join("\n\n");
+  if (pages.reduce((total, page) => total + page.text.length, 0) > 5200) {
+    throw new TypeError("Issue pages must contain at most 5200 characters total.");
+  }
   const seriesName = requiredText(profile.magazineSeriesName, 50, "Magazine series name");
   const username = requiredText(profile.username, 40, "Username");
   rejectPrivateInfo([title, description, content, seriesName, username].join("\n"));
@@ -40,8 +56,11 @@ function magazineInput(input, profile) {
       (photoDataUrl && !/^data:image\/(?:png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(photoDataUrl))) {
     throw new TypeError("Choose a supported image under 650 KB.");
   }
+  if (photoDataUrl.length + pages.reduce((total, page) => total + page.imageDataUrl.length, 0) > 850000) {
+    throw new TypeError("This issue has too many large images. Use smaller illustrations.");
+  }
   // Only these properties reach Firestore. Caller-provided uid, status, and role are ignored.
-  return { title, description, content, seriesName, username, coverTheme: input.coverTheme, photoDataUrl };
+  return { title, description, content, pages, seriesName, username, coverTheme: input.coverTheme, photoDataUrl };
 }
 
 function commentInput(input) {

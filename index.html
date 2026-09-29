@@ -1141,6 +1141,10 @@
     .issue-reader .issue-pages .comment-guidance { color: #334969; }
     .issue-reader .issue-pages .comment-draft-hint { color: #176647; }
     .issue-reader .issue-pages .report-btn { color: #783800; }
+    .page-editor { border: 1px solid #cbd5e1; border-radius: 14px; padding: 14px; margin: 12px 0; }
+    .page-editor-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .reader-page { border-top: 1px solid #d9e0e9; margin-top: 24px; padding-top: 20px; }
+    .reader-page img, .preview-page img { display: block; max-width: 100%; max-height: 400px; object-fit: contain; margin: 12px auto; border-radius: 10px; }
     .issue-reader .comments-panel { border-top: 1px solid #ccd6e6; }
     .legal-links { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; font-size: 13px; }
     .legal-links a { color: #bed8ff; }
@@ -1696,8 +1700,16 @@
               </div>
               <div>
                 <label class="label" for="contentInput">Inside pages</label>
-                <textarea id="contentInput" class="textarea" maxlength="5200" placeholder="Write your story here..."></textarea>
-                <p class="field-help" id="contentLengthHelp">0 of 5200 characters used.</p>
+                <div id="pageEditors">
+                  <div class="page-editor" data-page><div class="page-editor-header"><strong>Page 1</strong></div>
+                    <textarea id="contentInput" class="textarea" maxlength="5200" placeholder="Write your first page here..."></textarea>
+                    <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+                    <div class="field-help" data-page-image-note>No illustration selected.</div>
+                  </div>
+                </div>
+                <button id="addPageBtn" type="button" class="btn btn-secondary">Add page</button>
+                <p class="field-help" id="contentLengthHelp">0 of 5200 characters used across up to 6 pages.</p>
+                <p id="draftSaveStatus" class="field-help" role="status" aria-live="polite">Drafts save on this device for your account.</p>
               </div>
               <div>
                 <label class="label" for="magazinePhotoInput">Cover image <span class="muted">(optional)</span></label>
@@ -1737,7 +1749,7 @@
               <div class="issue-masthead" id="previewSeriesName">Your series name</div>
               <div><small class="issue-kicker">KIGAZINE · ISSUE PREVIEW</small><div id="previewTitle" class="issue-heading">Your title here</div><p id="previewDesc" class="issue-coverline">Your cover line will show here.</p></div>
             </div>
-            <div id="previewContent" style="line-height:1.75; color:#334155; white-space:pre-wrap;">Start typing to preview your magazine.</div>
+            <div id="previewContent" style="line-height:1.75; color:#334155;">Start typing to preview your magazine.</div>
             <div class="preview-stickers" aria-hidden="true">
               <span class="preview-sticker">Bright idea</span>
               <span class="preview-sticker">Kind words</span>
@@ -1936,6 +1948,7 @@
       updateDoc,
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 
     // ======================================
     // PASTE YOUR  HERE
@@ -1952,6 +1965,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const submitMagazineCall = httpsCallable(getFunctions(app, "us-central1"), "submitMagazine");
     const EMAIL_VERIFIER_URL = "https://kigazine-kn7i.vercel.app/api/verify-email";
     
     window.collection = collection;
@@ -1978,6 +1992,8 @@
     let bannedEmails = [];
     let pendingProfilePhotoDataUrl = "";
     let pendingMagazinePhotoDataUrl = "";
+    let pageImages = [""];
+    let draftTimer;
     let activeSeriesUid = "";
     let activeIssueId = "";
     const COVER_THEMES = ["navy", "coral", "teal", "purple", "gold"];
@@ -2012,6 +2028,9 @@
     const seriesSetup = document.getElementById("seriesSetup");
     const seriesReady = document.getElementById("seriesReady");
     const issueComposer = document.getElementById("issueComposer");
+    const pageEditors = document.getElementById("pageEditors");
+    const addPageBtn = document.getElementById("addPageBtn");
+    const draftSaveStatus = document.getElementById("draftSaveStatus");
     const seriesNameInput = document.getElementById("seriesNameInput");
     const saveSeriesNameBtn = document.getElementById("saveSeriesNameBtn");
     const seriesNameMessage = document.getElementById("seriesNameMessage");
@@ -2361,7 +2380,7 @@
       return `<div class="issue-cover ${theme}">
         ${image ? `<img src="${escapeHtml(image)}" alt="Cover art for ${escapeHtml(title)}" loading="lazy">` : ""}
         <div class="issue-masthead">${escapeHtml(seriesNameFor(magazine))}</div>
-        <div><div class="issue-kicker">Kigazine · ${escapeHtml(label)}</div><div class="issue-heading">${escapeHtml(title)}</div><p class="issue-coverline">${escapeHtml(magazine.description || "")}</p></div>
+        <div><div class="issue-kicker">Kigazine · ${escapeHtml(magazine.issueNumber ? `Issue ${magazine.issueNumber}` : label)}</div><div class="issue-heading">${escapeHtml(title)}</div><p class="issue-coverline">${escapeHtml(magazine.description || "")}</p></div>
       </div>`;
     }
 
@@ -2499,6 +2518,7 @@
         if (!photoUrl || photoUrl.length > 650000) throw new Error("invalid-image");
         pendingMagazinePhotoDataUrl = photoUrl;
         updateMagazinePhotoPreview();
+        queueDraftSave();
         showPublishMessage("Cover image added. It will be reviewed with your issue.", "success");
       } catch {
         magazinePhotoInput.value = "";
@@ -2512,13 +2532,14 @@
       pendingMagazinePhotoDataUrl = "";
       magazinePhotoInput.value = "";
       updateMagazinePhotoPreview();
+      queueDraftSave();
       showPublishMessage("Photo removed from your draft.", "success");
     }
 
     function updateDraftSafetyHint() {
       const hint = document.getElementById("draftSafetyHint");
       if (!hint) return;
-      const draft = `${currentProfile?.magazineSeriesName || ""}\n${titleInput.value}\n${descInput.value}\n${contentInput.value}`;
+      const draft = `${currentProfile?.magazineSeriesName || ""}\n${titleInput.value}\n${descInput.value}\n${getPages().map(page => page.text).join("\n")}`;
       const privateInfo = findPrivateInfo(draft);
       const contactCue = findUnsafeContactCue(draft);
       hint.classList.toggle("warning", Boolean(privateInfo || contactCue));
@@ -2529,6 +2550,120 @@
           : "Draft looks okay so far. Keep checking for private details before you submit.";
     }
 
+    function getPages() {
+      return [...pageEditors.querySelectorAll("[data-page] textarea")].map((textarea, index) => ({
+        text: textarea.value.trim(), imageDataUrl: pageImages[index] || ""
+      }));
+    }
+
+    function draftKey() { return currentUser ? `kigazine-draft-v2:${currentUser.uid}` : ""; }
+
+    function saveDraft() {
+      if (!draftKey()) return;
+      try {
+        localStorage.setItem(draftKey(), JSON.stringify({
+          title: titleInput.value, description: descInput.value, pages: getPages(),
+          coverTheme: coverThemeInput.value, photoDataUrl: pendingMagazinePhotoDataUrl
+        }));
+        draftSaveStatus.textContent = "Draft saved on this device.";
+      } catch {
+        draftSaveStatus.textContent = "This device is out of draft space. Copy your writing somewhere safe.";
+      }
+    }
+
+    function queueDraftSave() {
+      if (!currentUser) return;
+      draftSaveStatus.textContent = "Saving draft...";
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveDraft, 500);
+    }
+
+    function addPage(text = "", imageDataUrl = "") {
+      const number = pageEditors.querySelectorAll("[data-page]").length + 1;
+      if (number > 6) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "page-editor";
+      wrapper.dataset.page = "";
+      wrapper.innerHTML = `<div class="page-editor-header"><strong>Page ${number}</strong><button type="button" class="btn btn-secondary" data-remove-page>Remove</button></div>
+        <textarea class="textarea" maxlength="5200" placeholder="Write page ${number}..."></textarea>
+        <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+        <div class="field-help" data-page-image-note></div>`;
+      wrapper.querySelector("textarea").value = text;
+      pageEditors.appendChild(wrapper);
+      pageImages.push(imageDataUrl);
+      wrapper.querySelector("[data-page-image-note]").textContent = imageDataUrl ? "Illustration saved in draft." : "No illustration selected.";
+      addPageBtn.disabled = number >= 6;
+      updatePreview();
+    }
+
+    function resetDraft(removeSaved = false) {
+      clearTimeout(draftTimer);
+      if (removeSaved && draftKey()) localStorage.removeItem(draftKey());
+      titleInput.value = "";
+      descInput.value = "";
+      pageEditors.querySelectorAll("[data-page]").forEach((page, index) => { if (index) page.remove(); });
+      contentInput.value = "";
+      pageImages = [""];
+      pageEditors.querySelector("[data-page-image]").value = "";
+      pageEditors.querySelector("[data-page-image-note]").textContent = "No illustration selected.";
+      addPageBtn.disabled = false;
+      pendingMagazinePhotoDataUrl = "";
+      magazinePhotoInput.value = "";
+      coverThemeInput.value = "navy";
+      safePostInput.checked = false;
+      draftSaveStatus.textContent = removeSaved ? "Draft cleared." : "Drafts save on this device for your account.";
+      updatePreview();
+      if (removeSaved) { clearTimeout(draftTimer); localStorage.removeItem(draftKey()); }
+    }
+
+    function restoreDraft() {
+      resetDraft();
+      try {
+        const saved = JSON.parse(localStorage.getItem(draftKey()) || "null");
+        if (!saved || !Array.isArray(saved.pages)) return;
+        titleInput.value = saved.title || "";
+        descInput.value = saved.description || "";
+        contentInput.value = saved.pages[0]?.text || "";
+        pageImages[0] = saved.pages[0]?.imageDataUrl || "";
+        pageEditors.querySelector("[data-page-image-note]").textContent = pageImages[0] ? "Illustration saved in draft." : "No illustration selected.";
+        saved.pages.slice(1, 6).forEach(page => addPage(page.text || "", page.imageDataUrl || ""));
+        coverThemeInput.value = COVER_THEMES.includes(saved.coverTheme) ? saved.coverTheme : "navy";
+        pendingMagazinePhotoDataUrl = sanitizePhotoDataUrl(saved.photoDataUrl || "");
+        draftSaveStatus.textContent = "Your saved draft is ready.";
+        updatePreview();
+      } catch { draftSaveStatus.textContent = "Could not restore this device’s draft."; }
+    }
+
+    pageEditors.addEventListener("input", event => { if (event.target.matches("textarea")) updatePreview(); });
+    pageEditors.addEventListener("click", event => {
+      if (!event.target.closest("[data-remove-page]")) return;
+      const page = event.target.closest("[data-page]");
+      const index = [...pageEditors.children].indexOf(page);
+      page.remove();
+      pageImages.splice(index, 1);
+      pageEditors.querySelectorAll("[data-page] strong").forEach((label, i) => { label.textContent = `Page ${i + 1}`; });
+      addPageBtn.disabled = false;
+      updatePreview();
+    });
+    pageEditors.addEventListener("change", async event => {
+      if (!event.target.matches("[data-page-image]")) return;
+      const input = event.target;
+      const file = input.files?.[0];
+      const index = [...pageEditors.children].indexOf(input.closest("[data-page]"));
+      if (!file) return;
+      if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type) || file.size > 80 * 1024) {
+        input.value = "";
+        showPublishMessage("Use a PNG, JPG, GIF, or WebP page illustration under 80 KB.", "error");
+        return;
+      }
+      const image = sanitizePhotoDataUrl(await readFileAsDataUrl(file));
+      if (!image || image.length > 110000) { showPublishMessage("That page illustration is too large.", "error"); return; }
+      pageImages[index] = image;
+      input.closest("[data-page]").querySelector("[data-page-image-note]").textContent = "Illustration added. A Kigazine reviewer will inspect it.";
+      updatePreview();
+    });
+    addPageBtn.addEventListener("click", () => { addPage(); queueDraftSave(); });
+
     // Keep the live preview and safety hint in sync with the current draft.
     function updatePreview() {
       const theme = COVER_THEMES.includes(coverThemeInput.value) ? coverThemeInput.value : "navy";
@@ -2536,9 +2671,11 @@
       previewSeriesName.textContent = currentProfile?.magazineSeriesName || "Your series name";
       previewTitle.textContent = titleInput.value.trim() || "Your title here";
       previewDesc.textContent = descInput.value.trim() || "Your cover line will show here.";
-      previewContent.textContent = contentInput.value.trim() || "Start typing to preview your magazine.";
+      previewContent.innerHTML = getPages().map((page, index) => `<section class="preview-page reader-page"><strong>Page ${index + 1}</strong><p style="white-space:pre-wrap;overflow-wrap:anywhere;">${escapeHtml(page.text || "Start typing...")}</p>${page.imageDataUrl ? `<img src="${escapeHtml(sanitizePhotoDataUrl(page.imageDataUrl))}" alt="Page ${index + 1} illustration">` : ""}</section>`).join("");
+      document.getElementById("contentLengthHelp").textContent = `${getPages().map(page => page.text.length).reduce((a, b) => a + b, 0)} of 5200 characters used across up to 6 pages.`;
       updateMagazinePhotoPreview();
       updateDraftSafetyHint();
+      queueDraftSave();
     }
 
     [titleInput, descInput, contentInput].forEach(el => el.addEventListener("input", updatePreview));
@@ -2679,6 +2816,11 @@
         if (!bySeries.has(uid)) bySeries.set(uid, []);
         bySeries.get(uid).push(issue);
       });
+      for (const issues of bySeries.values()) {
+        issues.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+        issues.forEach((issue, index) => { if (!issue.issueNumber) issue.issueNumber = index + 1; });
+        issues.sort((a, b) => a.issueNumber - b.issueNumber);
+      }
       magGrid.classList.toggle("browse-detail", Boolean(activeSeriesUid));
 
       if (!filtered.length) {
@@ -2707,7 +2849,7 @@
               <div class="issue-pages"><div class="mag-meta">By ${escapeHtml(safeMagazineAuthor(issue))}</div>
                 <h2>${escapeHtml(issue.title || "Untitled issue")}</h2>
                 <p>${escapeHtml(issue.description || "")}</p>
-                <div style="white-space:pre-wrap; overflow-wrap:anywhere;">${escapeHtml(issue.content || "")}</div>
+                ${(Array.isArray(issue.pages) && issue.pages.length ? issue.pages : [{ text: issue.content || "" }]).map((page, index) => `<section class="reader-page"><h3>Page ${index + 1}</h3><div style="white-space:pre-wrap;overflow-wrap:anywhere;">${escapeHtml(page.text || "")}</div>${sanitizePhotoDataUrl(page.imageDataUrl || "") ? `<img src="${escapeHtml(sanitizePhotoDataUrl(page.imageDataUrl))}" alt="Illustration on page ${index + 1}">` : ""}</section>`).join("")}
                 ${renderCommentPanel(issue)}
                 <button class="report-btn" type="button" data-hide-id="${escapeHtml(issue.id)}">Hide this issue</button>
                 <button class="report-btn" type="button" data-report-id="${escapeHtml(issue.id)}">Report concern</button>
@@ -2722,7 +2864,7 @@
             <h2>${escapeHtml(seriesNameFor(issues[0]))}</h2><p class="muted">By ${escapeHtml(safeMagazineAuthor(issues[0]))} · ${issues.length} approved issue${issues.length === 1 ? "" : "s"}</p>
             <div class="issue-list">${issues.map(item => `<article class="mag-card issue-card">
               ${coverMarkup(item)}
-              <div class="mag-body"><h3>${escapeHtml(item.title || "Untitled issue")}</h3>
+              <div class="mag-body"><h3>Issue ${item.issueNumber}: ${escapeHtml(item.title || "Untitled issue")}</h3>
                 <p class="mag-meta">${escapeHtml(item.description || "")}</p>
                 <button type="button" class="btn btn-primary" data-open-issue="${escapeHtml(item.id)}">Read issue</button>
               </div>
@@ -2733,7 +2875,7 @@
         activeSeriesUid = "";
         magGrid.classList.remove("browse-detail");
         magGrid.innerHTML = [...bySeries.entries()].map(([uid, issues]) => {
-          const newest = issues[0];
+          const newest = issues.at(-1);
           return `<article class="mag-card series-card">
             ${coverMarkup(newest, "Latest issue")}
             <div class="mag-body"><h3>${escapeHtml(seriesNameFor(newest))}</h3>
@@ -2835,7 +2977,7 @@
       }
       const title = titleInput.value.trim();
       const description = descInput.value.trim();
-      const content = contentInput.value.trim();
+      const content = getPages().map(page => page.text).join("\n\n").trim();
       const draftText = `${title}\n${description}\n${content}`;
       const safetyHit = findPrivateInfo(draftText);
       const contactHit = findUnsafeContactCue(draftText);
@@ -2845,7 +2987,7 @@
 
       if (!title) missingBits.push("a title");
       if (!description) missingBits.push("a description");
-      if (!content) missingBits.push("some content");
+      if (!content || getPages().some(page => !page.text)) missingBits.push("writing on each page");
 
       if (safetyHit) {
         submitReadiness.classList.add("warning");
@@ -2866,6 +3008,11 @@
 
       if (!safePostInput.checked) {
         submitReadiness.textContent = "One last step: finish the safety check box before you send this draft for review.";
+        return;
+      }
+
+      if (pendingMagazinePhotoDataUrl.length + getPages().reduce((total, page) => total + page.imageDataUrl.length, 0) > 850000) {
+        submitReadiness.textContent = "Use smaller images before submitting this issue.";
         return;
       }
 
@@ -3409,7 +3556,8 @@
     publishBtn.addEventListener("click", async () => {
       const title = titleInput.value.trim();
       const description = descInput.value.trim();
-      const content = contentInput.value.trim();
+      const pages = getPages();
+      const content = pages.map(page => page.text).join("\n\n");
 
       if (!currentUser) {
         showPublishMessage("You must be logged in to publish.", "error");
@@ -3422,13 +3570,18 @@
         return;
       }
 
-      if (!title || !description || !content) {
-        showPublishMessage("Please fill in title, description, and content.", "error");
+      if (!title || !description || pages.some(page => !page.text) || pages.reduce((total, page) => total + page.text.length, 0) > 5200) {
+        showPublishMessage("Add a title and cover line, write on every page, and stay under 5200 characters total.", "error");
         return;
       }
 
       if (!safePostInput.checked) {
         showPublishMessage("Please complete the safety check before submitting.", "error");
+        return;
+      }
+
+      if (pendingMagazinePhotoDataUrl.length + pages.reduce((total, page) => total + page.imageDataUrl.length, 0) > 850000) {
+        showPublishMessage("This issue has too many large images. Use smaller illustrations.", "error");
         return;
       }
 
@@ -3446,29 +3599,15 @@
       publishBtn.disabled = true;
       publishBtn.textContent = "Submitting...";
       try {
-        await addDoc(collection(db, "magazines"), {
-          uid: currentUser.uid,
-          username: currentProfile?.username || "Kigazine writer",
-          seriesName: currentProfile.magazineSeriesName.trim(),
+        const submission = await submitMagazineCall({
           title,
           description,
-          content,
+          pages,
           coverTheme: COVER_THEMES.includes(coverThemeInput.value) ? coverThemeInput.value : "navy",
-          photoDataUrl: pendingMagazinePhotoDataUrl,
-          isPublic: false,
-          status: "pending_review",
-          createdAt: serverTimestamp()
+          photoDataUrl: pendingMagazinePhotoDataUrl
         });
-
-        titleInput.value = "";
-        descInput.value = "";
-        contentInput.value = "";
-        pendingMagazinePhotoDataUrl = "";
-        magazinePhotoInput.value = "";
-        coverThemeInput.value = "navy";
-        safePostInput.checked = false;
-        updatePreview();
-        showPublishMessage("Magazine submitted for review. It will not be public until a trusted reviewer approves it.", "success");
+        resetDraft(true);
+        showPublishMessage(`Issue submitted to Kigazine AI (${submission.data.id}). Illustrated issues also need a Kigazine reviewer.`, "success");
         await loadMagazines();
       } catch (err) {
         showPublishMessage(getFriendlyError(err), "error");
@@ -3479,19 +3618,12 @@
     });
 
     clearBtn.addEventListener("click", () => {
-      const hasDraft = [titleInput, descInput, contentInput].some(input => input.value.trim());
+      const hasDraft = [titleInput, descInput].some(input => input.value.trim()) || getPages().some(page => page.text || page.imageDataUrl);
       if (hasDraft && !window.confirm("Clear this draft? Your writing in these boxes will be removed.")) {
         return;
       }
-      titleInput.value = "";
-      descInput.value = "";
-      contentInput.value = "";
-      pendingMagazinePhotoDataUrl = "";
-      magazinePhotoInput.value = "";
-      coverThemeInput.value = "navy";
-      safePostInput.checked = false;
+      resetDraft(true);
       publishMessage.classList.add("hidden");
-      updatePreview();
     });
 
     friendSearchBtn.addEventListener("click", () => renderFriendSearchResults(friendSearchInput.value));
@@ -3654,6 +3786,7 @@
 
       const approveButton = e.target.closest("[data-approve-id]");
       if (!approveButton || !isAdmin()) return;
+      if (approveButton.dataset.aiReady !== "true") return;
       const reviewCheck = findAdminReviewCheck(approveButton.dataset.approveId);
       if (!reviewCheck?.checked) {
         adminStatus.textContent = "Check the reviewer safety box before approving.";
@@ -3682,7 +3815,7 @@
       if (!reviewCheck || !isAdmin()) return;
       const approveButton = findAdminApproveButton(reviewCheck.dataset.reviewCheck);
       if (approveButton) {
-        approveButton.disabled = !reviewCheck.checked;
+        approveButton.disabled = !reviewCheck.checked || approveButton.dataset.aiReady !== "true";
       }
     });
 
@@ -3824,7 +3957,7 @@
         const snap = await getDocs(collection(db, "magazines"));
         pendingMagazines = snap.docs
           .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
-          .filter(m => m.status === "pending_review")
+          .filter(m => ["pending_review", "needs_review"].includes(m.status))
           .sort((a, b) => {
             const aTime = a.createdAt?.seconds || 0;
             const bTime = b.createdAt?.seconds || 0;
@@ -3851,11 +3984,13 @@
             : `<div class="review-warning">No obvious private-info pattern found. Still read the full post before approving.</div>`;
           return `
             <div class="admin-review-item">
-              <p>Series: ${escapeHtml(m.seriesName || "Earlier magazine without a series name")}</p>
+              <p>Series: ${escapeHtml(m.seriesName || "Earlier magazine without a series name")} · Issue ${escapeHtml(m.issueNumber || "legacy")}</p>
+              <p>AI review: ${escapeHtml(m.moderationReason || "Waiting for Kigazine AI")}</p>
               <h4>${escapeHtml(m.title || "Untitled magazine")}</h4>
               <p>By ${escapeHtml(m.username || "Kigazine writer")}</p>
               <p>${escapeHtml(m.description || "No description yet.")}</p>
               <p>${escapeHtml(m.content || "")}</p>
+              ${(m.pages || []).map((page, index) => sanitizePhotoDataUrl(page.imageDataUrl || "") ? `<p>Page ${index + 1} illustration:</p><img class="magazine-photo" src="${escapeHtml(sanitizePhotoDataUrl(page.imageDataUrl))}" alt="Page ${index + 1} illustration for review" />` : "").join("")}
               ${sanitizePhotoDataUrl(m.photoDataUrl || "") ? `<img class="magazine-photo" src="${escapeHtml(sanitizePhotoDataUrl(m.photoDataUrl || ""))}" alt="Photo submitted with ${escapeHtml(m.title || "this magazine")}" />` : ""}
               ${reviewWarning}
               <label class="check-row">
@@ -3863,7 +3998,7 @@
                 <span>I read this post and it is kid-safe, kind, and free of private details.</span>
               </label>
               <div class="row" style="margin-top:12px;">
-                <button class="btn btn-primary" type="button" data-approve-id="${escapeHtml(m.id)}" disabled>Approve</button>
+                <button class="btn btn-primary" type="button" data-approve-id="${escapeHtml(m.id)}" data-ai-ready="${m.status === "needs_review"}" disabled>Approve</button>
                 <button class="btn btn-secondary" type="button" data-delete-id="${escapeHtml(m.id)}">Delete post</button>
               </div>
             </div>
@@ -4160,6 +4295,7 @@
           return;
         }
         await loadUserProfile(user.uid);
+        restoreDraft();
         await loadUsers();
         await loadMagazines();
         await loadComments();
@@ -4176,6 +4312,7 @@
         bannedEmails = [];
         pendingProfilePhotoDataUrl = "";
         pendingMagazinePhotoDataUrl = "";
+        clearTimeout(draftTimer);
         profilePhotoInput.value = "";
         magazinePhotoInput.value = "";
         hideProfilePhotoMessage();
