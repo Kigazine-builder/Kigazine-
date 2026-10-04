@@ -223,3 +223,4 @@ exports.moderateComment = onDocumentCreated(
 
 Object.assign(exports, require("./apple-times"));
 Object.assign(exports, require("./kigazine"));
+Object.assign(exports, require("./analytics"));
