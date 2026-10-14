@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Chat photos are re-encoded and served by Cloud Functions after checking
+    // the message and current conversation membership. No download tokens.
+    match /chatPhotos/{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

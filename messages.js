@@ -3,10 +3,17 @@
 */
 (() => {
   const MAX_MESSAGE_LENGTH = 1000;
+  const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
+  const MAX_PHOTO_BYTES = 1024 * 1024;
+  const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
   let messagesBooted = false;
   let activeConversationUid = "";
   let activeConversationUsername = "";
   let cachedMessages = [];
+  let pendingPhoto = null;
+  let photoSelectionToken = 0;
+  let preparingPhoto = false;
+  let sending = false;
 
   function esc(value) {
     return String(value ?? "")
@@ -203,6 +210,24 @@
         color: #94a3b8;
         line-height: 1.6;
       }
+      .message-photo-drop {
+        border: 2px dashed rgba(148,163,184,.45);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .message-photo-drop.drag-over { border-color: #60a5fa; background: rgba(37,99,235,.14); }
+      .message-photo-drop input { display: block; max-width: 100%; margin-top: 8px; }
+      .message-photo-preview img, .bubble-photo {
+        display: block;
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 10px;
+        object-fit: contain;
+      }
+      .bubble-photo[hidden] { display: none; }
+      .message-photo-preview { display: grid; gap: 8px; justify-items: start; margin-top: 10px; }
+      .message-upload-progress { width: 100%; }
+      .message-photo-preview[hidden], .message-upload-progress[hidden] { display: none; }
       @media (max-width: 1000px) {
         .messages-top-grid,
         .messages-shell {
@@ -249,12 +274,19 @@
             </div>
             <div>
               <label class="label" for="messageText">Message</label>
-              <textarea id="messageText" class="textarea" maxlength="${MAX_MESSAGE_LENGTH}" placeholder="Write something kind..." required></textarea>
+              <textarea id="messageText" class="textarea" maxlength="${MAX_MESSAGE_LENGTH}" placeholder="Write something kind..."></textarea>
               <div id="messageCounter" class="message-counter">0 / ${MAX_MESSAGE_LENGTH}</div>
             </div>
-            <button class="btn btn-primary" type="submit">Send message</button>
+            <div id="messagePhotoDrop" class="message-photo-drop">
+              <label class="label" for="messagePhoto">Add a photo (optional)</label>
+              <input id="messagePhoto" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="messagePhotoHelp" />
+              <div id="messagePhotoHelp" class="muted">Choose or drop one JPEG, PNG, or WebP photo up to 2 MB. Location and camera metadata are removed before it is shared.</div>
+              <div id="messagePhotoPreview" class="message-photo-preview" hidden></div>
+            </div>
+            <progress id="messageUploadProgress" class="message-upload-progress" max="100" value="0" aria-label="Photo upload progress" hidden></progress>
+            <button id="sendMessageButton" class="btn btn-primary" type="submit">Send message</button>
           </form>
-          <div id="messagesStatus" class="notice hidden"></div>
+          <div id="messagesStatus" class="notice hidden" role="status" aria-live="polite"></div>
         </div>
 
         <div class="card">
@@ -333,8 +365,99 @@
     return { id: docSnap.id, ...docSnap.data() };
   }
 
+  function clearPhoto() {
+    photoSelectionToken += 1;
+    if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+    pendingPhoto = null;
+    const preview = byId("messagePhotoPreview");
+    if (preview) {
+      preview.replaceChildren();
+      preview.hidden = true;
+    }
+    const input = byId("messagePhoto");
+    if (input) input.value = "";
+  }
+
+  function canvasBlob(canvas, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+  }
+
+  async function preparePhoto(file) {
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) throw new Error("Choose a JPEG, PNG, or WebP photo.");
+    if (!file.size || file.size > MAX_SOURCE_BYTES) throw new Error("Choose a photo under 2 MB.");
+    const sourceUrl = URL.createObjectURL(file);
+    const image = new Image();
+    try {
+      image.src = sourceUrl;
+      await image.decode();
+      if (!image.naturalWidth || !image.naturalHeight || image.naturalWidth * image.naturalHeight > 40_000_000) {
+        throw new Error("This photo is too large to process.");
+      }
+      const canvas = document.createElement("canvas");
+      let blob;
+      for (const [maxSide, quality] of [[1600, .82], [1400, .72], [1200, .60], [960, .5], [800, .4], [640, .35]]) {
+        const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("This browser cannot process the photo.");
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        blob = await canvasBlob(canvas, quality);
+        if (blob && blob.size <= MAX_PHOTO_BYTES) break;
+      }
+      if (!blob || blob.size > MAX_PHOTO_BYTES) throw new Error("This photo could not be reduced below 1 MB.");
+      return { blob, url: URL.createObjectURL(blob), uploadId: crypto.randomUUID() };
+    } finally {
+      URL.revokeObjectURL(sourceUrl);
+    }
+  }
+
+  async function selectPhoto(files) {
+    if (sending) return;
+    if (!files?.length) return;
+    if (files.length !== 1) return showStatus("Choose one photo at a time.", "error");
+    const file = files[0];
+    clearPhoto();
+    const token = photoSelectionToken;
+    preparingPhoto = true;
+    const sendButton = byId("sendMessageButton");
+    if (sendButton) sendButton.disabled = true;
+    showStatus("Preparing photo and removing metadata...");
+    try {
+      const photo = await preparePhoto(file);
+      if (token !== photoSelectionToken) {
+        URL.revokeObjectURL(photo.url);
+        return;
+      }
+      pendingPhoto = photo;
+      const preview = byId("messagePhotoPreview");
+      const image = document.createElement("img");
+      image.src = photo.url;
+      image.alt = "Selected photo preview";
+      const remove = document.createElement("button");
+      remove.className = "btn btn-secondary";
+      remove.type = "button";
+      remove.textContent = "Remove photo";
+      remove.addEventListener("click", () => { if (!sending) { clearPhoto(); clearStatus(); } });
+      preview.replaceChildren(image, remove);
+      preview.hidden = false;
+      showStatus("Photo ready to send.", "success");
+    } catch (error) {
+      if (token === photoSelectionToken) showStatus(error.message || "Photo could not be prepared.", "error");
+    } finally {
+      if (token === photoSelectionToken) {
+        preparingPhoto = false;
+        if (sendButton) sendButton.disabled = false;
+      }
+    }
+  }
+
   async function sendMessage(event) {
     event?.preventDefault();
+    if (sending) return;
+    if (preparingPhoto) return showStatus("Wait for the photo to finish preparing.", "error");
     clearStatus();
 
     const db = getDb();
@@ -342,31 +465,51 @@
     const recipientUsername = byId("messageRecipient")?.value.trim();
     const textInput = byId("messageText");
     const text = textInput?.value.trim();
+    const photo = pendingPhoto;
 
     if (!db) return showStatus("Firestore is not ready yet. Refresh and try again.", "error");
     if (!user) return showStatus("Please sign in before sending messages.", "error");
-    if (!recipientUsername || !text) return showStatus("Enter a username and a message first.", "error");
+    if (!recipientUsername || (!text && !photo)) return showStatus("Enter a username and a message or photo first.", "error");
     if (text.length > MAX_MESSAGE_LENGTH) return showStatus(`Keep messages under ${MAX_MESSAGE_LENGTH} characters.`, "error");
 
+    sending = true;
+    const sendButton = byId("sendMessageButton");
+    const photoInput = byId("messagePhoto");
+    if (sendButton) sendButton.disabled = true;
+    if (photoInput) photoInput.disabled = true;
     try {
       const { collection, addDoc, serverTimestamp } = getMessagingHelpers();
       const recipient = await findUserByUsername(recipientUsername);
       if (!recipient) return showStatus("No Kigazine user with that username was found.", "error");
       if (recipient.id === user.uid) return showStatus("You cannot message yourself here.", "error");
-
-      await addDoc(collection(db, "messages"), {
-        fromUid: user.uid,
-        fromUsername: currentUsername(),
-        toUid: recipient.id,
-        toUsername: recipient.username || recipientUsername,
-        text,
-        participants: [user.uid, recipient.id],
-        createdAt: serverTimestamp(),
-        createdAtClient: Date.now()
-      });
+      if (photo) {
+        const progress = byId("messageUploadProgress");
+        if (progress) progress.hidden = false;
+        await window.kigazineChatPhotos.upload({
+          mode: "direct", toUid: recipient.id, text, file: photo.blob,
+          uploadId: photo.uploadId,
+          onProgress: message => {
+            showStatus(message);
+            const match = /Uploading photo: (\d+)%/.exec(message);
+            if (match && progress) progress.value = Number(match[1]);
+          }
+        });
+      } else {
+        await addDoc(collection(db, "messages"), {
+          fromUid: user.uid,
+          fromUsername: currentUsername(),
+          toUid: recipient.id,
+          toUsername: recipient.username || recipientUsername,
+          text,
+          participants: [user.uid, recipient.id],
+          createdAt: serverTimestamp(),
+          createdAtClient: Date.now()
+        });
+      }
 
       textInput.value = "";
       updateCounter();
+      clearPhoto();
       showStatus("Message sent!", "success");
       activeConversationUid = recipient.id;
       activeConversationUsername = recipient.username || recipientUsername;
@@ -374,6 +517,12 @@
     } catch (error) {
       console.error("Kigazine sendMessage error:", error);
       showStatus(error?.message || "Message failed to send.", "error");
+    } finally {
+      sending = false;
+      if (sendButton) sendButton.disabled = false;
+      if (photoInput) photoInput.disabled = false;
+      const progress = byId("messageUploadProgress");
+      if (progress) progress.hidden = true;
     }
   }
 
@@ -385,6 +534,12 @@
 
   function timestampValue(message) {
     return message.createdAt?.toMillis?.() || message.createdAtClient || 0;
+  }
+
+  function isValidChatPhoto(value) {
+    return typeof value === "string"
+      && value.length <= 420000
+      && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(value);
   }
 
   function getCounterpart(message, userUid) {
@@ -455,7 +610,7 @@
             <span>${esc(conversation.username || "Kigazine user")}</span>
             <span class="conversation-time">${esc(readableDate(latest.createdAt, latest.createdAtClient))}</span>
           </div>
-          <div class="conversation-preview">${esc(previewPrefix + (latest.text || "No message text"))}</div>
+          <div class="conversation-preview">${esc(previewPrefix + (latest.text || (latest.photo || isValidChatPhoto(latest.photoDataUrl) ? "Photo" : "No message text")))}</div>
         </button>
       `;
     }).join("");
@@ -493,7 +648,7 @@
       </div>
     `;
 
-    thread.innerHTML = selected.messages.map(message => {
+    thread.innerHTML = selected.messages.map((message, index) => {
       const mine = message.fromUid === currentUser()?.uid;
       return `
         <div class="bubble-row ${mine ? "mine" : "theirs"}">
@@ -502,12 +657,26 @@
               <span>${mine ? "You" : esc(message.fromUsername || selected.username || "User")}</span>
               <span>${esc(readableDate(message.createdAt, message.createdAtClient))}</span>
             </div>
-            <p class="bubble-copy">${esc(message.text || "")}</p>
+            ${message.text ? `<p class="bubble-copy">${esc(message.text)}</p>` : ""}
+            ${isValidChatPhoto(message.photoDataUrl)
+              ? `<div class="bubble-photo-slot" data-photo-index="${index}"></div>`
+              : ""}
+            ${message.photo ? `<div><img class="bubble-photo" data-chat-photo-mode="direct" data-chat-photo-id="${esc(message.id)}" alt="Loading chat photo" hidden /><button class="btn btn-secondary" type="button" data-chat-photo-retry hidden>Retry loading photo</button></div>` : ""}
           </article>
         </div>
       `;
     }).join("");
 
+    thread.querySelectorAll("[data-photo-index]").forEach(slot => {
+      const message = selected.messages[Number(slot.dataset.photoIndex)];
+      const image = document.createElement("img");
+      image.className = "bubble-photo";
+      image.src = message.photoDataUrl;
+      image.alt = "Photo shared in this conversation";
+      image.loading = "lazy";
+      slot.replaceChildren(image);
+    });
+    window.kigazineChatPhotos?.hydrate(thread);
     thread.scrollTop = thread.scrollHeight;
   }
 
@@ -527,6 +696,7 @@
     if (!list || !thread) return;
 
     if (!db || !user) {
+      cachedMessages = [];
       list.innerHTML = `<div class="message-empty">Sign in to load conversations.</div>`;
       thread.innerHTML = `<div class="message-empty">No conversation selected.</div>`;
       return;
@@ -563,6 +733,20 @@
   function bindForm() {
     byId("kigazineMessageForm")?.addEventListener("submit", sendMessage);
     byId("messageText")?.addEventListener("input", updateCounter);
+    byId("messagePhoto")?.addEventListener("change", event => selectPhoto([...event.target.files]));
+    const drop = byId("messagePhotoDrop");
+    drop?.addEventListener("dragover", event => {
+      if (!event.dataTransfer?.types?.includes("Files")) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      drop.classList.add("drag-over");
+    });
+    drop?.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
+    drop?.addEventListener("drop", event => {
+      event.preventDefault();
+      drop.classList.remove("drag-over");
+      selectPhoto([...event.dataTransfer.files]);
+    });
     byId("refreshMessagesBtn")?.addEventListener("click", loadMessages);
     updateCounter();
   }
