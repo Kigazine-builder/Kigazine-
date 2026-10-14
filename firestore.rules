@@ -50,6 +50,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Server-managed attachment receipts and per-user storage accounting.
+    match /chatPhotoUploads/{uploadId} {
+      allow read, write: if false;
+    }
+    match /chatPhotoUsage/{uid} {
+      allow read, write: if false;
+    }
+
     function hasText(value, maxSize) {
       return value is string && value.size() > 0 && value.size() <= maxSize;
     }
@@ -669,7 +677,8 @@ service cloud.firestore {
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.toUid in request.resource.data.participants
         && request.resource.data.participants.size() == 2
-        && hasText(request.resource.data.text, 1000);
+        && hasText(request.resource.data.text, 1000)
+        && !request.resource.data.keys().hasAny(['photo', 'photoPath', 'photoDataUrl']);
       allow update, delete: if false;
     }
 
@@ -936,6 +945,7 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.groupId is string
         && hasText(request.resource.data.text, 1000)
+        && !request.resource.data.keys().hasAny(['photo', 'photoPath', 'photoDataUrl'])
         && (isGroupMember(request.resource.data.groupId) || isGroupOwner(request.resource.data.groupId));
       allow update: if false;
       allow delete: if signedIn()

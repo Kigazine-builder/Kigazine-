@@ -1,36 +1,16 @@
 // Kigazine Blog Groups Module
 // WeChat-style group chats: owners create groups and choose free join or owner approval.
-// Load after the main Firebase script in index.html:
-// <script type="module" src="blog.js"></script>
-
-import {
-  initializeApp,
-  getApps,
-  getApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  setDoc,
-  getDoc,
-  getDocs,
-  serverTimestamp,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  doc,
-  deleteDoc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// A classic script can load from both HTTPS and a local file preview.
+(async () => {
+const [{ initializeApp, getApps, getApp }, {
+  getFirestore, collection, addDoc, setDoc, getDoc, getDocs,
+  serverTimestamp, query, where, orderBy, limit, onSnapshot,
+  doc, deleteDoc, updateDoc
+}, { getAuth, onAuthStateChanged }] = await Promise.all([
+  import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+  import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
+  import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
+]);
 
 const firebaseConfig = {
   apiKey: "AIzaSyB2vOQPPWJ5LGg5Pxp48UR408P6qpYCEsE",
@@ -59,6 +39,9 @@ let unsubscribeGroups = null;
 let unsubscribeMemberships = null;
 let unsubscribeMyRequests = null;
 let unsubscribeOwnerRequests = null;
+let groupPhotoPicker = null;
+let sendingGroupMessage = false;
+let composerGroupId = "";
 
 function escapeHTML(value) {
   return String(value ?? "")
@@ -221,6 +204,14 @@ function installBlogUI() {
             <textarea id="chatInput" class="input" maxlength="1000" placeholder="Write a group message..." style="min-height:48px;resize:vertical;flex:1 1 260px;"></textarea>
             <button id="sendChatBtn" class="btn btn-primary" type="button">Send</button>
           </div>
+          <div id="groupPhotoDrop" style="margin-top:10px;padding:12px;border:2px dashed #526481;border-radius:12px;">
+            <label class="label" for="groupPhoto">Photo (optional, JPEG, PNG, or WebP; up to 2 MB)</label>
+            <input id="groupPhoto" class="input" type="file" accept="image/jpeg,image/png,image/webp" />
+            <p class="muted">You can also drop a photo here.</p>
+            <img id="groupPhotoPreview" alt="Selected photo preview" style="max-width:min(100%,360px);max-height:360px;object-fit:contain;border-radius:12px;" hidden />
+            <button id="removeGroupPhoto" class="btn btn-secondary" type="button" hidden>Remove photo</button>
+          </div>
+          <progress id="groupUploadProgress" max="100" value="0" aria-label="Photo upload progress" style="width:100%;margin-top:10px;" hidden></progress>
           <p class="field-help" style="margin-top:10px;">Safety: no full names, addresses, phone numbers, school names, passwords, or private details.</p>
           <div id="chatStatus" class="notice hidden" role="status" aria-live="polite"></div>
         </div>
@@ -242,6 +233,13 @@ function installBlogUI() {
     renderGroups(); // Explicit UI sync refresh from existing snapshot data
   });
   document.getElementById("sendChatBtn")?.addEventListener("click", sendMessage);
+  groupPhotoPicker = window.kigazineChatPhotos?.bindPicker({
+    input: document.getElementById("groupPhoto"),
+    dropZone: document.getElementById("groupPhotoDrop"),
+    preview: document.getElementById("groupPhotoPreview"),
+    removeButton: document.getElementById("removeGroupPhoto"),
+    onError: message => message ? setStatus("chatStatus", message, "error") : clearStatus("chatStatus")
+  });
   document.getElementById("chatInput")?.addEventListener("keydown", event => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -491,7 +489,14 @@ function renderChatPanel() {
     meta.textContent = "Join a group to read and send messages.";
     input.disabled = true;
     button.disabled = true;
+    document.getElementById("groupPhoto").disabled = true;
+    groupPhotoPicker?.clear();
     return;
+  }
+
+  if (composerGroupId !== group.id) {
+    groupPhotoPicker?.clear();
+    composerGroupId = group.id;
   }
 
   const member = isMember(group.id);
@@ -499,11 +504,14 @@ function renderChatPanel() {
   meta.textContent = `${group.joinMode === "approval" ? "Owner permission" : "Free join"} • Owner: ${group.ownerName || "Member"}`;
   input.disabled = !member;
   button.disabled = !member;
+  document.getElementById("groupPhoto").disabled = !member;
 
   // Crucial: Only initiate sub/unsub sequence if the target chat state changed
   if (member && subscribedGroupId !== group.id) {
     subscribeToMessages(group.id);
   } else if (!member) {
+    groupPhotoPicker?.clear();
+    window.kigazineChatPhotos?.clearCache();
     if (unsubscribeMessages) {
       unsubscribeMessages();
       unsubscribeMessages = null;
@@ -540,10 +548,12 @@ function renderOwnerRequests() {
 }
 
 async function sendMessage() {
+  if (sendingGroupMessage) return;
   const user = auth.currentUser;
   const group = getActiveGroup();
   const input = document.getElementById("chatInput");
   const text = input?.value.trim() || "";
+  const photo = groupPhotoPicker?.file();
 
   if (!user) {
     setStatus("chatStatus", "Log in before sending a message.", "error");
@@ -555,27 +565,57 @@ async function sendMessage() {
     return;
   }
 
-  if (!text) {
-    setStatus("chatStatus", "Type a message first.", "error");
+  if (!text && !photo) {
+    setStatus("chatStatus", "Type a message or add a photo first.", "error");
     return;
   }
 
+  sendingGroupMessage = true;
+  const button = document.getElementById("sendChatBtn");
+  const photoInput = document.getElementById("groupPhoto");
+  const removePhoto = document.getElementById("removeGroupPhoto");
+  const progress = document.getElementById("groupUploadProgress");
+  button.disabled = true;
+  photoInput.disabled = true;
+  removePhoto.disabled = true;
   try {
-    await addDoc(collection(db, "blogGroupMessages"), {
-      groupId: group.id,
-      uid: user.uid,
-      username: getDisplayName(user),
-      text,
-      createdAt: serverTimestamp()
-    });
-    await updateDoc(doc(db, "blogGroups", group.id), {
-      updatedAt: serverTimestamp()
-    });
+    if (photo) {
+      progress.hidden = false;
+      progress.value = 0;
+      await window.kigazineChatPhotos.upload({
+        mode: "group", groupId: group.id, text, file: photo, user,
+        uploadId: groupPhotoPicker.uploadId(),
+        onProgress: message => {
+          setStatus("chatStatus", message);
+          const match = /Uploading photo: (\d+)%/.exec(message);
+          if (match) progress.value = Number(match[1]);
+        }
+      });
+      groupPhotoPicker.clear();
+    } else {
+      await addDoc(collection(db, "blogGroupMessages"), {
+        groupId: group.id,
+        uid: user.uid,
+        username: getDisplayName(user),
+        text,
+        createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, "blogGroups", group.id), {
+        updatedAt: serverTimestamp()
+      });
+    }
     if (input) input.value = "";
     setStatus("chatStatus", "Message sent.");
   } catch (error) {
     console.error("Could not send group message:", error);
     setStatus("chatStatus", `Could not send: ${error.code || error.message}`, "error");
+  } finally {
+    sendingGroupMessage = false;
+    const canSend = isMember(getActiveGroup()?.id);
+    button.disabled = !canSend;
+    photoInput.disabled = !canSend;
+    removePhoto.disabled = false;
+    progress.hidden = true;
   }
 }
 
@@ -623,13 +663,16 @@ function subscribeToMessages(groupId) {
           ${mine ? "" : `<div class="avatar small" aria-hidden="true">${initials}</div>`}
           <div style="max-width:min(720px,86%);padding:12px 14px;border-radius:18px;background:${mine ? "rgba(37,99,235,.24)" : "rgba(15,23,42,.82)"};border:1px solid rgba(148,163,184,.16);">
             <div class="mag-meta" style="margin-bottom:6px;">${escapeHTML(message.username || "Member")} · ${escapeHTML(time)}</div>
-            <div style="white-space:pre-wrap;line-height:1.55;color:#dbeafe;">${escapeHTML(message.text)}</div>
+            ${message.text ? `<div style="white-space:pre-wrap;line-height:1.55;color:#dbeafe;">${escapeHTML(message.text)}</div>` : ""}
+            ${message.photo ? `<div><img data-chat-photo-mode="group" data-chat-photo-id="${escapeHTML(message.id)}" alt="Loading chat photo" style="max-width:min(100%,360px);max-height:360px;object-fit:contain;border-radius:12px;" hidden /><button class="btn btn-secondary" type="button" data-chat-photo-retry hidden>Retry loading photo</button></div>` : ""}
             ${mine || isOwner(group) ? `<button class="btn btn-secondary" data-delete-message="${escapeHTML(message.id)}" style="margin-top:8px;padding:7px 10px;">Delete</button>` : ""}
           </div>
           ${mine ? `<div class="avatar small" aria-hidden="true">${initials}</div>` : ""}
         </div>
       `;
     }).join("");
+
+    window.kigazineChatPhotos?.hydrate(feed, auth.currentUser);
 
     feed.querySelectorAll("[data-delete-message]").forEach(button => {
       button.addEventListener("click", async () => {
@@ -723,3 +766,4 @@ onAuthStateChanged(auth, user => {
 window.kigazineLoadBlogs = () => {
   renderGroups();
 };
+})().catch(error => console.error("Group chats could not start:", error));
