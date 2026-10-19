@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kigazine · Comic strip magazines</title>
+<meta name="description" content="Create comic strip magazines with stick figures, speech bubbles, lines, and freehand drawings.">
 <script>
   // Keep the Apple Times subdomain on its dedicated editorial workspace.
   if (window.location.hostname === "appletimes.kigazine.com" && window.location.pathname !== "/apple-times.html") {
@@ -2708,7 +2712,7 @@
       wrapper.innerHTML = `<div class="page-editor-header"><strong>Page ${number}</strong><button type="button" class="btn btn-secondary" data-remove-page>Remove</button></div>
         <textarea class="textarea" maxlength="5200" placeholder="Write page ${number}..."></textarea>
         <button type="button" class="btn btn-secondary" data-comic-edit>✎ Make or edit a comic strip</button>
-                    <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+        <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
         <div class="field-help" data-page-image-note></div>`;
       wrapper.querySelector("textarea").value = text;
       pageEditors.appendChild(wrapper);
