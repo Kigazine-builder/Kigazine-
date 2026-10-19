@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kigazine · Comic Studio</title>
+    <meta
+      name="description"
+      content="Make your own comic strip with stick figures, speech bubbles, lines, and drawings in Kigazine."
+    />
+    <link rel="stylesheet" href="comics.css" />
+    <script type="module" src="comics.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a href="index.html" class="brand"
+        ><span class="brand-icon">K</span>kigazine<span class="studio-tag"
+          >COMIC STUDIO</span
+        ></a
+      >
+      <div class="top-actions">
+        <span id="save-status" role="status">Your ideas start here.</span
+        ><a class="quiet" href="index.html">Magazine space ↗</a
+        ><button id="export" class="primary">↓ Export PNG</button
+        ><button id="apply" class="primary" hidden>Add to issue →</button>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <span class="eyebrow">SMALL DOODLES. BIG STORIES.</span>
+          <h1>
+            Every great story starts<br />with a <span>little character.</span
+            ><svg viewBox="0 0 340 18" aria-hidden="true">
+              <path d="M4 12 Q160 -2 333 10 M30 17 Q170 5 300 15" />
+            </svg>
+          </h1>
+          <p>
+            Add a stick person. Give them something to say. See where it goes.
+          </p>
+        </div>
+        <div class="hero-doodle" aria-hidden="true">
+          <svg viewBox="0 0 300 150">
+            <path
+              d="M34 71 Q14 17 72 16 L220 16 Q273 18 267 59 Q265 86 221 84 L159 84 L138 106 L139 84 L73 84 Q40 84 34 71"
+              fill="#fff"
+            />
+            <text x="151" y="56" text-anchor="middle">I have an idea!</text>
+            <circle cx="213" cy="112" r="13" />
+            <path
+              d="M213 125v23m0-16-24-13m24 13 25-21m-25 37-16 18m16-18 17 18M16 103l8-5m-4 23 9-1M278 99l9-8"
+            /></svg
+          ><span>your next main character ↗</span>
+        </div>
+      </section>
+      <section class="workspace" aria-label="Comic editor">
+        <div class="workspace-head">
+          <div>
+            <span class="live-dot"></span
+            ><strong>Your comic, your rules.</strong
+            ><span class="workspace-sub"
+              >A blank panel is a world of possibilities.</span
+            >
+          </div>
+          <div class="history">
+            <button
+              id="undo"
+              title="Undo (Ctrl or Command Z)"
+              aria-label="Undo"
+            >
+              ↶</button
+            ><button
+              id="redo"
+              title="Redo (Ctrl or Command Shift Z)"
+              aria-label="Redo"
+            >
+              ↷</button
+            ><span></span><button id="new" class="quiet">New comic</button>
+          </div>
+        </div>
+        <div class="editor-grid">
+          <aside class="toolbox">
+            <span class="label">MAKE A MARK</span>
+            <div class="tools" role="group" aria-label="Drawing tools">
+              <button data-tool="select" class="active">
+                <span>↖</span>Select & move<kbd>V</kbd>
+              </button>
+              <button data-tool="stick">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="5" r="3" />
+                  <path d="M12 8v8m-6-5 6 2 6-2m-6 5-5 6m5-6 5 6" /></svg
+                >Stick person<kbd>S</kbd>
+              </button>
+              <button data-tool="bubble">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 4H4v13h5l-1 5 6-5h6Z" /></svg
+                >Speech bubble<kbd>B</kbd>
+              </button>
+              <button data-tool="line"><span>╱</span>Line<kbd>L</kbd></button>
+              <button data-tool="pen">
+                <span>〰</span>Freehand draw<kbd>D</kbd>
+              </button>
+              <button data-tool="text"><span>T</span>Text<kbd>T</kbd></button>
+            </div>
+            <div class="tool-section">
+              <label class="label" for="ink">INK COLOR</label>
+              <div id="colors" class="colors">
+                <button
+                  data-color="#252b39"
+                  style="--swatch: #252b39"
+                  aria-label="Black ink"
+                  aria-pressed="true"
+                ></button
+                ><button
+                  data-color="#5355d8"
+                  style="--swatch: #5355d8"
+                  aria-label="Purple ink"
+                  aria-pressed="false"
+                ></button
+                ><button
+                  data-color="#dc644c"
+                  style="--swatch: #dc644c"
+                  aria-label="Coral ink"
+                  aria-pressed="false"
+                ></button
+                ><button
+                  data-color="#28876f"
+                  style="--swatch: #28876f"
+                  aria-label="Green ink"
+                  aria-pressed="false"
+                ></button
+                ><input
+                  id="ink"
+                  type="color"
+                  value="#252b39"
+                  aria-label="Custom ink color"
+                />
+              </div>
+              <label class="label range-label" for="weight"
+                >LINE WEIGHT <output id="weight-value">3</output></label
+              ><input id="weight" type="range" min="1" max="10" value="3" />
+            </div>
+            <div class="tool-section">
+              <label class="label" for="words">WORDS & BUBBLES</label
+              ><textarea
+                id="words"
+                maxlength="100"
+                rows="3"
+                placeholder="What happens next?"
+              >
+Hello, world!</textarea>
+              <p class="hint">Select a bubble or text to change its words.</p>
+            </div>
+            <div id="object-options" class="tool-section">
+              <label class="label" for="size">SELECTED SIZE</label
+              ><input
+                id="size"
+                type="range"
+                min="0.4"
+                max="2"
+                step="0.1"
+                value="1"
+              />
+              <div class="object-actions">
+                <button id="duplicate" title="Duplicate selected">
+                  Duplicate</button
+                ><button id="delete" title="Delete selected">Delete</button>
+              </div>
+            </div>
+            <div class="tip">
+              <span>✦</span>
+              <p>There’s no wrong way<br />to tell your story.</p>
+            </div>
+          </aside>
+          <div class="stage">
+            <div class="document-bar">
+              <label for="comic-title">ISSUE 01 /</label
+              ><input
+                id="comic-title"
+                maxlength="60"
+                value="My little adventure"
+                aria-label="Comic title"
+              /><span id="panel-count">3 PANELS</span>
+            </div>
+            <div class="paper-wrap">
+              <div class="paper">
+                <header class="paper-head">
+                  <span>KIGAZINE</span><span>THE COMIC EDITION</span>
+                </header>
+                <h2 id="paper-title">My little adventure</h2>
+                <div id="panels" class="panels"></div>
+                <footer class="paper-footer">
+                  <span>MADE WITH A LITTLE IMAGINATION.</span
+                  ><span>✦ KIGAZINE COMIC STUDIO</span>
+                </footer>
+              </div>
+            </div>
+            <div class="canvas-status">
+              <span id="tool-hint" role="status"
+                >Select a character or bubble and drag to move it.</span
+              ><span>✦ Made by you</span>
+            </div>
+          </div>
+          <aside class="storyboard">
+            <span class="label">YOUR STORY</span>
+            <p class="hint">One panel at a time.</p>
+            <div id="panel-list"></div>
+            <button id="add-panel" class="add-panel">＋ Add a panel</button>
+            <div class="story-note">
+              <span>1 → 2 → 3</span>
+              <h3>A tiny story recipe</h3>
+              <p>
+                A beginning.<br />A little surprise.<br />A brilliant ending.
+              </p>
+            </div>
+            <button id="clear-panel" class="quiet clear-panel">
+              Clear selected panel
+            </button>
+          </aside>
+        </div>
+        <div class="workspace-footer">
+          <span
+            >✎ A space for doodlers, daydreamers, and future comic
+            legends.</span
+          ><span>Draw something only you could.</span>
+        </div>
+      </section>
+      <footer class="page-footer">
+        <span>kigazine <b>✦</b> A little imagination goes a long way.</span
+        ><span id="privacy-note"
+          >Drafts stay in this browser. Export your favorites to keep
+          them.</span
+        >
+      </footer>
+    </main>
+  </body>
+</html>
