@@ -1490,6 +1490,19 @@
       }
     }
   </style>
+<style>
+.comic-launch { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:22px; margin-bottom:20px; border:1px solid #8783e5; border-radius:18px; background:linear-gradient(120deg,#252147,#1c2641); }
+.comic-launch h3 { margin:0 0 5px; color:#f2edff; font-size:23px; }
+.comic-launch p { margin:0; color:#c9c3df; font-size:14px; }
+.comic-launch a { flex-shrink:0; }
+.comic-dialog { width:min(1400px,98vw); max-width:98vw; height:min(920px,96dvh); max-height:96dvh; padding:0; border:0; border-radius:12px; background:#f7f6f2; }
+.comic-dialog::backdrop { background:#0f172ac9; }
+.comic-dialog-header { height:47px; padding:7px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; color:#252b39; font-size:12px; border-bottom:1px solid #ddd; }
+.comic-dialog-header button { background:white; border:1px solid #ddd; padding:6px 10px; border-radius:6px; cursor:pointer; }
+.comic-dialog iframe { display:block; width:100%; height:calc(100% - 47px); border:0; }
+[data-comic-edit] { margin:10px 0; }
+@media(max-width:650px) { .comic-launch { flex-direction:column; align-items:flex-start; } .comic-dialog-header { font-size:10px; } }
+</style>
 </head>
 <body>
   <a class="skip-link" href="#appMain">Skip to main content</a>
@@ -1503,8 +1516,8 @@
         <div class="hero-copy">
           <div class="floating-decor decor-star" aria-hidden="true">⭐</div>
           <div class="floating-decor decor-spark" aria-hidden="true">✨</div>
-          <h1>Read, write, and share magazines.</h1>
-          <p>Read right after you join. When you're ready to create, name your magazine series and make illustrated issues for editor review.</p>
+          <h1>Small doodles.<br>Big comic stories.</h1>
+          <p>Make a comic strip with stick people, speech bubbles, lines, and your own drawings. Turn your stories into magazine issues.</p><p style="margin-top:24px"><a class="btn btn-primary" href="comics.html">Try the comic studio →</a></p>
           <div class="hero-pills">
             <span class="pill">Review before public</span>
             <span class="pill">No personal info</span>
@@ -1583,7 +1596,7 @@
         <img class="brand-logo" src="logo.png" alt="Kigazine logo" />
         <div>
           <h1>Kigazine</h1>
-          <p>Kids can publish magazines</p>
+          <p>A space for comic makers</p>
         </div>
       </div>
 
@@ -1593,6 +1606,7 @@
         <button class="nav-btn" data-section="viewSection"><svg class="nav-icon" aria-hidden="true"><use href="#nav-book"/></svg>View</button>
         <button class="nav-btn" data-section="membersSection"><svg class="nav-icon" aria-hidden="true"><use href="#nav-users"/></svg>Members</button>
         <button class="nav-btn" data-section="createSection"><svg class="nav-icon" aria-hidden="true"><use href="#nav-edit"/></svg>Create</button>
+        <a class="nav-btn" href="comics.html"><svg class="nav-icon" aria-hidden="true"><use href="#nav-edit"/></svg>Comic Studio</a>
         <span class="nav-label">Explore</span>
         <a class="nav-btn" href="https://appletimes.kigazine.com"><svg class="nav-icon" aria-hidden="true"><use href="#nav-apple"/></svg>Apple Times</a>
         <button class="nav-btn" type="button" onclick="window.location.href='math-games.html'"><svg class="nav-icon" aria-hidden="true"><use href="#nav-grid"/></svg>Math Games</button>
@@ -1610,13 +1624,13 @@
     <main id="appMain" class="main">
       <section id="homeSection" class="section active">
         <div class="hero">
-          <div class="section-kicker">Safer Creative Space</div>
-          <h2>Welcome to Kigazine 🚀</h2>
-          <p>Write your own magazine, preview it, and submit it for review. Approved magazines can appear in the public feed, while private details stay out.</p>
+          <div class="section-kicker">The comic strip magazine space</div>
+          <h2>Your next comic starts here. ✦</h2>
+          <p>Add a stick person, draw a scene, and give your characters something to say. Build comic pages, collect them in a magazine, and send your issue for review.</p>
           <div class="hero-badges" aria-label="Highlights">
             <div class="hero-badge">
               <strong>Creative</strong>
-              Zines, clubs, stories, and fun ideas
+              Stick people, speech bubbles, and doodles
             </div>
             <div class="hero-badge">
               <strong>Checked</strong>
@@ -1628,7 +1642,8 @@
             </div>
           </div>
           <div class="hero-actions">
-  <button class="btn btn-primary" onclick="showSection('viewSection')">View magazines</button>
+  <a class="btn btn-primary" href="comics.html">Open Comic Studio</a>
+  <button class="btn btn-secondary" onclick="showSection('viewSection')">Read magazines</button>
   <button class="btn btn-secondary" onclick="showSection('createSection')">Create a magazine</button>
 </div>
 
@@ -1717,10 +1732,11 @@
         <div class="toolbar">
           <div>
             <div class="section-kicker">Your magazine series</div>
-            <h2 style="margin:0 0 6px;">Create a new issue</h2>
+            <h2 style="margin:0 0 6px;">Make your comic magazine</h2>
             <div class="muted">Name your series once, then design a cover and send each issue for review.</div>
           </div>
         </div>
+        <div class="comic-launch"><div><h3>Meet your inner comic artist.</h3><p>Stick people. Speech bubbles. A few lines. A whole new world.</p></div><a href="comics.html" class="btn btn-primary">Try the Comic Studio →</a></div>
         <div id="seriesSetup" class="card" style="margin-bottom:16px;">
           <h3>Your series name</h3>
           <p class="muted">You can read magazines without naming a series. To start publishing, choose a safe series name that does not reveal your real name, school, or contact information.</p>
@@ -1748,6 +1764,7 @@
                 <div id="pageEditors">
                   <div class="page-editor" data-page><div class="page-editor-header"><strong>Page 1</strong></div>
                     <textarea id="contentInput" class="textarea" maxlength="5200" placeholder="Write your first page here..."></textarea>
+                    <button type="button" class="btn btn-secondary" data-comic-edit>✎ Make or edit a comic strip</button>
                     <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
                     <div class="field-help" data-page-image-note>No illustration selected.</div>
                   </div>
@@ -1970,6 +1987,10 @@
     </div>
   </div>
 
+  <dialog id="comicDialog" class="comic-dialog" aria-label="Comic Studio">
+    <div class="comic-dialog-header"><span>Comic Studio · Click “Add to issue” to keep your edits.</span><button type="button" id="closeComicDialog">Close</button></div>
+    <iframe id="comicFrame" title="Kigazine comic strip editor" src="about:blank"></iframe>
+  </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>\n  <script src="emailjs-welcome.js"></script>\n  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import {
@@ -2040,6 +2061,7 @@
     let pendingProfilePhotoDataUrl = "";
     let pendingMagazinePhotoDataUrl = "";
     let pageImages = [""];
+    let pageComics = [null];
     let draftTimer;
     let activeSeriesUid = "";
     let activeIssueId = "";
@@ -2602,6 +2624,53 @@
           : "Draft looks okay so far. Keep checking for private details before you submit.";
     }
 
+    // Comic scenes stay editable in account-scoped local drafts. Only the flattened
+    // illustration and readable transcript enter the existing review pipeline.
+    const comicDialog = document.getElementById("comicDialog");
+    const comicFrame = document.getElementById("comicFrame");
+    let comicTarget = null;
+    pageEditors.addEventListener("click", event => {
+      const button = event.target.closest("[data-comic-edit]");
+      if (!button) return;
+      comicTarget = button.closest("[data-page]");
+      comicFrame.src = "comics.html?embed=1";
+      comicDialog.showModal();
+    });
+    document.getElementById("closeComicDialog").addEventListener("click", () => comicDialog.close());
+    comicDialog.addEventListener("close", () => { comicFrame.src = "about:blank"; comicTarget = null; });
+    window.addEventListener("message", event => {
+      if (event.origin !== location.origin || event.source !== comicFrame.contentWindow || !comicTarget || !currentUser) return;
+      const index = [...pageEditors.children].indexOf(comicTarget);
+      if (index < 0) return;
+      if (event.data?.type === "kigazine-comic-ready") {
+        comicFrame.contentWindow.postMessage({ type: "kigazine-comic-init", scene: pageComics[index] || null }, location.origin);
+        return;
+      }
+      if (event.data?.type !== "kigazine-comic-result") return;
+      const { image, text, scene } = event.data;
+      if (typeof image !== "string" || image.length > 110000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image) || typeof text !== "string" || text.length > 5200 || !scene || scene.version !== 1) return;
+      const textarea = comicTarget.querySelector("textarea");
+      const previous = pageComics[index];
+      const previousText = previous?.panels?.map((panel, i) => `Panel ${i + 1}: ${panel.filter(o => o.type === "bubble" || o.type === "text").map(o => o.text).join(" ") || "An illustrated scene."}`).join("\n") || "";
+      // Preserve authored captions and keep a separate, current comic transcript.
+      const caption = previousText && textarea.value.endsWith(previousText) ? textarea.value.slice(0, -previousText.length).trimEnd() : textarea.value.trim();
+      const nextText = caption ? `${caption}\n\n${text}` : text;
+      const otherLength = getPages().reduce((total, page, i) => total + (i === index ? 0 : page.text.length), 0);
+      if (nextText.length + otherLength > 5200) {
+        showPublishMessage("This comic’s words would exceed the 5200-character issue limit. Shorten the captions or bubble text, then add it again.", "error");
+        window.alert("This comic’s words would exceed the 5200-character issue limit. Shorten the captions or bubble text, then add it again.");
+        return;
+      }
+      pageImages[index] = image;
+      pageComics[index] = scene;
+      textarea.value = nextText;
+      comicTarget.querySelector("[data-page-image]").value = "";
+      comicTarget.querySelector("[data-page-image-note]").textContent = "Comic strip added. Edit it any time before submitting for review.";
+      comicDialog.close();
+      updatePreview();
+      queueDraftSave();
+    });
+
     function getPages() {
       return [...pageEditors.querySelectorAll("[data-page] textarea")].map((textarea, index) => ({
         text: textarea.value.trim(), imageDataUrl: pageImages[index] || ""
@@ -2615,7 +2684,7 @@
       try {
         localStorage.setItem(draftKey(), JSON.stringify({
           title: titleInput.value, description: descInput.value, pages: getPages(),
-          coverTheme: coverThemeInput.value, photoDataUrl: pendingMagazinePhotoDataUrl
+          coverTheme: coverThemeInput.value, photoDataUrl: pendingMagazinePhotoDataUrl, comicScenes: pageComics
         }));
         draftSaveStatus.textContent = "Draft saved on this device.";
       } catch {
@@ -2638,11 +2707,13 @@
       wrapper.dataset.page = "";
       wrapper.innerHTML = `<div class="page-editor-header"><strong>Page ${number}</strong><button type="button" class="btn btn-secondary" data-remove-page>Remove</button></div>
         <textarea class="textarea" maxlength="5200" placeholder="Write page ${number}..."></textarea>
-        <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+        <button type="button" class="btn btn-secondary" data-comic-edit>✎ Make or edit a comic strip</button>
+                    <label class="label">Page illustration (optional) <input class="input" type="file" data-page-image accept="image/png,image/jpeg,image/webp,image/gif" /></label>
         <div class="field-help" data-page-image-note></div>`;
       wrapper.querySelector("textarea").value = text;
       pageEditors.appendChild(wrapper);
       pageImages.push(imageDataUrl);
+      pageComics.push(null);
       wrapper.querySelector("[data-page-image-note]").textContent = imageDataUrl ? "Illustration saved in draft." : "No illustration selected.";
       addPageBtn.disabled = number >= 6;
       updatePreview();
@@ -2656,6 +2727,7 @@
       pageEditors.querySelectorAll("[data-page]").forEach((page, index) => { if (index) page.remove(); });
       contentInput.value = "";
       pageImages = [""];
+      pageComics = [null];
       pageEditors.querySelector("[data-page-image]").value = "";
       pageEditors.querySelector("[data-page-image-note]").textContent = "No illustration selected.";
       addPageBtn.disabled = false;
@@ -2679,6 +2751,7 @@
         pageImages[0] = saved.pages[0]?.imageDataUrl || "";
         pageEditors.querySelector("[data-page-image-note]").textContent = pageImages[0] ? "Illustration saved in draft." : "No illustration selected.";
         saved.pages.slice(1, 6).forEach(page => addPage(page.text || "", page.imageDataUrl || ""));
+        pageComics = saved.pages.slice(0, 6).map((_, index) => saved.comicScenes?.[index] || null);
         coverThemeInput.value = COVER_THEMES.includes(saved.coverTheme) ? saved.coverTheme : "navy";
         pendingMagazinePhotoDataUrl = sanitizePhotoDataUrl(saved.photoDataUrl || "");
         draftSaveStatus.textContent = "Your saved draft is ready.";
@@ -2693,6 +2766,7 @@
       const index = [...pageEditors.children].indexOf(page);
       page.remove();
       pageImages.splice(index, 1);
+      pageComics.splice(index, 1);
       pageEditors.querySelectorAll("[data-page] strong").forEach((label, i) => { label.textContent = `Page ${i + 1}`; });
       addPageBtn.disabled = false;
       updatePreview();
@@ -2711,6 +2785,7 @@
       const image = sanitizePhotoDataUrl(await readFileAsDataUrl(file));
       if (!image || image.length > 110000) { showPublishMessage("That page illustration is too large.", "error"); return; }
       pageImages[index] = image;
+      pageComics[index] = null;
       input.closest("[data-page]").querySelector("[data-page-image-note]").textContent = "Illustration added. A Kigazine reviewer will inspect it.";
       updatePreview();
     });
@@ -4340,6 +4415,7 @@
     }
 
     onAuthStateChanged(auth, async user => {
+      if (comicDialog.open) comicDialog.close();
       currentUser = user;
       if (user) {
         authScreen.classList.add("hidden");
